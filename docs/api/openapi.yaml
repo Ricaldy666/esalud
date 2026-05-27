@@ -1,0 +1,120 @@
+openapi: "3.0.3"
+info:
+  title: Esalud API
+  description: API del sistema de gestión estadística APS para CORMUDESI
+  version: "0.1.0"
+  contact:
+    name: Dorian
+    email: "[Por completar con Dorian]"
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Desarrollo local
+
+paths:
+  /health:
+    get:
+      summary: Verificar estado del servicio
+      operationId: healthCheck
+      tags:
+        - Sistema
+      responses:
+        "200":
+          description: Servicio operativo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /login:
+    post:
+      summary: Iniciar sesión
+      operationId: login
+      tags:
+        - Autenticación
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        $ref: "#/components/schemas/User"
+        "401":
+          description: Credenciales inválidas
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        rut:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        health_center:
+          $ref: "#/components/schemas/HealthCenter"
+      required:
+        - id
+        - rut
+        - name
+        - email
+
+    HealthCenter:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code_deis:
+          type: string
+        type:
+          type: string
+          enum:
+            - CESFAM
+            - CECOSF
+            - SAPU
+            - POSTA
+        commune:
+          type: string
+      required:
+        - id
+        - name
+        - code_deis
+        - type
+        - commune
