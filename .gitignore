@@ -1,0 +1,23 @@
+# Dependencias
+node_modules/
+vendor/
+
+# Archivos de entorno
+.env
+.env.*
+
+# Laravel
+backend/vendor/
+backend/.env
+backend/storage/logs/*.log
+
+# React / Vite
+frontend/node_modules/
+frontend/dist/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
