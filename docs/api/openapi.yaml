@@ -23,14 +23,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
-                  timestamp:
-                    type: string
-                    format: date-time
+                $ref: "#/components/schemas/ApiResponse_HealthData"
+        "500":
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse_Error"
 
   /login:
     post:
@@ -74,6 +73,62 @@ paths:
 
 components:
   schemas:
+    ApiResponse_HealthData:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/HealthData"
+        message:
+          type: string
+          example: Service is healthy
+        errors:
+          type: "null"
+      required:
+        - data
+        - message
+        - errors
+
+    ApiResponse_Error:
+      type: object
+      properties:
+        data:
+          type: "null"
+        message:
+          type: string
+          example: Error interno del servidor
+        errors:
+          type: object
+          nullable: true
+          additionalProperties:
+            type: array
+            items:
+              type: string
+      required:
+        - data
+        - message
+        - errors
+
+    HealthData:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+        service:
+          type: string
+          example: esalud-api
+        version:
+          type: string
+          example: 0.1.0
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - status
+        - service
+        - version
+        - timestamp
+
     User:
       type: object
       properties:
