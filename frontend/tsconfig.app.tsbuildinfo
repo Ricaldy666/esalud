@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/vite-env.d.ts","./src/app/providers/queryprovider.tsx","./src/app/router/index.tsx","./src/features/health/index.ts","./src/features/health/types.ts","./src/features/health/hooks/usehealthcheck.ts","./src/features/health/services/healthservice.ts","./src/pages/healthcheckpage.tsx","./src/shared/services/api.ts"],"version":"5.8.3"}
