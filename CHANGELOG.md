@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.2.0] — 2026-05-28
+
+### Added
+
+**Fase 02 — Autenticación y entidades base**
+
+- Entidad health_centers con migración, modelo y soft deletes
+- Migración add_fields_to_users (rut, health_center_id, is_active, last_login_at, softDeletes)
+- User model actualizado con traits: HasApiTokens, HasRoles, LogsActivity, SoftDeletes
+- Spatie Permission instalado con roles: Administrador, Analista, Lector
+- Spatie Activitylog instalado con logging de cambios en User
+- AuthController: login (Sanctum SPA con sesión), logout, me
+- LoginRequest con validación de email/password
+- UserResource con datos de usuario, roles y timestamps
+- Rutas /auth/login, /auth/logout, /auth/me
+- Seeders: RoleSeeder, HealthCenterSeeder (4 centros), AdminUserSeeder (admin@esalud.cl)
+- Session middleware agregado a API routes para Sanctum SPA
+
+**Frontend Fase 02**
+
+- Zustand para estado global de autenticación (authStore)
+- shadcn/ui (base-nova) instalado con Tailwind v4: Button, Input, Label, Card
+- Auth feature completa: types, service (login/logout/me), hooks (useLogin, useLogout, useAuthInit)
+- LoginForm con react-hook-form, validación y errores por campo
+- AuthLayout y AppLayout con sidebar, navbar y botón de logout
+- ProtectedRoute que redirige a /login si no hay sesión
+- LoginPage y DashboardPage
+- App.tsx con useAuthInit para mantener sesión al recargar
+- Vite proxy para Sanctum cookies en desarrollo (/api y /sanctum → :8000)
+
+### Changed
+
+- `shared/services/api.ts` — refactor a named exports ({ api, fetchCsrfCookie })
+- `shared/types/api.ts` — nuevo tipo genérico ApiResponse<T>
+- `vite.config.ts` — proxy agregado para Sanctum SPA
+- `bootstrap/app.php` — session middleware en API routes
+
 ## [0.1.0] — 2026-05-28
 
 ### Added

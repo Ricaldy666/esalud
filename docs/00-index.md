@@ -1,6 +1,6 @@
 # Índice de documentación
 
-> Fecha: 2026-05-27
+> Fecha: 2026-05-28
 
 ## Arquitectura
 
@@ -23,6 +23,8 @@
 | [ADR 0002](adr/0002-mysql-como-bd.md) | MySQL como base de datos principal |
 | [ADR 0003](adr/0003-typescript-frontend.md) | TypeScript en el frontend |
 | [ADR 0004](adr/0004-arquitectura-dos-repositorios.md) | Arquitectura de dos repositorios |
+| [ADR 0005](adr/0005-fase-01-decisiones-tecnicas.md) | Decisiones técnicas de Fase 01 |
+| [ADR 0006](adr/0006-estrategia-autenticacion.md) | Estrategia de autenticación (Fase 02) |
 
 ## Compliance (Ley 21.663)
 

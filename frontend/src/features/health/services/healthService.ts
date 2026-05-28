@@ -1,4 +1,4 @@
-import api from '@/shared/services/api'
+import { api } from '@/shared/services/api'
 import type { HealthResponse } from '../types'
 
 export async function getHealthStatus(): Promise<HealthResponse> {

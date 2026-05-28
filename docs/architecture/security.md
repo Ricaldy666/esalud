@@ -1,18 +1,32 @@
 # Seguridad
 
-> Fecha: 2026-05-27
+> Fecha: 2026-05-28
 
 ## Autenticación
 
-- **Sanctum** para autenticación SPA y API token
-- Tokens con expiración configurable
-- Sesiones HTTP-only para la SPA (SameSite=Strict)
+- **Sanctum** en modo SPA (statefulApi) con guard `web`
+- Sesiones en cookies HttpOnly (SameSite=Strict)
+- Cookie CSRF (`XSRF-TOKEN`) para prevenir ataques CSRF
+- Sin almacenamiento de tokens en el cliente (ni localStorage, ni sessionStorage)
+- Endpoints: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`
+
+### Flujo de autenticación
+
+1. Frontend llama a `GET /sanctum/csrf-cookie` para obtener la cookie CSRF
+2. Frontend envía `POST /auth/login` con email y password
+3. Laravel verifica credenciales con `Auth::attempt()`, regenera la sesión y actualiza `last_login_at`
+4. Peticiones autenticadas usan `auth:sanctum` middleware
+5. Al cerrar sesión, se invalida la sesión y se regenera el token CSRF
+
+### Mantenimiento de sesión
+
+El frontend llama a `GET /auth/me` al cargar la aplicación (useAuthInit). Si la sesión es válida, restaura el usuario en el store. Si no, redirige al login.
 
 ## Autorización
 
 - **Spatie Permission** para RBAC
-- Roles: Administrador, Gestor, Visualizador
-- Permisos granular por funcionalidad (ej: `rem.upload`, `goals.evaluate`)
+- Roles: Administrador, Analista, Lector
+- Permisos granular por funcionalidad (ej: `rem.upload`, `goals.evaluate`) — pendiente Fase 03+
 
 ## Cifrado
 
@@ -29,6 +43,7 @@
 ## Auditoría
 
 - **Spatie Activitylog** registra toda operación CRUD sobre datos sensibles
+- User model loguea cambios en: name, email, is_active, health_center_id
 - Registro incluye: usuario, acción, modelo, cambios, IP, timestamp
 - Retención mínima de 1 año
 

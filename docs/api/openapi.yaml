@@ -2,7 +2,7 @@ openapi: "3.0.3"
 info:
   title: Esalud API
   description: API del sistema de gestión estadística APS para CORMUDESI
-  version: "0.1.0"
+  version: "0.2.0"
   contact:
     name: Dorian
     email: "[Por completar con Dorian]"
@@ -31,10 +31,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/ApiResponse_Error"
 
-  /login:
+  /auth/login:
     post:
       summary: Iniciar sesión
-      operationId: login
+      operationId: authLogin
       tags:
         - Autenticación
       requestBody:
@@ -59,19 +59,53 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      token:
-                        type: string
-                      user:
-                        $ref: "#/components/schemas/User"
-        "401":
+                $ref: "#/components/schemas/ApiResponse_User"
+        "422":
           description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse_Error"
+
+  /auth/me:
+    get:
+      summary: Obtener usuario autenticado
+      operationId: authMe
+      tags:
+        - Autenticación
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse_User"
+
+  /auth/logout:
+    post:
+      summary: Cerrar sesión
+      operationId: authLogout
+      tags:
+        - Autenticación
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Sesión cerrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse_Null"
 
 components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: laravel_session
+
   schemas:
     ApiResponse_HealthData:
       type: object
@@ -88,6 +122,36 @@ components:
         - message
         - errors
 
+    ApiResponse_User:
+      type: object
+      properties:
+        data:
+          $ref: "#/components/schemas/User"
+        message:
+          type: string
+          example: Inicio de sesión exitoso
+        errors:
+          type: "null"
+      required:
+        - data
+        - message
+        - errors
+
+    ApiResponse_Null:
+      type: object
+      properties:
+        data:
+          type: "null"
+        message:
+          type: string
+          example: Sesión cerrada exitosamente
+        errors:
+          type: "null"
+      required:
+        - data
+        - message
+        - errors
+
     ApiResponse_Error:
       type: object
       properties:
@@ -95,7 +159,7 @@ components:
           type: "null"
         message:
           type: string
-          example: Error interno del servidor
+          example: Error de validación
         errors:
           type: object
           nullable: true
@@ -141,13 +205,25 @@ components:
         email:
           type: string
           format: email
-        health_center:
-          $ref: "#/components/schemas/HealthCenter"
+        is_active:
+          type: boolean
+        health_center_id:
+          type: integer
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+        last_login_at:
+          type: string
+          format: date-time
+          nullable: true
       required:
         - id
-        - rut
         - name
         - email
+        - is_active
+        - roles
 
     HealthCenter:
       type: object
@@ -163,13 +239,20 @@ components:
           enum:
             - CESFAM
             - CECOSF
+            - PSR
             - SAPU
-            - POSTA
+            - SAR
+            - OTRO
+        address:
+          type: string
+          nullable: true
         commune:
           type: string
+          nullable: true
+        is_active:
+          type: boolean
       required:
         - id
         - name
         - code_deis
         - type
-        - commune

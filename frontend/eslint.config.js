@@ -22,4 +22,13 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },
+  // Override para componentes shadcn/ui
+  // shadcn/ui exporta componente + variantes en el mismo archivo, lo cual viola
+  // react-refresh/only-export-components. Esta regla se desactiva solo para esta carpeta.
+  {
+    files: ['src/shared/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])
