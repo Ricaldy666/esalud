@@ -1,7 +1,7 @@
 # Modelo Entidad-Relación
 
-> Estado: **PRELIMINAR** — Se refinará durante Fases 3-4
-> Fecha: 2026-05-27
+> Estado: **EN DESARROLLO** — Tablas users y health_centers implementadas (Fase 03)
+> Fecha: 2026-05-28
 
 ## Diagrama ER
 

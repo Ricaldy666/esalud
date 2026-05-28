@@ -1,5 +1,66 @@
 # Changelog
 
+## [0.3.0] — 2026-05-28
+
+### Added
+
+**Backend — CRUDs de administración**
+
+- UserPolicy, HealthCenterPolicy, ActivityLogPolicy (solo Administrador)
+- AuthServiceProvider con registro explícito de policies
+- Controller base con AuthorizesRequests y ValidatesRequests
+- StoreUserRequest + UpdateUserRequest con validación de RUT chileno
+- UserController: index con filtros (search, role, is_active, health_center_id), paginación, create, update, destroy (protege auto-eliminación)
+- HealthCenterController: index con búsqueda y filtros, CRUD completo, bloquea eliminación con usuarios asociados
+- UserResource extendido con health_center embed, created_at, updated_at
+- HealthCenterResource con users_count
+- RoleController: GET /roles (lista de roles Spatie)
+- ActivityLogController: GET /activity-log con filtros (subject_type, subject_id, causer_id, event, fechas)
+- ActivityLogResource con relación causer y properties
+- ActivityLogPolicy para restringir acceso solo a Administradores
+- HealthCenter model: getActivitylogOptions para auditoría
+
+**Frontend — Infraestructura**
+
+- @tanstack/react-table instalado
+- shadcn/ui: table, dialog, dropdown-menu, select, badge, alert-dialog, skeleton, sonner, toast
+- ApiResponse<T> extendido con PaginationMeta, PaginatedResponse<T>, ApiError
+- DataTable: componente genérico con TanStack Table + shadcn, paginación, búsqueda, loading skeleton, empty state
+- ConfirmDialog: wrapper de AlertDialog con variante destructive
+- PageHeader: título + descripción + acciones
+- EmptyState: icono + mensaje + acción
+- usePermissions: hook con hasRole, isAdmin, isAnalista, isLector
+- RoleProtectedRoute: guard por rol en React Router
+- AppLayout actualizado: sidebar condicional por rol (Usuarios/Centros/Auditoría solo Admin), navbar con dropdown del usuario, sonner Toaster global
+
+**Frontend — Módulo de Usuarios**
+
+- Tipos: User, UserFilters, CreateUserData, UpdateUserData
+- Servicio: list/get/create/update/remove con CSRF
+- Hooks React Query: useUsers, useUser, useCreateUser, useUpdateUser, useDeleteUser
+- Schemas Zod con validación de RUT chileno y confirmación de password
+- UserForm: react-hook-form + zodResolver, selects de rol y centro de salud
+- UsersTable: DataTable con columnas (Nombre, RUT, Email, Rol, Centro, Estado, Último login, Acciones)
+- UserDialog: Dialog wrapper para crear/editar
+- UsersPage: filtros, tabla paginada, CRUD completo con confirmación y sonner toasts
+
+**Frontend — Módulo de Centros de Salud**
+
+- Misma estructura que usuarios: types, service, hooks, schemas, HealthCenterForm, HealthCentersTable, HealthCenterDialog
+- Campos: name, code_deis, type (select enum), address, commune, is_active
+- HealthCentersPage con filtros y CRUD
+
+**Frontend — Módulo de Auditoría**
+
+- AuditService + useActivityLog hook
+- AuditTable: read-only con columnas (Fecha, Usuario, Acción, Entidad), click abre detalle
+- AuditDetailDialog: muestra los cambios en formato JSON
+- AuditPage con filtros (evento, entidad, rango de fechas)
+
+### Fixed
+
+- Se verificó que QueryProvider ya está correctamente montado en main.tsx (no era un bug)
+
 ## [0.2.0] — 2026-05-28
 
 ### Added
