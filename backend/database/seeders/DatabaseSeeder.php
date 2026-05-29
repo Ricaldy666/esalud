@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             HealthCenterSeeder::class,
             AdminUserSeeder::class,
+            RemTemplateSeeder::class,
         ]);
     }
 }

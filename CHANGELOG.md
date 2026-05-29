@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.4.0-alpha] — 2026-05-29
+
+### Added
+
+**Fase 04A — Modelos REM y upload básico**
+
+- Filesystem disk `rem-uploads` configurado (storage/app/rem-uploads/)
+- Migraciones: rem_templates, rem_uploads, rem_data (3 tablas nuevas)
+- RemTemplate model con scopes active(), forYearAndType(), SoftDeletes + LogsActivity
+- RemUpload model con uuid automático, 4 relaciones, 4 scopes de filtro
+- RemData model con relación a RemUpload
+- RemUploadPolicy: Admin ve todo, Analista/Lector ve su centro o sus uploads, create solo Admin/Analista
+- RemTemplatePolicy: lectura pública autenticada, CRUD solo Admin
+- RemDataPolicy: delega a RemUploadPolicy
+- StoreRemUploadRequest con validación: xlsx/xlsm/xls, max 10MB, año 2015-2030
+- RemUploadController: index con filtros + paginación + restricción por rol, show con remData, store con guardado en disco, destroy (soft delete)
+- RemTemplateController: index y show (solo lectura)
+- RemUploadResource + RemTemplateResource
+- 6 rutas nuevas (22 total): rem-uploads.index, .show, .store, .destroy + rem-templates.index, .show
+- RemTemplateSeeder: 5 registros 2026 (A/BM/BS/D/P) con config placeholder
+- ADR 0008: Estrategia de almacenamiento de archivos REM
+- OpenAPI actualizado con schemas RemUpload, RemTemplate, PaginationMeta
+- AuthenticationException manejado como JSON 401 para rutas API sin sesión
+
+### Changed
+
+- `database-er.md`: 3 tablas REM marcadas como implementadas
+- `PROJECT_STATE.md`: Fase 04A completada
+
 ## [0.3.0] — 2026-05-28
 
 ### Added

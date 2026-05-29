@@ -1,7 +1,7 @@
 # Modelo Entidad-Relación
 
-> Estado: **EN DESARROLLO** — Tablas users y health_centers implementadas (Fase 03)
-> Fecha: 2026-05-28
+> Estado: **EN DESARROLLO** — Tablas users, health_centers, rem_templates, rem_uploads, rem_data implementadas (Fase 04A)
+> Fecha: 2026-05-29
 
 ## Diagrama ER
 
@@ -48,47 +48,53 @@ erDiagram
 | is_active | BOOLEAN | DEFAULT TRUE |
 | timestamps | TIMESTAMP | created_at, updated_at |
 
-### rem_templates
+### rem_templates ✅ (Fase 04A)
 
 | Campo | Tipo | Restricciones |
 |---|---|---|
 | id | BIGINT UNSIGNED | PK, Auto Increment |
 | year | SMALLINT UNSIGNED | NOT NULL |
-| rem_type | VARCHAR(20) | NOT NULL |
+| rem_type | VARCHAR(10) | NOT NULL |
+| version | VARCHAR(20) | NOT NULL |
 | config | JSON | NOT NULL |
 | is_active | BOOLEAN | DEFAULT TRUE |
 | timestamps | TIMESTAMP | created_at, updated_at |
+| soft_deletes | TIMESTAMP | deleted_at NULL |
 
 `UNIQUE(year, rem_type)` — solo una plantilla por año/tipo.
 
-### rem_uploads
+### rem_uploads ✅ (Fase 04A)
 
 | Campo | Tipo | Restricciones |
 |---|---|---|
 | id | BIGINT UNSIGNED | PK, Auto Increment |
 | uuid | CHAR(36) | UNIQUE, NOT NULL |
-| health_center_id | BIGINT UNSIGNED | FK → health_centers.id |
-| user_id | BIGINT UNSIGNED | FK → users.id |
-| rem_template_id | BIGINT UNSIGNED | FK → rem_templates.id |
+| health_center_id | BIGINT UNSIGNED | FK → health_centers.id, RESTRICT |
+| user_id | BIGINT UNSIGNED | FK → users.id, RESTRICT |
+| rem_template_id | BIGINT UNSIGNED | FK → rem_templates.id, SET NULL |
 | year | SMALLINT UNSIGNED | NOT NULL |
 | month | TINYINT UNSIGNED | NOT NULL |
-| rem_type | VARCHAR(20) | NOT NULL |
+| rem_type | VARCHAR(10) | NOT NULL |
 | original_filename | VARCHAR(255) | NOT NULL |
 | stored_path | VARCHAR(500) | NOT NULL |
-| status | ENUM('pending','processing','completed','failed') | NOT NULL |
+| file_size | INT UNSIGNED | NOT NULL |
+| mime_type | VARCHAR(100) | NOT NULL |
+| status | VARCHAR(20) | NOT NULL |
 | error_report | JSON | NULL |
 | processed_at | TIMESTAMP | NULL |
 | timestamps | TIMESTAMP | created_at, updated_at |
+| soft_deletes | TIMESTAMP | deleted_at NULL |
 
 `INDEX(health_center_id, year, month, rem_type)` — búsqueda por centro y período.
+`INDEX(status)` — filtro por estado de procesamiento.
 
-### rem_data
+### rem_data ✅ (Fase 04A)
 
 | Campo | Tipo | Restricciones |
 |---|---|---|
 | id | BIGINT UNSIGNED | PK, Auto Increment |
 | rem_upload_id | BIGINT UNSIGNED | FK → rem_uploads.id, ON DELETE CASCADE |
-| section | VARCHAR(100) | NOT NULL |
+| section | VARCHAR(20) | NOT NULL |
 | data | JSON | NOT NULL |
 | timestamps | TIMESTAMP | created_at, updated_at |
 
@@ -217,12 +223,13 @@ Esquema estándar del paquete `spatie/laravel-permission`:
 - PK: `id BIGINT UNSIGNED AUTO_INCREMENT`
 - FK: `singular_id` → `tabla.id`
 - `timestamps` (created_at, updated_at) en todas las tablas
-- Soft deletes en tablas de dominio (users, health_centers, rem_templates)
+- Soft deletes en tablas de dominio (users, health_centers, rem_templates, rem_uploads)
 - Índices en todas las FK
 
 ## Decisiones pendientes
 
-- [Por completar con Dorian] Esquema de índices adicionales para consultas analíticas
-- [Por completar con Dorian] Política de retención de datos históricos REM
-- [Por completar con Dorian] Estructura exacta del JSON en rem_data (secciones REM)
-- [Por completar con Dorian] Periodicidad de evaluación de metas (mensual/trimestral)
+- [x] Esquema de almacenamiento de archivos REM definido (ADR 0008, disco 'rem-uploads')
+- [x] Política de retención: indefinida con soft delete (cumple Ley 21.663)
+- [ ] [Por completar con Dorian] Estructura exacta del JSON en rem_data (secciones REM) — Fase 04B
+- [x] Tablas rem_templates, rem_uploads, rem_data implementadas (Fase 04A)
+- [ ] [Por completar con Dorian] Periodicidad de evaluación de metas (mensual/trimestral)

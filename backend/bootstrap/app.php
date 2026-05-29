@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
@@ -30,4 +31,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        $exceptions->render(function (AuthenticationException $e, Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'data' => null,
+                    'message' => 'No autenticado',
+                    'errors' => ['auth' => ['Debe iniciar sesión para acceder a este recurso.']],
+                ], 401);
+            }
+        });
     })->create();

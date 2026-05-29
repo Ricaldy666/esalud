@@ -6,6 +6,8 @@ use App\Domain\Users\Controllers\UserController;
 use App\Domain\HealthCenters\Controllers\HealthCenterController;
 use App\Domain\Roles\Controllers\RoleController;
 use App\Domain\Audit\Controllers\ActivityLogController;
+use App\Domain\REM\Controllers\RemUploadController;
+use App\Domain\REM\Controllers\RemTemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -25,5 +27,14 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('health-centers', HealthCenterController::class);
         Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
         Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
+
+        Route::apiResource('rem-uploads', RemUploadController::class)
+            ->only(['index', 'show', 'store', 'destroy'])
+            ->parameter('rem-uploads', 'remUpload');
+
+        Route::get('/rem-templates', [RemTemplateController::class, 'index'])
+            ->name('rem-templates.index');
+        Route::get('/rem-templates/{remTemplate}', [RemTemplateController::class, 'show'])
+            ->name('rem-templates.show');
     });
 });

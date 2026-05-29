@@ -2,7 +2,7 @@ openapi: "3.0.3"
 info:
   title: Esalud API
   description: API del sistema de gestión estadística APS para CORMUDESI
-  version: "0.2.0"
+  version: "0.4.0-alpha"
   contact:
     name: Dorian
     email: "[Por completar con Dorian]"
@@ -98,6 +98,222 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiResponse_Null"
+
+  /rem-templates:
+    get:
+      summary: Listar plantillas REM activas
+      operationId: listRemTemplates
+      tags:
+        - REM
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Lista de plantillas REM
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RemTemplate"
+                  message:
+                    type: string
+                  errors:
+                    type: "null"
+
+  /rem-templates/{remTemplate}:
+    get:
+      summary: Obtener detalle de plantilla REM
+      operationId: showRemTemplate
+      tags:
+        - REM
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: remTemplate
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Detalle de plantilla REM (incluye config)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RemTemplateDetail"
+                  message:
+                    type: string
+                  errors:
+                    type: "null"
+
+  /rem-uploads:
+    get:
+      summary: Listar cargas REM
+      operationId: listRemUploads
+      tags:
+        - REM
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: month
+          in: query
+          schema:
+            type: integer
+        - name: rem_type
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: health_center_id
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Lista paginada de cargas REM
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RemUpload"
+                  meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+                  message:
+                    type: string
+                  errors:
+                    type: "null"
+
+    post:
+      summary: Subir archivo REM
+      operationId: storeRemUpload
+      tags:
+        - REM
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                year:
+                  type: integer
+                month:
+                  type: integer
+                rem_type:
+                  type: string
+                health_center_id:
+                  type: integer
+              required:
+                - file
+                - year
+                - month
+                - rem_type
+                - health_center_id
+      responses:
+        "201":
+          description: Archivo REM cargado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RemUpload"
+                  message:
+                    type: string
+                  errors:
+                    type: "null"
+        "422":
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse_Error"
+
+  /rem-uploads/{remUpload}:
+    get:
+      summary: Obtener detalle de carga REM
+      operationId: showRemUpload
+      tags:
+        - REM
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: remUpload
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Detalle de carga REM con datos procesados
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/RemUploadDetail"
+                  message:
+                    type: string
+                  errors:
+                    type: "null"
+
+    delete:
+      summary: Eliminar carga REM (soft delete)
+      operationId: destroyRemUpload
+      tags:
+        - REM
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: remUpload
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Carga REM eliminada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: "null"
+                  message:
+                    type: string
+                  errors:
+                    type: "null"
 
 components:
   securitySchemes:
@@ -256,3 +472,154 @@ components:
         - name
         - code_deis
         - type
+
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+      required:
+        - current_page
+        - last_page
+        - per_page
+        - total
+
+    RemTemplate:
+      type: object
+      properties:
+        id:
+          type: integer
+        year:
+          type: integer
+        rem_type:
+          type: string
+        version:
+          type: string
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - year
+        - rem_type
+        - version
+        - is_active
+
+    RemTemplateDetail:
+      allOf:
+        - $ref: "#/components/schemas/RemTemplate"
+        - type: object
+          properties:
+            config:
+              type: object
+          required:
+            - config
+
+    RemUpload:
+      type: object
+      properties:
+        id:
+          type: integer
+        uuid:
+          type: string
+          format: uuid
+        year:
+          type: integer
+        month:
+          type: integer
+        rem_type:
+          type: string
+        original_filename:
+          type: string
+        file_size:
+          type: integer
+        mime_type:
+          type: string
+        status:
+          type: string
+          enum:
+            - pending
+            - processing
+            - success
+            - with_errors
+            - failed
+        error_report:
+          type: object
+          nullable: true
+        health_center:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            type:
+              type: string
+        user:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+            email:
+              type: string
+        rem_template:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            version:
+              type: string
+        processed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - uuid
+        - year
+        - month
+        - rem_type
+        - original_filename
+        - file_size
+        - mime_type
+        - status
+        - created_at
+
+    RemUploadDetail:
+      allOf:
+        - $ref: "#/components/schemas/RemUpload"
+        - type: object
+          properties:
+            rem_data:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  section:
+                    type: string
+                  data:
+                    type: object
