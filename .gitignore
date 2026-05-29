@@ -30,3 +30,6 @@ desktop.ini
 # Editor
 .vscode/
 .idea/
+
+# Recursos REM oficiales (no versionar - materiales MINSAL/SST)
+recursos-rem/
