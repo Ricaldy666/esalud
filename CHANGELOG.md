@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.1-alpha] — 2026-05-29
+
+### Added
+
+**Fase 04B-1 — Discovery infrastructure**
+
+- `phpoffice/phpspreadsheet` v5.7.0 instalado (parser de archivos Excel)
+- Filesystem disk `rem-discovery` configurado (storage/app/rem-discovery/)
+- `RemDiscoveryService`: analiza estructura de archivos .xlsm/.xlsx (hojas, dimensiones, merged cells, fórmulas, sample data, detección de headers)
+- `RemDiscoverCommand`: comando `php artisan rem:discover {path}` con output dual JSON+MD
+- Discovery ejecutado sobre `SA_26_V1.2-2.xlsm` (REM A real): 30 hojas analizadas, reportes generados
+- Ruta `GET /api/v1/rem-discovery/latest` (solo admin) para consultar último discovery
+- Bitácora: `fase-04b-1-discovery/` con prompt, resultado, decisiones, pruebas y reporte MD
+
+### Changed
+
+- `PROJECT_STATE.md`: Fase 04B-1 completada, próxima 04B-2
+
 ## [0.4.0-alpha] — 2026-05-29
 
 ### Added

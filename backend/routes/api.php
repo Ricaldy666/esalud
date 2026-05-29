@@ -8,7 +8,9 @@ use App\Domain\Roles\Controllers\RoleController;
 use App\Domain\Audit\Controllers\ActivityLogController;
 use App\Domain\REM\Controllers\RemUploadController;
 use App\Domain\REM\Controllers\RemTemplateController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::prefix('v1')->group(function () {
     Route::get('/health', HealthController::class)->name('health');
@@ -36,5 +38,27 @@ Route::prefix('v1')->group(function () {
             ->name('rem-templates.index');
         Route::get('/rem-templates/{remTemplate}', [RemTemplateController::class, 'show'])
             ->name('rem-templates.show');
+
+        Route::get('/rem-discovery/latest', function (Request $request) {
+            abort_unless($request->user()->hasRole('Administrador'), 403);
+
+            $files = Storage::disk('rem-discovery')->files();
+            $jsonFiles = collect($files)->filter(fn($f) => str_ends_with($f, '.json'))->sortDesc();
+
+            if ($jsonFiles->isEmpty()) {
+                return response()->json([
+                    'data' => null,
+                    'message' => 'No hay discoveries generados aun',
+                    'errors' => null,
+                ]);
+            }
+
+            $latest = $jsonFiles->first();
+            return response()->json([
+                'data' => json_decode(Storage::disk('rem-discovery')->get($latest), true),
+                'message' => 'Discovery mas reciente',
+                'errors' => null,
+            ]);
+        })->name('rem-discovery.latest');
     });
 });
