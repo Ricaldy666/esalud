@@ -1,6 +1,6 @@
 # Modelo Entidad-Relación
 
-> Estado: **EN DESARROLLO** — Tablas users, health_centers, rem_templates, rem_uploads, rem_data implementadas (Fase 04A)
+> Estado: **EN DESARROLLO** — Tablas users, health_centers, rem_templates, rem_uploads, rem_data implementadas (Fase 04A + 04B-2a)
 > Fecha: 2026-05-29
 
 ## Diagrama ER
@@ -230,6 +230,6 @@ Esquema estándar del paquete `spatie/laravel-permission`:
 
 - [x] Esquema de almacenamiento de archivos REM definido (ADR 0008, disco 'rem-uploads')
 - [x] Política de retención: indefinida con soft delete (cumple Ley 21.663)
-- [ ] [Por completar con Dorian] Estructura exacta del JSON en rem_data (secciones REM) — Fase 04B
-- [x] Tablas rem_templates, rem_uploads, rem_data implementadas (Fase 04A)
+- [x] Estructura JSON de rem_data definida en Fase 04B-2a (concept, professional, total, values, section)
+- [x] Tablas rem_templates, rem_uploads, rem_data implementadas (Fase 04A + 04B-2a)
 - [ ] [Por completar con Dorian] Periodicidad de evaluación de metas (mensual/trimestral)

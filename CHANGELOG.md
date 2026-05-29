@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.2-alpha] — 2026-05-29
+
+### Added
+
+**Fase 04B-2a — Parser piloto asíncrono (Hoja A01)**
+
+- `RemParserService` + `ParseResult`: analiza archivos REM usando config JSON del template
+- `ProcessRemUploadJob`: job async con transición pending→processing→success/with_errors/failed
+- `error_report` celda por celda con validación de tipo entero, rango y nulos
+- `RemReprocessCommand`: `php artisan rem:reprocess {uploadId}` para re-procesar uploads
+- `RemInspectSheetCommand`: `php artisan rem:inspect-sheet {path} {sheet}` para inspección visual
+- Template REM A actualizado con config detallada de hoja A01 (31 columnas, grupos etarios, indicadores)
+- Concept carry-forward: filas con concepto vacío heredan el último concepto conocido
+- Endpoint `GET /api/v1/rem-uploads/{id}/status` para polling de estado de procesamiento
+- Upload id=1 procesado exitosamente: 22 filas extraídas (11 conceptos × 2 profesionales), status success
+- ADR 0009: Arquitectura de procesamiento REM asíncrono
+
+### Changed
+
+- `RemUploadController@store`: ahora dispara `ProcessRemUploadJob` automáticamente
+- `RemTemplateSeeder`: usa `updateOrCreate`, config detallada para REM A (hoja A01)
+- `PROJECT_STATE.md`: Fase 04B-2a completada
+
 ## [0.4.1-alpha] — 2026-05-29
 
 ### Added

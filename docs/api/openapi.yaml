@@ -287,6 +287,61 @@ paths:
                   errors:
                     type: "null"
 
+  /rem-uploads/{remUpload}/status:
+    get:
+      summary: Obtener estado de procesamiento de carga REM
+      operationId: statusRemUpload
+      tags:
+        - REM
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: remUpload
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Estado de procesamiento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      uuid:
+                        type: string
+                      status:
+                        type: string
+                        enum: [pending, processing, success, with_errors, failed]
+                      processed_at:
+                        type: string
+                        format: date-time
+                        nullable: true
+                      has_errors:
+                        type: boolean
+                      error_summary:
+                        type: object
+                        nullable: true
+                        properties:
+                          total_rows_processed:
+                            type: integer
+                          total_cells_parsed:
+                            type: integer
+                          total_error_cells:
+                            type: integer
+                      data_rows_count:
+                        type: integer
+                  message:
+                    type: string
+                  errors:
+                    type: "null"
+
     delete:
       summary: Eliminar carga REM (soft delete)
       operationId: destroyRemUpload

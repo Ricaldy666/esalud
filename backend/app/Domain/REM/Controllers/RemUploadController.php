@@ -2,6 +2,7 @@
 
 namespace App\Domain\REM\Controllers;
 
+use App\Domain\REM\Jobs\ProcessRemUploadJob;
 use App\Domain\REM\Models\RemTemplate;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Requests\StoreRemUploadRequest;
@@ -101,11 +102,32 @@ class RemUploadController extends Controller
 
         $upload->load(['healthCenter', 'user', 'remTemplate']);
 
+        ProcessRemUploadJob::dispatch($upload->id);
+
         return response()->json([
             'data' => new RemUploadResource($upload),
-            'message' => 'Archivo REM cargado exitosamente. Pendiente de procesamiento.',
+            'message' => 'Archivo REM cargado exitosamente. Procesamiento encolado.',
             'errors' => null,
         ], 201);
+    }
+
+    public function status(Request $request, RemUpload $remUpload): JsonResponse
+    {
+        $this->authorize('view', $remUpload);
+
+        return response()->json([
+            'data' => [
+                'id' => $remUpload->id,
+                'uuid' => $remUpload->uuid,
+                'status' => $remUpload->status,
+                'processed_at' => $remUpload->processed_at,
+                'has_errors' => !is_null($remUpload->error_report),
+                'error_summary' => $remUpload->error_report['summary'] ?? null,
+                'data_rows_count' => $remUpload->remData()->count(),
+            ],
+            'message' => 'Estado del upload obtenido',
+            'errors' => null,
+        ]);
     }
 
     public function destroy(RemUpload $remUpload): JsonResponse

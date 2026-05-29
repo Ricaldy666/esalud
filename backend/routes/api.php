@@ -34,6 +34,9 @@ Route::prefix('v1')->group(function () {
             ->only(['index', 'show', 'store', 'destroy'])
             ->parameter('rem-uploads', 'remUpload');
 
+        Route::get('/rem-uploads/{remUpload}/status', [RemUploadController::class, 'status'])
+            ->name('rem-uploads.status');
+
         Route::get('/rem-templates', [RemTemplateController::class, 'index'])
             ->name('rem-templates.index');
         Route::get('/rem-templates/{remTemplate}', [RemTemplateController::class, 'show'])
