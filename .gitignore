@@ -5,6 +5,7 @@ vendor/
 # Archivos de entorno
 .env
 .env.*
+!.env.example
 
 # Laravel
 backend/storage/*.key
