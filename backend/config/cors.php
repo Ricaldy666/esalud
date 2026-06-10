@@ -3,10 +3,11 @@
 return [
     'paths' => ['api/*', 'sanctum/csrf-cookie'],
     'allowed_methods' => ['*'],
-    'allowed_origins' => ['http://localhost:5173'],
-     'http://atenea.cormudesi.cl',
-     'https://atenea.cormudesi.cl',
-
+    'allowed_origins' => [
+        'http://localhost:5173',
+        'http://atenea.cormudesi.cl',
+        'https://atenea.cormudesi.cl',
+    ],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],
     'exposed_headers' => [],
