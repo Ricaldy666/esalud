@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.3.1-alpha] — 2026-06-10
+
+### Fixed
+- `backend/config/cors.php`: agregados dominios `http://atenea.cormudesi.cl`
+  y `https://atenea.cormudesi.cl` al array `allowed_origins` para permitir el
+  funcionamiento del frontend desde el servidor de producción interno de
+  CORMUDESI. Reportado por Nelson durante despliegue inicial post-handoff.
+
 ## [0.4.2-alpha] — 2026-05-29
 
 ### Added
