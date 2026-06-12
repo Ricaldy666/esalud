@@ -1,5 +1,26 @@
 ﻿# Changelog
 
+## [0.4.4.0-g1] — 2026-06-12
+
+### Added
+
+**Fase 04B-2b-1 — Bloque 1 Serie A (G1: 12 hojas)**
+
+- `RemTemplateSeeder`: 13 configuraciones de hoja (A01 refactorizado + 12 G1 nuevas: A02, A04, A05, A06, A08, A09, A11a, A23, A29, A30, A31, A32)
+- Helpers `colLetter()`, `colIndex()`, `baseColumnsAgeSexPairs()`, `baseColumnsAgeSexPairsNum()` para generación programática de columnas etarias con soporte Excel multi-letra
+- Upload id=1 reprocesado exitosamente: **191 filas** (vs 22 en fase anterior), **7,918 celdas parseadas, 0 errores**, status `success`
+- `expected_sheets` ampliado de 1 a 13: validación de cobertura total
+
+### Changed
+
+- `RemParserService`: límite de filas cambiado de `$row <= 300` a `min(getHighestRow(), max_data_rows)` con default 1500 configurable por hoja (Paso 0)
+- `PROJECT_STATE.md`: Fase 04B-2b-1 completada, roadmap actualizado
+
+### Technical Debt / Pendiente
+
+- Solo se procesa Sección A de cada hoja. Secciones B+ serán cubiertas en sub-fase G4 (04B-2b-4)
+- Algunas columnas sin label claro en el Excel original se mapearon como `extra_1..6` (A31: CH-CK, A32: CK-CP)
+
 ## [0.4.3.2-docs] — 2026-06-12
 
 ### Added

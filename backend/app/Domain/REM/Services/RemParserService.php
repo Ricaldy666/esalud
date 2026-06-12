@@ -121,6 +121,7 @@ class RemParserService
         $professionalCol = $structure['professional_column'];
         $totalCol = $structure['total_column'];
         $sectionBreakPattern = $structure['section_break_pattern'] ?? null;
+        $maxDataRows = $structure['max_data_rows'] ?? 1500;
 
         $data = [];
         $errors = [];
@@ -131,7 +132,10 @@ class RemParserService
 
         $columnLetters = array_map(fn($c) => $c['letter'], $columns);
 
-        for ($row = $dataStartRow; $row <= 300; $row++) {
+        $sheetMaxRow = $worksheet->getHighestRow();
+        $maxRow = min($sheetMaxRow, $maxDataRows);
+
+        for ($row = $dataStartRow; $row <= $maxRow; $row++) {
             $conceptValue = $worksheet->getCell($conceptCol . $row)->getCalculatedValue();
             $professional = trim((string)($worksheet->getCell($professionalCol . $row)->getCalculatedValue() ?? ''));
             $totalRaw = $worksheet->getCell($totalCol . $row)->getCalculatedValue();
