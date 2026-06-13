@@ -38,7 +38,7 @@ class RemTemplateSeeder extends Seeder
                 'year' => 2026, 'rem_type' => 'P', 'version' => 'V1.2',
                 'description' => 'REM P - Programas',
                 'official_filename_pattern' => 'SP_26_V*.xlsm',
-                'config' => $this->getPlaceholderConfig('REM P - Programas'),
+                'config' => $this->getConfigP(),
             ],
         ];
 
@@ -947,6 +947,79 @@ class RemTemplateSeeder extends Seeder
             'max' => null,
             'allow_null' => true,
             'allow_empty_string' => true,
+        ];
+    }
+
+    private function getConfigP(): array
+    {
+        return [
+            'metadata' => [
+                'year' => 2026,
+                'series' => 'P',
+                'version' => '2026.06',
+                'frequency' => 'semiannual',
+                'cutoff_dates' => ['06-30', '12-31'],
+                'official_filename_pattern' => 'SP_26_V*.xlsm',
+                'source' => 'Servicio de Salud Tarapaca - sstarapaca.redsalud.gob.cl',
+                'description' => 'REM P - Programas de Salud (Semestral)',
+            ],
+            'validation' => [
+                'expected_sheets' => ['P1'],
+                'min_sheets' => 1,
+                'max_file_size_mb' => 10,
+            ],
+            'sheets' => [
+                $this->sheetP1A(),
+            ],
+            'notes' => 'Piloto fase 04B-2c: solo REM-P1 Seccion A. P2-P13 pendientes.',
+        ];
+    }
+
+    private function sheetP1A(): array
+    {
+        return [
+            'sheet_name' => 'P1',
+            'section_code' => 'A',
+            'title' => 'Salud de la Mujer - Poblacion en Control segun Metodo de Regulacion Fertilidad',
+            'is_required' => true,
+            'structure' => [
+                'header_row' => 9,
+                'data_start_row' => 11,
+                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
+                'concept_column' => 'A',
+                'professional_column' => 'B',
+                'total_column' => 'C',
+                'max_data_rows' => 25,
+            ],
+            'columns' => [
+                ['letter' => 'D', 'label' => 'Menor de 15 años', 'demographic_key' => 'under_15'],
+                ['letter' => 'E', 'label' => '15 a 19 años', 'demographic_key' => 'age_15_19'],
+                ['letter' => 'F', 'label' => '20 a 24 años', 'demographic_key' => 'age_20_24'],
+                ['letter' => 'G', 'label' => '25 a 29 años', 'demographic_key' => 'age_25_29'],
+                ['letter' => 'H', 'label' => '30 a 34 años', 'demographic_key' => 'age_30_34'],
+                ['letter' => 'I', 'label' => '35 a 39 años', 'demographic_key' => 'age_35_39'],
+                ['letter' => 'J', 'label' => '40 a 44 años', 'demographic_key' => 'age_40_44'],
+                ['letter' => 'K', 'label' => '45 a 49 años', 'demographic_key' => 'age_45_49'],
+                ['letter' => 'L', 'label' => '50 a 54 años', 'demographic_key' => 'age_50_54'],
+                ['letter' => 'M', 'label' => '55 a 59 años', 'demographic_key' => 'age_55_59'],
+                ['letter' => 'N', 'label' => '60 a 64 años', 'demographic_key' => 'age_60_64'],
+                ['letter' => 'O', 'label' => '65 a 69 años', 'demographic_key' => 'age_65_69'],
+                ['letter' => 'P', 'label' => '70 y más años', 'demographic_key' => 'age_70_plus'],
+                ['letter' => 'Q', 'label' => 'Migrantes - Menor 20 años', 'demographic_key' => 'migrant_under_20'],
+                ['letter' => 'R', 'label' => 'Migrantes - 20 años y más', 'demographic_key' => 'migrant_20_plus'],
+                ['letter' => 'T', 'label' => 'PV-VIH', 'demographic_key' => 'pv_vih'],
+                ['letter' => 'U', 'label' => 'Identidad de Género - Trans Masculino', 'demographic_key' => 'trans_masculine'],
+                ['letter' => 'V', 'label' => 'Identidad de Género - Trans Femenino', 'demographic_key' => 'trans_feminine'],
+                ['letter' => 'W', 'label' => 'Identidad de Género - No Binarie', 'demographic_key' => 'non_binary'],
+                ['letter' => 'X', 'label' => 'Personas con Discapacidad', 'demographic_key' => 'disability'],
+            ],
+            'validation_rules' => [
+                'data_type' => 'integer',
+                'min' => 0,
+                'max' => 999999,
+                'allow_null' => true,
+                'allow_empty_string' => true,
+            ],
         ];
     }
 

@@ -1,5 +1,49 @@
 ﻿# Changelog
 
+## [0.4.5.0-p1-piloto] - 2026-06-13
+
+### Added
+
+**Fase 04B-2c-piloto-P1 — Primer mapeo de Serie P (REM-P1 Sección A)**
+
+- `RemTemplateSeeder`: +getConfigP() con metadata semestral (frequency=semiannual,
+  cutoff_dates=[06-30, 12-31], expected_sheets=['P1'])
+- `RemTemplateSeeder`: +sheetP1A() con 20 columnas manuales
+  - D-P: 13 rangos etarios simples (Menor 15, 15-19, ..., 65-69, 70+)
+  - Q-X: 7 columnas demográficas (migrantes, PV VIH, trans, no binario, discapacidad)
+- `run()`: template 'P' actualizado de placeholder a config real con getConfigP()
+- Upload id=2 (SP_26_V1.2-2.xlsm) procesado exitosamente: **15 filas**,
+  **300 celdas parseadas, 0 errores**, status `success`
+
+**ADR-0012: Deuda técnica en modelo rem_data detectada en piloto Serie P**
+
+- Documentado que `section` almacena section_code (A), no sheet_name (P1) —
+  ambigüedad que puede mezclar datos de hojas distintas
+- Documentado que professional_column captura sub-conceptos (Oral, Mujer, Hombres)
+  en Serie P, no profesionales reales
+- Postergado refactor a Fase 05+ (Motor de Metas)
+
+### Changed
+
+- Template Serie P: de placeholder a config funcional con REM-P1 Sección A mapeado
+- `PROJECT_STATE.md`: Serie P: 1/11 hojas piloto completado
+
+### Validations
+
+- Parser genérico funciona con Serie A Y Serie P sin modificaciones
+- ADR-0010 (parser genérico JSON-config) validado en práctica con segunda serie
+- Serie A intacta sin regresiones (284 filas mantenidas)
+- Refactor de fase anterior (professional_column opcional) facilitó mapeo de P1
+
+### Notes
+
+- professional_column en P1 captura sub-conceptos — deuda técnica documentada en ADR-0012
+- Campo `section` en rem_data es ambiguo sin rem_upload_id — deuda técnica en ADR-0012
+- Archivo SP_26 oficial tiene datos de prueba (mayoría 0 o vacío) — parseo correcto
+- Serie P es SEMESTRAL (vs Serie A mensual). Cortes: 30-jun y 31-dic.
+- DIFERENCIA CLAVE con Serie A: rangos etarios SIMPLES (una columna por rango),
+  NO pares H/M (hombre/mujer)
+
 ## [0.4.4.1-g2-pivot] — 2026-06-13
 
 ### Added
