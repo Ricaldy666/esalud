@@ -1,5 +1,32 @@
 ﻿# Changelog
 
+## [0.4.5.2-p1-audit-fix] - 2026-06-13
+
+### Added
+- Auditoría sistemática de max_data_rows en 18 configs existentes
+- Resultados de auditoría documentados en ADR-0013
+
+### Fixed
+- sheetP1A() max_data_rows: 25 → 31 (recupera 6 filas perdidas)
+- 5 conceptos críticos de planificación familiar ahora capturados:
+  - Mujeres en control con enfermedad cardiovascular
+  - 4 variantes de Retiro de Implante (APS/Extrasistema, 3/5 años)
+  - Método de Regulación de Fertilidad
+
+### Validations
+- Serie A (16 hojas): TODAS OK con default 1500 + section_break_pattern
+- Serie P P2: OK (fix anterior 30→40 confirmado)
+- Serie A intacta sin regresiones (284 filas)
+
+### Updated
+- ADR-0013: sección "Actualización post-auditoría" con resultados,
+  conclusión y patrón recomendado para nuevos configs
+
+### Metrics
+- Total sistema: 334 filas (+6), 13,132 celdas
+- Serie P: 50 filas (+6), 1,348 celdas
+- 0 errores
+
 ## [0.4.5.1-p2-piloto] - 2026-06-13
 
 ### Added

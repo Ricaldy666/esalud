@@ -990,7 +990,7 @@ class RemTemplateSeeder extends Seeder
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',
-                'max_data_rows' => 25,
+                'max_data_rows' => 31,
             ],
             'columns' => [
                 ['letter' => 'D', 'label' => 'Menor de 15 años', 'demographic_key' => 'under_15'],

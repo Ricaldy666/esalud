@@ -54,3 +54,40 @@ Mantener el nombre actual con la siguiente interpretación documentada:
 - **Serie A G2**: A19a, A28, A34 — idem
 - **Serie P**: P1 (`max_data_rows=25` con `data_start_row=11`, OK — 15
   filas reales caben en 11-25), P2 (corregido de 30 a 40)
+
+## Actualización post-auditoría (2026-06-13)
+
+### Resultado de auditoría sistemática de configs existentes
+
+Auditoría ejecutada en Fase 04B-2c-auditoría:
+
+| Configs auditados | Estado |
+|-------------------|--------|
+| Serie A G1 (13 hojas) | ✅ OK — max_data_rows=1500 default + section_break_pattern detecta correctamente fin de sección |
+| Serie A G2 (A19a, A28, A34) | ✅ OK — mismo patrón G1 |
+| Serie P P1 | 🐛 BUG — 6 filas perdidas (rows 26-31). Fix aplicado: max_data_rows 25→31 |
+| Serie P P2 | ✅ OK — fix aplicado previamente (30→40) |
+
+### Conclusión
+
+El problema de max_data_rows como "fila absoluta vs count" NO afecta
+la Serie A porque todas las hojas usan el default de 1500 (suficiente
+margen para que section_break_pattern detecte el fin de sección).
+
+El problema SÍ afecta a Serie P donde se asignaron valores específicos
+menores (25 y 30) que cortaron secciones prematuramente.
+
+### Recomendación reforzada
+
+Refactor a `data_end_row` semánticamente correcto sigue siendo deseable,
+pero NO es urgente. Patrón sugerido para nuevos configs:
+
+- Usar valor default (1500 o mayor) para confiar en section_break_pattern
+- Solo asignar max_data_rows específico si hay razón fuerte (ej:
+  sección sin section_break detectable, hoja muy larga, etc.)
+
+### Acciones tomadas en esta auditoría
+
+1. Fix P1: max_data_rows 25 → 31 (recupera 6 filas)
+2. Documentación actualizada en este ADR
+3. Patrón sugerido para próximos configs
