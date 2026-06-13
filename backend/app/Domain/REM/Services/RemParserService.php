@@ -118,7 +118,7 @@ class RemParserService
         $headerRow = $structure['header_row'];
         $dataStartRow = $structure['data_start_row'];
         $conceptCol = $structure['concept_column'];
-        $professionalCol = $structure['professional_column'];
+        $professionalCol = $structure['professional_column'] ?? null;
         $totalCol = $structure['total_column'];
         $sectionBreakPattern = $structure['section_break_pattern'] ?? null;
         $maxDataRows = $structure['max_data_rows'] ?? 1500;
@@ -137,7 +137,7 @@ class RemParserService
 
         for ($row = $dataStartRow; $row <= $maxRow; $row++) {
             $conceptValue = $worksheet->getCell($conceptCol . $row)->getCalculatedValue();
-            $professional = trim((string)($worksheet->getCell($professionalCol . $row)->getCalculatedValue() ?? ''));
+            $professional = $professionalCol ? trim((string)($worksheet->getCell($professionalCol . $row)->getCalculatedValue() ?? '')) : '';
             $totalRaw = $worksheet->getCell($totalCol . $row)->getCalculatedValue();
             $total = is_numeric($totalRaw) ? (int)$totalRaw : null;
 

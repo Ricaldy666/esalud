@@ -66,8 +66,8 @@ class RemTemplateSeeder extends Seeder
                 'description' => 'REM A - Consultas y Controles',
             ],
             'validation' => [
-                'expected_sheets' => ['A01', 'A02', 'A04', 'A05', 'A06', 'A08', 'A09', 'A11a', 'A23', 'A29', 'A30', 'A31', 'A32'],
-                'min_sheets' => 13,
+                'expected_sheets' => ['A01', 'A02', 'A04', 'A05', 'A06', 'A08', 'A09', 'A11a', 'A19a', 'A23', 'A28', 'A29', 'A30', 'A31', 'A32', 'A34'],
+                'min_sheets' => 16,
                 'max_file_size_mb' => 10,
             ],
             'sheets' => [
@@ -79,13 +79,16 @@ class RemTemplateSeeder extends Seeder
                 $this->sheetA08(),
                 $this->sheetA09(),
                 $this->sheetA11a(),
+                $this->sheetA19a(),
                 $this->sheetA23(),
+                $this->sheetA28(),
                 $this->sheetA29(),
                 $this->sheetA30(),
                 $this->sheetA31(),
                 $this->sheetA32(),
+                $this->sheetA34(),
             ],
-            'notes' => 'G1 (12 sheets A02-A32) mapeadas en Fase 04B-2b-1. Secciones B+ de cada hoja pendientes.',
+            'notes' => 'G1 (12 sheets A02-A32) mapeadas en Fase 04B-2b-1. G2 (A19a) y G3 (A28, A34) mapeadas en Fase 04B-4. Secciones B+ de cada hoja pendientes.',
         ];
     }
 
@@ -789,6 +792,147 @@ class RemTemplateSeeder extends Seeder
                     ['letter' => 'CN', 'label' => 'Columna CN', 'demographic_key' => 'extra_4'],
                     ['letter' => 'CO', 'label' => 'Columna CO', 'demographic_key' => 'extra_5'],
                     ['letter' => 'CP', 'label' => 'Columna CP', 'demographic_key' => 'extra_6'],
+                ]
+            ),
+            'validation_rules' => $this->defaultValidationRules(),
+        ];
+    }
+
+    private function sheetA19a(): array
+    {
+        return [
+            'sheet_name' => 'A19a',
+            'section_code' => 'A19a',
+            'title' => 'Actividades de Promocion y Prevencion de la Salud',
+            'is_required' => true,
+            'structure' => [
+                'header_row' => 9,
+                'data_start_row' => 13,
+                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
+                'concept_column' => 'A',
+                'professional_column' => 'B',
+                'total_column' => 'C',
+            ],
+            'columns' => array_merge(
+                $this->baseColumnsAgeSexPairs('F', [
+                    'under_4' => '0-4',
+                    'age_05_09' => '5-9',
+                    'age_10_14' => '10-14',
+                    'age_15_19' => '15-19',
+                    'age_20_24' => '20-24',
+                    'age_25_29' => '25-29',
+                    'age_30_34' => '30-34',
+                    'age_35_39' => '35-39',
+                    'age_40_44' => '40-44',
+                    'age_45_49' => '45-49',
+                    'age_50_54' => '50-54',
+                    'age_55_59' => '55-59',
+                    'age_60_64' => '60-64',
+                    'age_65_69' => '65-69',
+                    'age_70_74' => '70-74',
+                    'age_75_79' => '75-79',
+                    'age_80_plus' => '80+',
+                ]),
+                [
+                    ['letter' => 'AN', 'label' => 'Espacios Amigables', 'demographic_key' => 'friendly_spaces'],
+                    ['letter' => 'AO', 'label' => 'TRANS', 'demographic_key' => 'trans'],
+                    ['letter' => 'AP', 'label' => 'Columna AP', 'demographic_key' => 'extra_1'],
+                    ['letter' => 'AQ', 'label' => 'Pueblos Originarios', 'demographic_key' => 'indigenous'],
+                    ['letter' => 'AR', 'label' => 'Migrantes', 'demographic_key' => 'migrant'],
+                    ['letter' => 'AS', 'label' => '14-18 años', 'demographic_key' => 'age_14_18'],
+                    ['letter' => 'AT', 'label' => 'SENAME', 'demographic_key' => 'sename'],
+                    ['letter' => 'AU', 'label' => 'Servicio Nac. Proteccion', 'demographic_key' => 'national_protection'],
+                ]
+            ),
+            'validation_rules' => $this->defaultValidationRules(),
+        ];
+    }
+
+    private function sheetA28(): array
+    {
+        return [
+            'sheet_name' => 'A28',
+            'section_code' => 'A28',
+            'title' => 'Rehabilitacion Integral',
+            'is_required' => true,
+            'structure' => [
+                'header_row' => 9,
+                'data_start_row' => 13,
+                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
+                'concept_column' => 'A',
+                'total_column' => 'B',
+            ],
+            'columns' => array_merge(
+                $this->baseColumnsAgeSexPairs('E', [
+                    'under_4' => '0-4',
+                    'age_05_09' => '5-9',
+                    'age_10_14' => '10-14',
+                    'age_15_19' => '15-19',
+                    'age_20_24' => '20-24',
+                    'age_25_29' => '25-29',
+                    'age_30_34' => '30-34',
+                    'age_35_39' => '35-39',
+                    'age_40_44' => '40-44',
+                    'age_45_49' => '45-49',
+                    'age_50_54' => '50-54',
+                    'age_55_59' => '55-59',
+                    'age_60_64' => '60-64',
+                    'age_65_69' => '65-69',
+                    'age_70_74' => '70-74',
+                    'age_75_79' => '75-79',
+                    'age_80_plus' => '80+',
+                ]),
+                [
+                    ['letter' => 'AM', 'label' => 'Columna AM', 'demographic_key' => 'extra_1'],
+                    ['letter' => 'AN', 'label' => 'Columna AN', 'demographic_key' => 'extra_2'],
+                    ['letter' => 'AO', 'label' => 'Columna AO', 'demographic_key' => 'extra_3'],
+                    ['letter' => 'AP', 'label' => 'Columna AP', 'demographic_key' => 'extra_4'],
+                    ['letter' => 'AQ', 'label' => 'Columna AQ', 'demographic_key' => 'extra_5'],
+                    ['letter' => 'AR', 'label' => 'Columna AR', 'demographic_key' => 'extra_6'],
+                    ['letter' => 'AS', 'label' => 'Columna AS', 'demographic_key' => 'extra_7'],
+                ]
+            ),
+            'validation_rules' => $this->defaultValidationRules(),
+        ];
+    }
+
+    private function sheetA34(): array
+    {
+        return [
+            'sheet_name' => 'A34',
+            'section_code' => 'A34',
+            'title' => 'Programa de Reparacion y Atencion en Salud (PRAIS)',
+            'is_required' => true,
+            'structure' => [
+                'header_row' => 9,
+                'data_start_row' => 13,
+                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
+                'concept_column' => 'A',
+                'professional_column' => 'B',
+                'total_column' => 'C',
+            ],
+            'columns' => array_merge(
+                $this->baseColumnsAgeSexPairs('F', [
+                    'under_4' => '0-4',
+                    'age_05_09' => '5-9',
+                    'age_10_14' => '10-14',
+                    'age_15_19' => '15-19',
+                    'age_20_24' => '20-24',
+                    'age_25_29' => '25-29',
+                    'age_30_34' => '30-34',
+                    'age_35_39' => '35-39',
+                    'age_40_44' => '40-44',
+                    'age_45_49' => '45-49',
+                    'age_50_54' => '50-54',
+                    'age_55_59' => '55-59',
+                    'age_60_64' => '60-64',
+                    'age_65_69' => '65-69',
+                    'age_70_74' => '70-74',
+                    'age_75_79' => '75-79',
+                    'age_80_plus' => '80+',
+                ]),
+                [
+                    ['letter' => 'AN', 'label' => 'Pueblos Originarios', 'demographic_key' => 'indigenous'],
                 ]
             ),
             'validation_rules' => $this->defaultValidationRules(),

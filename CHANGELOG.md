@@ -1,5 +1,50 @@
 ﻿# Changelog
 
+## [0.4.4.1-g2-pivot] — 2026-06-13
+
+### Added
+
+**Fase 04B-2b-2-G2pivot — Mapeo de hojas G2/G3 (A19a, A28, A34)**
+
+- `RemTemplateSeeder`: +3 métodos privados sheetA19a(), sheetA28(), sheetA34()
+  con configuraciones individuales de columnas
+  - A19a (Act. Promocion y Prevencion): concept=A, professional=B, total=C,
+    17 pares etarios desde F, extra cols AN-AU → 77 filas
+  - A28 (Rehabilitacion Integral): concept=A, SIN professional, total=B,
+    17 pares etarios desde E, extra cols AM-AS → 12 filas
+  - A34 (PRAIS): concept=A, professional=B, total=C, 17 pares etarios
+    desde F, extra col AN → 4 filas
+- `getConfigA()`: expected_sheets actualizado a 16 hojas, min_sheets=16
+- `RemParserService`: professional_column ahora opcional (2 líneas de cambio,
+  backwards-compatible) — necesario porque A28 no tiene esta columna
+- Upload id=1 reprocesado exitosamente: **284 filas** (191 + 93 nuevas),
+  **11,784 celdas parseadas, 0 errores**, status `success`
+
+**ADR-0011: Postergación de hojas REM con estructura compleja**
+
+- Documentada la decisión de postergar A03 y A07 a G4 por estructuras
+  incompatibles con el parser genérico actual (multi-sección, jerarquía
+  concept→sub-concept, 141 columnas sin pares H/M)
+- A10 removido del plan (no existe en SA_26_V1.2-2.xlsm)
+- A12-A22 confirmados como inexistentes en el archivo REM oficial 2026
+- Nueva clasificación de hojas Serie A: G1 (13 ✅), G2 (A19a), G3 (A28, A34),
+  G4 (complejas + secciones B+)
+
+### Changed
+
+- `RemParserService`: `$structure['professional_column']` ahora usa `?? null`
+  y se omite la lectura de celda si es null (refactor mínimo de 2 líneas)
+- `PROJECT_STATE.md`: Fase 04B-2b-2-G2pivot completada, 16 hojas mapeadas,
+  clasificación y roadmap actualizados
+- Plan de G2 pivota de A03/A07/A10/A12-A22 a solo A19a (G1-like)
+- G3 se reduce a A28, A34 (G1-like); A24-A27, A33 pasan a G4
+
+### Notes
+
+- Cobertura Serie A: 16/26 hojas (62%)
+- 10 hojas complejas pendientes para G4
+- Parser ahora tolera ausencia de professional_column en cualquier hoja
+
 ## [0.4.4.0-g1] — 2026-06-12
 
 ### Added
