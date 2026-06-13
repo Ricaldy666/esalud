@@ -1,5 +1,42 @@
 ﻿# Changelog
 
+## [0.4.5.1-p2-piloto] - 2026-06-13
+
+### Added
+
+**Fase 04B-2c-piloto-P2 — Segundo piloto Serie P (REM-P2 Sección A — Salud Infantil)**
+
+- `RemTemplateSeeder`: +sheetP2A() con 32 columnas
+  - D-E: total_hombres, total_mujeres (Opción A: columnas extra, no rangos)
+  - F-AG: 14 H/M pairs vía baseColumnsAgeSexPairs() (helper Serie A reutilizado)
+  - AH-AI: Pueblos Originarios, Migrantes (demográficas)
+- `getConfigP()` actualizado: expected_sheets=['P1','P2'], min_sheets=2,
+  sheets=[sheetP1A(), sheetP2A()]
+- ADR-0013: max_data_rows deuda técnica (renombrar a data_end_row pospuesto)
+
+### Changed
+
+- Template Serie P: P2 incluido en config, 2 hojas activas
+
+### Fixed
+
+- max_data_rows ajustado de 30 a 40 en sheetP2A — captura Estado Nutricional
+  + Promedio + Niños sin evaluación (10 filas previamente perdidas por
+  interpretación errónea del campo como count en vez de fila absoluta)
+
+### Validations
+
+- Parser genérico funciona con SEGUNDA hoja Serie P sin modificaciones
+- Helper baseColumnsAgeSexPairs() reusable entre Serie A y Serie P
+- Serie A intacta sin regresiones (284 filas)
+- ADR-0010 (parser genérico) validado por segunda vez
+
+### Discovered Tech Debt (ADR-0013)
+
+- max_data_rows es fila absoluta, no count (semánticamente engañoso)
+- Auditoría pendiente de 18 configs existentes en Serie A G1/G2 y P1
+- Refactor de naming (data_end_row) pospuesto a fase consolidación
+
 ## [0.4.5.0-p1-piloto] - 2026-06-13
 
 ### Added

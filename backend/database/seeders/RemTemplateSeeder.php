@@ -964,14 +964,15 @@ class RemTemplateSeeder extends Seeder
                 'description' => 'REM P - Programas de Salud (Semestral)',
             ],
             'validation' => [
-                'expected_sheets' => ['P1'],
-                'min_sheets' => 1,
+                'expected_sheets' => ['P1', 'P2'],
+                'min_sheets' => 2,
                 'max_file_size_mb' => 10,
             ],
             'sheets' => [
                 $this->sheetP1A(),
+                $this->sheetP2A(),
             ],
-            'notes' => 'Piloto fase 04B-2c: solo REM-P1 Seccion A. P2-P13 pendientes.',
+            'notes' => 'Piloto fase 04B-2c: REM-P1 Seccion A + REM-P2 Seccion A mapeadas. P3-P13 pendientes.',
         ];
     }
 
@@ -1013,6 +1014,58 @@ class RemTemplateSeeder extends Seeder
                 ['letter' => 'W', 'label' => 'Identidad de Género - No Binarie', 'demographic_key' => 'non_binary'],
                 ['letter' => 'X', 'label' => 'Personas con Discapacidad', 'demographic_key' => 'disability'],
             ],
+            'validation_rules' => [
+                'data_type' => 'integer',
+                'min' => 0,
+                'max' => 999999,
+                'allow_null' => true,
+                'allow_empty_string' => true,
+            ],
+        ];
+    }
+
+    private function sheetP2A(): array
+    {
+        return [
+            'sheet_name' => 'P2',
+            'section_code' => 'A',
+            'title' => 'Salud Infantil - Poblacion en Control segun Estado Nutricional (Menor 1 mes - 59 meses)',
+            'is_required' => true,
+            'structure' => [
+                'header_row' => 9,
+                'data_start_row' => 12,
+                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
+                'concept_column' => 'A',
+                'professional_column' => 'B',
+                'total_column' => 'C',
+                'max_data_rows' => 40,
+            ],
+            'columns' => array_merge(
+                [
+                    ['letter' => 'D', 'label' => 'Total Hombres', 'demographic_key' => 'total_hombres'],
+                    ['letter' => 'E', 'label' => 'Total Mujeres', 'demographic_key' => 'total_mujeres'],
+                ],
+                $this->baseColumnsAgeSexPairs('F', [
+                    'under_1m' => 'Menor de 1 mes',
+                    'age_1m' => '1 mes',
+                    'age_2m' => '2 meses',
+                    'age_3m' => '3 meses',
+                    'age_4m' => '4 meses',
+                    'age_5m' => '5 meses',
+                    'age_6m' => '6 meses',
+                    'age_7_11m' => '7 a 11 meses',
+                    'age_12_17m' => '12 a 17 meses',
+                    'age_18_23m' => '18 a 23 meses',
+                    'age_24_35m' => '24 a 35 meses',
+                    'age_36_41m' => '36 a 41 meses',
+                    'age_42_47m' => '42 a 47 meses',
+                    'age_48_59m' => '48 a 59 meses',
+                ]),
+                [
+                    ['letter' => 'AH', 'label' => 'Pueblos Originarios', 'demographic_key' => 'pueblos_originarios'],
+                    ['letter' => 'AI', 'label' => 'Migrantes', 'demographic_key' => 'migrantes'],
+                ]
+            ),
             'validation_rules' => [
                 'data_type' => 'integer',
                 'min' => 0,
