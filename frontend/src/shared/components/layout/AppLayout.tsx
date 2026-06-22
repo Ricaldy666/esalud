@@ -1,6 +1,7 @@
 import { Toaster } from 'sonner'
 import type { ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { FileSpreadsheet } from 'lucide-react'
 import { useAuthStore } from '@/app/store/authStore'
 import { usePermissions } from '@/shared/hooks/usePermissions'
 import { useLogout } from '@/features/auth'
@@ -32,6 +33,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   const navItems = [
     { label: 'Dashboard', href: '/', show: true },
+    { label: 'Cargas REM', href: '/rem-uploads', show: true, icon: FileSpreadsheet },
     { label: 'Usuarios', href: '/users', show: isAdmin },
     { label: 'Centros de Salud', href: '/health-centers', show: isAdmin },
     { label: 'Auditoría', href: '/audit', show: isAdmin },
@@ -55,12 +57,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
                   e.preventDefault()
                   navigate(item.href)
                 }}
-                className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary/10 text-primary'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 }`}
               >
+                {'icon' in item && item.icon && <item.icon className="h-4 w-4" />}
                 {item.label}
               </a>
             )
