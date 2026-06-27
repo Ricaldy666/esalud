@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileSpreadsheet } from 'lucide-react'
+import { FileSpreadsheet, Plus } from 'lucide-react'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { EmptyState } from '@/shared/components/EmptyState'
 import { Badge } from '@/shared/components/ui/badge'
@@ -14,6 +14,7 @@ import {
 } from '@/shared/components/ui/table'
 import { Button } from '@/shared/components/ui/button'
 import { useRemUploads } from '../hooks/useRemUploads'
+import { RemUploadForm } from '../components/RemUploadForm'
 import type { RemUpload, RemUploadStatus } from '../types/rem'
 
 const statusVariant: Record<RemUploadStatus, 'default' | 'secondary' | 'destructive' | 'outline'> =
@@ -33,6 +34,7 @@ const statusLabel: Record<RemUploadStatus, string> = {
 
 export default function RemUploadsPage() {
   const [page, setPage] = useState(1)
+  const [showUploadForm, setShowUploadForm] = useState(false)
   const { data, isLoading, isError } = useRemUploads({ page, per_page: 15 })
 
   if (isError) {
@@ -49,8 +51,21 @@ export default function RemUploadsPage() {
   }
 
   return (
-    <div>
-      <PageHeader title="Cargas REM" description="Archivos REM subidos al sistema" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Cargas REM</h1>
+          <p className="text-sm text-slate-500">Archivos REM subidos al sistema</p>
+        </div>
+        {!showUploadForm && (
+          <Button onClick={() => setShowUploadForm(true)} className="bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Subir REM
+          </Button>
+        )}
+      </div>
+
+      {showUploadForm && <RemUploadForm onClose={() => setShowUploadForm(false)} />}
 
       <div className="rounded-md border">
         <Table>
@@ -128,7 +143,7 @@ export default function RemUploadsPage() {
       </div>
 
       {data?.meta && data.meta.last_page > 1 && (
-        <div className="mt-4 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <p className="text-sm text-gray-500">
             Página {data.meta.current_page} de {data.meta.last_page} ({data.meta.total} registros)
           </p>

@@ -1,19 +1,18 @@
 import { Toaster } from 'sonner'
 import type { ReactNode } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { FileSpreadsheet } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import {
+  Activity,
+  LayoutDashboard,
+  UploadCloud,
+  Users,
+  Building2,
+  FileText,
+  LogOut,
+} from 'lucide-react'
 import { useAuthStore } from '@/app/store/authStore'
 import { usePermissions } from '@/shared/hooks/usePermissions'
 import { useLogout } from '@/features/auth'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/shared/components/ui/dropdown-menu'
 
 interface AppLayoutProps {
   children: ReactNode
@@ -21,7 +20,6 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate()
-  const location = useLocation()
   const user = useAuthStore((s) => s.user)
   const logout = useLogout()
   const { isAdmin } = usePermissions()
@@ -31,75 +29,78 @@ export default function AppLayout({ children }: AppLayoutProps) {
     navigate('/login')
   }
 
-  const navItems = [
-    { label: 'Dashboard', href: '/', show: true },
-    { label: 'Cargas REM', href: '/rem-uploads', show: true, icon: FileSpreadsheet },
-    { label: 'Usuarios', href: '/users', show: isAdmin },
-    { label: 'Centros de Salud', href: '/health-centers', show: isAdmin },
-    { label: 'Auditoría', href: '/audit', show: isAdmin },
-  ].filter((item) => item.show)
+  const primaryRole = user?.roles?.[0] ?? 'Usuario'
+
+  const menuItems = [
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard, show: true },
+    { to: '/rem-uploads', label: 'Cargas REM', icon: UploadCloud, show: true },
+    { to: '/users', label: 'Usuarios', icon: Users, show: isAdmin },
+    { to: '/health-centers', label: 'Centros de Salud', icon: Building2, show: isAdmin },
+    { to: '/audit', label: 'Auditoría', icon: FileText, show: isAdmin },
+  ]
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-800">
       <Toaster richColors position="top-right" />
-      <aside className="w-64 border-r bg-white p-4">
-        <div className="mb-8">
-          <h2 className="text-lg font-bold text-gray-900">Esalud</h2>
+
+      <aside className="w-64 bg-slate-900 text-slate-200 flex flex-col shadow-xl z-20 shrink-0">
+        <div className="p-4 flex items-center gap-3 border-b border-slate-800">
+          <div className="p-2 bg-blue-600 rounded-lg text-white">
+            <Activity className="w-5 h-5" />
+          </div>
+          <span className="font-bold text-lg tracking-wide whitespace-nowrap">Estadística APS</span>
         </div>
-        <nav className="space-y-1">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault()
-                  navigate(item.href)
-                }}
-                className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
+
+        <div className="p-4 border-b border-slate-800 bg-slate-950/40">
+          <p className="text-xs text-slate-500 uppercase font-semibold tracking-wider">
+            Usuario Conectado
+          </p>
+          <p className="text-sm font-medium text-slate-200 truncate mt-1">
+            {user?.name || 'Usuario'}
+          </p>
+          <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-medium bg-blue-900/50 text-blue-400 border border-blue-800">
+            {primaryRole}
+          </span>
+        </div>
+
+        <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
+          {menuItems
+            .filter((item) => item.show)
+            .map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-slate-800 text-white'
+                      : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                  }`
+                }
               >
-                {'icon' in item && item.icon && <item.icon className="h-4 w-4" />}
-                {item.label}
-              </a>
-            )
-          })}
+                {({ isActive }) => (
+                  <>
+                    <item.icon className={`w-5 h-5 ${isActive ? 'text-blue-500' : ''}`} />
+                    <span className="truncate">{item.label}</span>
+                  </>
+                )}
+              </NavLink>
+            ))}
         </nav>
+
+        <div className="p-3 border-t border-slate-800">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-950/30 hover:text-rose-300 transition-colors"
+          >
+            <LogOut className="w-5 h-5" />
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b bg-white px-6 py-3">
-          <span className="text-sm text-gray-500">{user?.name}</span>
-          <div className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                {user?.name}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{user?.name}</span>
-                      <span className="text-xs text-gray-500">{user?.email}</span>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled>Rol(es): {user?.roles.join(', ')}</DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                    Cerrar sesión
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-        <main className="flex-1 p-6">{children}</main>
-      </div>
+      <main className="flex-1 overflow-y-auto p-8">{children}</main>
     </div>
   )
 }

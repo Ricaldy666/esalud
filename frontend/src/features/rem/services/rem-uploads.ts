@@ -1,5 +1,10 @@
 import { api } from '@/shared/services/api'
-import type { PaginatedResponse, RemUpload, RemUploadFilters } from '../types/rem'
+import type {
+  PaginatedResponse,
+  RemUpload,
+  RemUploadFilters,
+  CreateRemUploadPayload,
+} from '../types/rem'
 
 export const remUploadsService = {
   list: async (filters?: RemUploadFilters): Promise<PaginatedResponse<RemUpload>> => {
@@ -26,5 +31,21 @@ export const remUploadsService = {
   getStatus: async (id: number) => {
     const { data } = await api.get(`/rem-uploads/${id}/status`)
     return data
+  },
+
+  create: async (payload: CreateRemUploadPayload): Promise<RemUpload> => {
+    const formData = new FormData()
+    formData.append('file', payload.file)
+    formData.append('year', payload.year.toString())
+    formData.append('month', payload.month.toString())
+    formData.append('rem_type', payload.rem_type)
+    formData.append('health_center_id', payload.health_center_id.toString())
+
+    const { data } = await api.post<{ data: RemUpload }>('/rem-uploads', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    return data.data
   },
 }

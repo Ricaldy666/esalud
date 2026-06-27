@@ -60,3 +60,23 @@ export interface PaginatedResponse<T> {
   message: string
   errors: Record<string, string[]> | null
 }
+
+// === Tipos para creación de upload ===
+
+export type RemType = 'A' | 'BM' | 'BS' | 'D' | 'P'
+
+export const REM_TYPE_LABELS: Record<RemType, string> = {
+  A: 'Serie A - Consultas Médicas',
+  BM: 'Serie BM - Salud Mental',
+  BS: 'Serie BS - Salud Bucal',
+  D: 'Serie D - Discapacidad',
+  P: 'Serie P - Programas',
+}
+
+export interface CreateRemUploadPayload {
+  file: File
+  year: number
+  month: number
+  rem_type: RemType
+  health_center_id: number
+}
