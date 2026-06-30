@@ -9,40 +9,21 @@ class HealthCenterSeeder extends Seeder
 {
     public function run(): void
     {
-        HealthCenter::create([
-            'name' => 'CESFAM Sur',
-            'code_deis' => 'DEIS001',
-            'type' => 'CESFAM',
-            'address' => 'Av. Sur 1234',
-            'commune' => 'Iquique',
-            'is_active' => true,
-        ]);
+        $centers = [
+            1 => ['name' => 'CESFAM Cirujano Guzmán', 'code_deis' => '102302', 'type' => 'CESFAM', 'address' => 'Av. Héroes de la Concepción 1551', 'commune' => 'Iquique', 'is_active' => true],
+            2 => ['name' => 'SAPU Guzmán', 'code_deis' => '102802', 'type' => 'SAPU', 'address' => 'Av. Héroes de la Concepción 1551', 'commune' => 'Iquique', 'is_active' => true],
+            3 => ['name' => 'Posta Caleta Chanavayita', 'code_deis' => '102412', 'type' => 'POSTA', 'address' => 'Caleta Chanavayita S/N', 'commune' => 'Iquique', 'is_active' => true],
+            4 => ['name' => 'Posta Caleta San Marcos', 'code_deis' => '102413', 'type' => 'POSTA', 'address' => 'Caleta San Marcos S/N', 'commune' => 'Iquique', 'is_active' => true],
+        ];
 
-        HealthCenter::create([
-            'name' => 'CESFAM Central',
-            'code_deis' => 'DEIS002',
-            'type' => 'CESFAM',
-            'address' => 'Calle Central 567',
-            'commune' => 'Iquique',
-            'is_active' => true,
-        ]);
-
-        HealthCenter::create([
-            'name' => 'CECOSF Norte',
-            'code_deis' => 'DEIS003',
-            'type' => 'CECOSF',
-            'address' => 'Av. Norte 890',
-            'commune' => 'Alto Hospicio',
-            'is_active' => true,
-        ]);
-
-        HealthCenter::create([
-            'name' => 'PSR Rural',
-            'code_deis' => 'DEIS004',
-            'type' => 'PSR',
-            'address' => 'Camino Rural S/N',
-            'commune' => 'Pica',
-            'is_active' => true,
-        ]);
+        foreach ($centers as $id => $data) {
+            $center = HealthCenter::withTrashed()->find($id);
+            if ($center) {
+                $center->restore();
+                $center->update($data);
+            } else {
+                HealthCenter::create(array_merge($data, ['id' => $id]));
+            }
+        }
     }
 }

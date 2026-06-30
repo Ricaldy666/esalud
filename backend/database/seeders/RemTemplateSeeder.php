@@ -89,6 +89,72 @@ class RemTemplateSeeder extends Seeder
                 $this->sheetA34(),
             ],
             'notes' => 'G1 (12 sheets A02-A32) mapeadas en Fase 04B-2b-1. G2 (A19a) y G3 (A28, A34) mapeadas en Fase 04B-4. Secciones B+ de cada hoja pendientes.',
+            'validation_rules' => [
+                [
+                    'key' => 'a01_age_sum_equals_total',
+                    'type' => 'sum_equals',
+                    'section' => 'A01',
+                    'source_columns' => ['D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T'],
+                    'target_field' => 'total',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a01_gender_sum_equals_total',
+                    'type' => 'sum_equals',
+                    'section' => 'A01',
+                    'source_columns' => ['U','V'],
+                    'target_field' => 'total',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a01_control_with_partner_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A01',
+                    'child_column' => 'W',
+                    'parent_column' => 'C',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a01_friendly_spaces_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A01',
+                    'child_column' => 'Y',
+                    'parent_column' => 'C',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a01_sename_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A01',
+                    'child_column' => 'Z',
+                    'parent_column' => 'C',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a01_national_protection_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A01',
+                    'child_column' => 'AA',
+                    'parent_column' => 'C',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a01_indigenous_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A01',
+                    'child_column' => 'AB',
+                    'parent_column' => 'C',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a01_migrant_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A01',
+                    'child_column' => 'AC',
+                    'parent_column' => 'C',
+                    'severity' => 'error',
+                ],
+            ],
         ];
     }
 
@@ -112,6 +178,18 @@ class RemTemplateSeeder extends Seeder
             $mLetter = $this->colLetter($startIndex + $i++);
             $cols[] = ['letter' => $hLetter, 'label' => $label . ' Hombres', 'demographic_key' => $key . '_male'];
             $cols[] = ['letter' => $mLetter, 'label' => $label . ' Mujeres', 'demographic_key' => $key . '_female'];
+        }
+        return $cols;
+    }
+
+    private function baseColumnsAgeOnly(string $startCol, array $labels): array
+    {
+        $cols = [];
+        $startIndex = $this->colIndex($startCol);
+        $i = 0;
+        foreach ($labels as $key => $label) {
+            $letter = $this->colLetter($startIndex + $i++);
+            $cols[] = ['letter' => $letter, 'label' => $label, 'demographic_key' => $key];
         }
         return $cols;
     }
@@ -157,28 +235,28 @@ class RemTemplateSeeder extends Seeder
                 'total_column' => 'C',
             ],
             'columns' => array_merge(
-                $this->baseColumnsAgeSexPairs('D', [
-                    'under_4' => 'Menos de 4',
-                    'age_05_09' => '5-9',
-                    'age_10_14' => '10-14',
-                    'age_15_19' => '15-19',
-                    'age_20_24' => '20-24',
-                    'age_25_29' => '25-29',
-                    'age_30_34' => '30-34',
-                    'age_35_39' => '35-39',
-                    'age_40_44' => '40-44',
-                    'age_45_49' => '45-49',
-                    'age_50_54' => '50-54',
-                    'age_55_59' => '55-59',
-                    'age_60_64' => '60-64',
-                    'age_65_69' => '65-69',
-                    'age_70_74' => '70-74',
-                    'age_75_79' => '75-79',
-                    'age_80_plus' => '80+',
+                $this->baseColumnsAgeOnly('D', [
+                    'under_4' => 'Menos de 4 años',
+                    'age_5_9' => '5 - 9 años',
+                    'age_10_14' => '10 - 14 años',
+                    'age_15_19' => '15 - 19 años',
+                    'age_20_24' => '20 - 24 años',
+                    'age_25_29' => '25 - 29 años',
+                    'age_30_34' => '30 - 34 años',
+                    'age_35_39' => '35 - 39 años',
+                    'age_40_44' => '40 - 44 años',
+                    'age_45_49' => '45 - 49 años',
+                    'age_50_54' => '50 - 54 años',
+                    'age_55_59' => '55 - 59 años',
+                    'age_60_64' => '60 - 64 años',
+                    'age_65_69' => '65 - 69 años',
+                    'age_70_74' => '70 - 74 años',
+                    'age_75_79' => '75 - 79 años',
+                    'age_80_plus' => '80 y más años',
                 ]),
                 [
-                    ['letter' => 'U', 'label' => 'Hombres', 'demographic_key' => 'male'],
-                    ['letter' => 'V', 'label' => 'Mujeres', 'demographic_key' => 'female'],
+                    ['letter' => 'U', 'label' => 'Hombres', 'demographic_key' => 'total_male'],
+                    ['letter' => 'V', 'label' => 'Mujeres', 'demographic_key' => 'total_female'],
                     ['letter' => 'W', 'label' => 'Control con pareja', 'demographic_key' => 'control_with_partner'],
                     ['letter' => 'X', 'label' => 'Control de diada', 'demographic_key' => 'control_dyad'],
                     ['letter' => 'Y', 'label' => 'Espacios Amigables', 'demographic_key' => 'friendly_spaces'],

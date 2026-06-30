@@ -20,6 +20,14 @@ export const useRemUpload = (id: number) => {
   })
 }
 
+export const useRemUploadValidation = (id: number, enabled: boolean) => {
+  return useQuery({
+    queryKey: ['rem-uploads', id, 'validation-results'],
+    queryFn: () => remUploadsService.getValidationResults(id),
+    enabled,
+  })
+}
+
 export const useCreateRemUpload = () => {
   const queryClient = useQueryClient()
 

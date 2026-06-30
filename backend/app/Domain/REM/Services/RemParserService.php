@@ -191,6 +191,8 @@ class RemParserService
                 $values[$colLetter] = $parsed;
             }
 
+            $values[$totalCol] = $total;
+
             $rowsProcessed++;
 
             if ($rowHasContent || $total !== null || $professional !== '') {

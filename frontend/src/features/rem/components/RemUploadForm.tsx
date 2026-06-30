@@ -15,13 +15,6 @@ import {
   FileType,
 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select'
 import { useCreateRemUpload } from '../hooks/useRemUploads'
 import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
 import { REM_TYPE_LABELS, type RemType } from '../types/rem'
@@ -44,7 +37,7 @@ const MONTHS = [
 const YEARS = Array.from({ length: 16 }, (_, i) => 2015 + i)
 
 const uploadSchema = z.object({
-  rem_type: z.enum(['A', 'BM', 'BS', 'D', 'P'] as const),
+  rem_type: z.enum(['A', 'BM', 'D', 'P'] as const),
   health_center_id: z.number().int().positive(),
   year: z.number().int().min(2015).max(2030),
   month: z.number().int().min(1).max(12),
@@ -75,7 +68,7 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
   } = useForm<UploadFormValues>({
     resolver: zodResolver(uploadSchema),
     defaultValues: {
-      rem_type: 'A',
+      rem_type: 'A' as const,
       year: currentYear,
       month: currentMonth,
     },
@@ -148,8 +141,9 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div>
+        <div className="flex flex-wrap gap-3 items-end">
+          {/* Tipo REM */}
+          <div className="w-52 shrink-0">
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <FileType className="w-3.5 h-3.5" />
               Tipo REM
@@ -158,20 +152,19 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
               name="rem_type"
               control={control}
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.entries(REM_TYPE_LABELS) as [RemType, string][]).map(
-                      ([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      )
-                    )}
-                  </SelectContent>
-                </Select>
+                <select
+                  {...field}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="">Seleccionar tipo...</option>
+                  {(Object.entries(REM_TYPE_LABELS) as [RemType, string][]).map(
+                    ([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    )
+                  )}
+                </select>
               )}
             />
             {errors.rem_type && (
@@ -179,7 +172,8 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
             )}
           </div>
 
-          <div>
+          {/* Centro de Salud */}
+          <div className="w-72 shrink-0">
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5" />
               Centro de Salud
@@ -188,22 +182,23 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
               name="health_center_id"
               control={control}
               render={({ field }) => (
-                <Select
-                  value={field.value?.toString()}
-                  onValueChange={(v) => field.onChange(Number(v))}
+                <select
+                  value={field.value?.toString() ?? ''}
+                  onChange={(e) =>
+                    field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                  }
                   disabled={loadingCenters}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder={loadingCenters ? 'Cargando...' : 'Seleccionar...'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {healthCenters.map((hc) => (
-                      <SelectItem key={hc.id} value={hc.id.toString()}>
-                        {hc.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <option value="">
+                    {loadingCenters ? 'Cargando...' : 'Seleccionar centro...'}
+                  </option>
+                  {healthCenters.map((hc) => (
+                    <option key={hc.id} value={hc.id.toString()}>
+                      {hc.name}
+                    </option>
+                  ))}
+                </select>
               )}
             />
             {errors.health_center_id && (
@@ -211,7 +206,8 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
             )}
           </div>
 
-          <div>
+          {/* Año */}
+          <div className="w-28 shrink-0">
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               Año
@@ -220,26 +216,23 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
               name="year"
               control={control}
               render={({ field }) => (
-                <Select
+                <select
                   value={field.value?.toString()}
-                  onValueChange={(v) => field.onChange(Number(v))}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {YEARS.map((y) => (
-                      <SelectItem key={y} value={y.toString()}>
-                        {y}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {YEARS.map((y) => (
+                    <option key={y} value={y.toString()}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
               )}
             />
           </div>
 
-          <div>
+          {/* Mes */}
+          <div className="w-36 shrink-0">
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               Mes
@@ -248,21 +241,17 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
               name="month"
               control={control}
               render={({ field }) => (
-                <Select
+                <select
                   value={field.value?.toString()}
-                  onValueChange={(v) => field.onChange(Number(v))}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MONTHS.map((m) => (
-                      <SelectItem key={m.value} value={m.value.toString()}>
-                        {m.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {MONTHS.map((m) => (
+                    <option key={m.value} value={m.value.toString()}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
               )}
             />
           </div>
@@ -280,7 +269,7 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
                   ? 'border-blue-500 bg-blue-50'
                   : file
                     ? 'border-emerald-400 bg-emerald-50/50'
-                    : 'border-slate-300 hover:border-blue-500 bg-slate-50/50 hover:bg-blue-50/20'
+                    : 'border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50'
             }
           `}
         >

@@ -130,6 +130,37 @@ class RemUploadController extends Controller
         ]);
     }
 
+    public function validationResults(RemUpload $remUpload): JsonResponse
+    {
+        $this->authorize('view', $remUpload);
+
+        $results = $remUpload->validationResults()
+            ->orderBy('passed')
+            ->orderBy('rule_key')
+            ->get();
+
+        return response()->json([
+            'data' => [
+                'rem_upload_id' => $remUpload->id,
+                'status' => $remUpload->status,
+                'total_rules' => $results->count(),
+                'total_errors' => $results->where('passed', false)->where('severity', 'error')->count(),
+                'total_warnings' => $results->where('passed', false)->where('severity', 'warning')->count(),
+                'results' => $results->map(fn ($r) => [
+                    'id' => $r->id,
+                    'rule_key' => $r->rule_key,
+                    'rule_type' => $r->rule_type,
+                    'severity' => $r->severity,
+                    'passed' => $r->passed,
+                    'message' => $r->message,
+                    'context' => $r->context,
+                ]),
+            ],
+            'message' => null,
+            'errors' => null,
+        ]);
+    }
+
     public function destroy(RemUpload $remUpload): JsonResponse
     {
         $this->authorize('delete', $remUpload);

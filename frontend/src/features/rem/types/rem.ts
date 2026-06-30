@@ -1,4 +1,4 @@
-export type RemUploadStatus = 'pending' | 'processing' | 'success' | 'failed'
+export type RemUploadStatus = 'pending' | 'processing' | 'success' | 'with_errors' | 'failed'
 
 export interface RemUpload {
   id: number
@@ -63,14 +63,32 @@ export interface PaginatedResponse<T> {
 
 // === Tipos para creación de upload ===
 
-export type RemType = 'A' | 'BM' | 'BS' | 'D' | 'P'
+export type RemType = 'A' | 'BM' | 'D' | 'P'
 
 export const REM_TYPE_LABELS: Record<RemType, string> = {
   A: 'Serie A - Consultas Médicas',
   BM: 'Serie BM - Salud Mental',
-  BS: 'Serie BS - Salud Bucal',
   D: 'Serie D - Discapacidad',
   P: 'Serie P - Programas',
+}
+
+export interface RemValidationResult {
+  id: number
+  rule_key: string
+  rule_type: string
+  severity: 'error' | 'warning'
+  passed: boolean
+  message: string | null
+  context: Record<string, unknown> | null
+}
+
+export interface RemValidationResultsResponse {
+  rem_upload_id: number
+  status: RemUploadStatus
+  total_rules: number
+  total_errors: number
+  total_warnings: number
+  results: RemValidationResult[]
 }
 
 export interface CreateRemUploadPayload {

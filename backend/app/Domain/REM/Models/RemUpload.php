@@ -73,6 +73,11 @@ class RemUpload extends Model
         return $this->hasMany(RemData::class);
     }
 
+    public function validationResults()
+    {
+        return $this->hasMany(RemValidationResult::class);
+    }
+
     public function scopeByCenter(Builder $query, int $id): void
     {
         $query->where('health_center_id', $id);

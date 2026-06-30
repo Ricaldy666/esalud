@@ -15,6 +15,8 @@ import {
 import { Button } from '@/shared/components/ui/button'
 import { useRemUploads } from '../hooks/useRemUploads'
 import { RemUploadForm } from '../components/RemUploadForm'
+import { RemValidationModal } from '../components/RemValidationModal'
+import { REM_TYPE_LABELS, type RemType } from '../types/rem'
 import type { RemUpload, RemUploadStatus } from '../types/rem'
 
 const statusVariant: Record<RemUploadStatus, 'default' | 'secondary' | 'destructive' | 'outline'> =
@@ -22,6 +24,7 @@ const statusVariant: Record<RemUploadStatus, 'default' | 'secondary' | 'destruct
     pending: 'outline',
     processing: 'default',
     success: 'secondary',
+    with_errors: 'destructive',
     failed: 'destructive',
   }
 
@@ -29,12 +32,14 @@ const statusLabel: Record<RemUploadStatus, string> = {
   pending: 'Pendiente',
   processing: 'Procesando',
   success: 'Éxito',
+  with_errors: 'Con errores',
   failed: 'Fallido',
 }
 
 export default function RemUploadsPage() {
   const [page, setPage] = useState(1)
   const [showUploadForm, setShowUploadForm] = useState(false)
+  const [validationModalUploadId, setValidationModalUploadId] = useState<number | null>(null)
   const { data, isLoading, isError } = useRemUploads({ page, per_page: 15 })
 
   if (isError) {
@@ -111,12 +116,28 @@ export default function RemUploadsPage() {
                   <TableCell className="max-w-[200px] truncate font-medium">
                     {upload.original_filename}
                   </TableCell>
-                  <TableCell>{upload.rem_type}</TableCell>
+                  <TableCell>
+                    <span className="text-xs font-medium text-slate-600">
+                      {REM_TYPE_LABELS[upload.rem_type as RemType] ?? upload.rem_type}
+                    </span>
+                  </TableCell>
                   <TableCell className="whitespace-nowrap">
                     {String(upload.month).padStart(2, '0')}/{upload.year}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant[upload.status]}>
+                    <Badge
+                      variant={statusVariant[upload.status]}
+                      className={
+                        upload.status !== 'pending' && upload.status !== 'processing'
+                          ? 'cursor-pointer'
+                          : ''
+                      }
+                      onClick={() => {
+                        if (upload.status !== 'pending' && upload.status !== 'processing') {
+                          setValidationModalUploadId(upload.id)
+                        }
+                      }}
+                    >
                       {statusLabel[upload.status]}
                     </Badge>
                   </TableCell>
@@ -129,7 +150,7 @@ export default function RemUploadsPage() {
                   <TableCell className="text-right">
                     {upload.error_report?.summary?.total_error_cells ?? '-'}
                   </TableCell>
-                  <TableCell className="max-w-[120px] truncate">
+                  <TableCell className="whitespace-nowrap">
                     {upload.health_center?.name ?? '-'}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-xs">
@@ -167,6 +188,12 @@ export default function RemUploadsPage() {
           </div>
         </div>
       )}
+
+      <RemValidationModal
+        uploadId={validationModalUploadId ?? 0}
+        open={validationModalUploadId !== null}
+        onClose={() => setValidationModalUploadId(null)}
+      />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import type {
   RemUpload,
   RemUploadFilters,
   CreateRemUploadPayload,
+  RemValidationResultsResponse,
 } from '../types/rem'
 
 export const remUploadsService = {
@@ -31,6 +32,13 @@ export const remUploadsService = {
   getStatus: async (id: number) => {
     const { data } = await api.get(`/rem-uploads/${id}/status`)
     return data
+  },
+
+  getValidationResults: async (id: number): Promise<RemValidationResultsResponse> => {
+    const { data } = await api.get<{ data: RemValidationResultsResponse }>(
+      `/rem-uploads/${id}/validation-results`
+    )
+    return data.data
   },
 
   create: async (payload: CreateRemUploadPayload): Promise<RemUpload> => {

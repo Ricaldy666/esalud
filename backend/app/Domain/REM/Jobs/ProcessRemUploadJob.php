@@ -6,6 +6,7 @@ use App\Domain\REM\Models\RemData;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Services\RemParserService;
 use Illuminate\Bus\Queueable;
+use App\Domain\REM\Jobs\ValidateRemUploadJob;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -58,6 +59,8 @@ class ProcessRemUploadJob implements ShouldQueue
                 'error_report' => $errorReport,
                 'processed_at' => now(),
             ]);
+
+            ValidateRemUploadJob::dispatch($upload);
         } catch (\Throwable $e) {
             $upload->update([
                 'status' => 'failed',
