@@ -45,7 +45,7 @@ export default function AuditPage() {
     <div>
       <PageHeader title="Auditoría" description="Historial de cambios en el sistema" />
 
-      <div className="mb-6 grid grid-cols-5 gap-4">
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="space-y-1">
           <Label className="text-xs">Evento</Label>
           <Select

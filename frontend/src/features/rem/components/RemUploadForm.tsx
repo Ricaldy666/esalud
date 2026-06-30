@@ -141,9 +141,9 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="flex flex-wrap gap-3 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Tipo REM */}
-          <div className="w-52 shrink-0">
+          <div>
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <FileType className="w-3.5 h-3.5" />
               Tipo REM
@@ -173,7 +173,7 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
           </div>
 
           {/* Centro de Salud */}
-          <div className="w-72 shrink-0">
+          <div className="sm:col-span-2 lg:col-span-1">
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5" />
               Centro de Salud
@@ -207,7 +207,7 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
           </div>
 
           {/* Año */}
-          <div className="w-28 shrink-0">
+          <div>
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               Año
@@ -232,7 +232,7 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
           </div>
 
           {/* Mes */}
-          <div className="w-36 shrink-0">
+          <div>
             <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
               <Calendar className="w-3.5 h-3.5" />
               Mes
