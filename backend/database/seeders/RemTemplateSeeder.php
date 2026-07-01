@@ -155,6 +155,40 @@ class RemTemplateSeeder extends Seeder
                     'severity' => 'error',
                 ],
 
+                // A05 — Gestantes (Sección A)
+                [
+                    'key' => 'a05_age_sum_equals_total',
+                    'type' => 'sum_equals',
+                    'section' => 'A05',
+                    'source_columns' => ['D','E','F','G','H','I','J','K','L','M','N'],
+                    'target_field' => 'total',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a05_violence_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A05',
+                    'child_column' => 'O',
+                    'parent_column' => 'total',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a05_indigenous_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A05',
+                    'child_column' => 'V',
+                    'parent_column' => 'total',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a05_migrant_sum_le_total',
+                    'type' => 'sum_le_parent',
+                    'section' => 'A05',
+                    'source_columns' => ['W','X'],
+                    'parent_column' => 'total',
+                    'severity' => 'error',
+                ],
+
                 // A23 — Ingresos Agudos IRA (Sección A)
                 [
                     'key' => 'a23_winter_campaign_le_total',
