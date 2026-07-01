@@ -154,6 +154,24 @@ class RemTemplateSeeder extends Seeder
                     'parent_column' => 'C',
                     'severity' => 'error',
                 ],
+
+                // A23 — Ingresos Agudos IRA (Sección A)
+                [
+                    'key' => 'a23_winter_campaign_le_total',
+                    'type' => 'max_le_parent',
+                    'section' => 'A23',
+                    'child_column' => 'AQ',
+                    'parent_column' => 'total',
+                    'severity' => 'error',
+                ],
+                [
+                    'key' => 'a23_indigenous_migrant_sum_le_total',
+                    'type' => 'sum_le_parent',
+                    'section' => 'A23',
+                    'source_columns' => ['AO', 'AP'],
+                    'parent_column' => 'total',
+                    'severity' => 'error',
+                ],
             ],
         ];
     }

@@ -54,6 +54,7 @@ class RemValidationService
         return match ($rule['type']) {
             'sum_equals' => $this->evaluateSumEquals($rule, $rowData, $upload, $remDataId),
             'max_le_parent' => $this->evaluateMaxLeParent($rule, $rowData, $upload, $remDataId),
+            'sum_le_parent' => $this->evaluateSumLeParent($rule, $rowData, $upload, $remDataId),
             default => null,
         };
     }
@@ -136,6 +137,45 @@ class RemValidationService
                 'child_column' => $rule['child_column'],
                 'parent_column' => $rule['parent_column'],
                 'child_value' => $child,
+                'parent_value' => $parent,
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+
+    private function evaluateSumLeParent(array $rule, array $rowData, RemUpload $upload, int $remDataId): ?array
+    {
+        $values = $rowData['values'] ?? [];
+
+        $hasData = collect($values)->filter(fn ($v) => $v !== null)->isNotEmpty();
+        if (!$hasData) {
+            return null;
+        }
+
+        $sum = 0;
+        foreach ($rule['source_columns'] as $col) {
+            $sum += (float) ($values[$col] ?? 0);
+        }
+
+        $parent = (float) ($values[$rule['parent_column']] ?? $rowData[$rule['parent_column']] ?? 0);
+        $passed = $sum <= $parent;
+
+        $label = ($rowData['concept'] ?? '?') . ' / ' . ($rowData['professional'] ?? '?');
+
+        return [
+            'rem_upload_id' => $upload->id,
+            'rule_key' => $rule['key'],
+            'rule_type' => 'sum_le_parent',
+            'severity' => $rule['severity'] ?? 'error',
+            'passed' => $passed,
+            'message' => $passed ? null : "[{$rule['section']}] {$label}: suma " . implode('+', $rule['source_columns']) . " ({$sum}) supera total ({$parent})",
+            'context' => json_encode([
+                'section' => $rule['section'],
+                'rem_data_id' => $remDataId,
+                'concept' => $rowData['concept'] ?? null,
+                'source_columns' => $rule['source_columns'],
+                'computed_sum' => $sum,
                 'parent_value' => $parent,
             ]),
             'created_at' => now(),
