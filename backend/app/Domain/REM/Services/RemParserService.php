@@ -201,6 +201,7 @@ class RemParserService
                     'professional' => $professional,
                     'total' => $total,
                     'values' => $values,
+                    'row_number' => $row,
                 ];
 
                 if (!empty($sheetConfig['section_code'])) {
