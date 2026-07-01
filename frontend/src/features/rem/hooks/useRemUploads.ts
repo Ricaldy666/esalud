@@ -36,7 +36,7 @@ export const useCreateRemUpload = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['rem-uploads'] })
       toast.success(`REM cargado: ${data.original_filename}`, {
-        description: 'El archivo se está procesando en segundo plano.',
+        description: 'REM procesado y validado correctamente.',
       })
     },
     onError: (error: AxiosError<{ message?: string; errors?: Record<string, string[]> }>) => {

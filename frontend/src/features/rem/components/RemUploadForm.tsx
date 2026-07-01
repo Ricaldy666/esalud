@@ -10,6 +10,7 @@ import {
   Loader2,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   Calendar,
   Building2,
   FileType,
@@ -17,7 +18,9 @@ import {
 import { Button } from '@/shared/components/ui/button'
 import { useCreateRemUpload } from '../hooks/useRemUploads'
 import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
-import { REM_TYPE_LABELS, type RemType } from '../types/rem'
+import { REM_TYPE_LABELS, type RemType, type RemUpload } from '../types/rem'
+import type { RemValidationResultsResponse } from '../types/rem'
+import { remUploadsService } from '../services/rem-uploads'
 
 const MONTHS = [
   { value: 1, label: 'Enero' },
@@ -52,6 +55,10 @@ interface RemUploadFormProps {
 export function RemUploadForm({ onClose }: RemUploadFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
+  const [uploadResult, setUploadResult] = useState<{
+    upload: RemUpload
+    validation: RemValidationResultsResponse | null
+  } | null>(null)
 
   const { data: healthCentersPage, isLoading: loadingCenters } = useHealthCenters()
   const healthCenters = healthCentersPage?.data ?? []
@@ -114,10 +121,119 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
     createMutation.mutate(
       { ...values, file },
       {
-        onSuccess: () => {
-          onClose()
+        onSuccess: async (data: RemUpload) => {
+          try {
+            const validation = await remUploadsService.getValidationResults(data.id)
+            setUploadResult({ upload: data, validation })
+          } catch {
+            setUploadResult({ upload: data, validation: null })
+          }
         },
       }
+    )
+  }
+
+  const totalErrors = uploadResult?.validation?.total_errors ?? 0
+  const isSuccess = uploadResult && totalErrors === 0
+
+  if (uploadResult) {
+    const u = uploadResult.upload
+    const hcName = u.health_center?.name ?? '—'
+    const monthYear = `${u.month}/${u.year}`
+    return (
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-bold text-slate-900">
+            Importador de Archivos Estadísticos REM
+          </h3>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Cerrar"
+          >
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+        <p className="text-sm text-slate-500 mb-6">
+          Subí archivos Excel (.xlsx, .xlsm) para procesar y validar antes del envío formal al
+          Servicio de Salud.
+        </p>
+
+        {/* Banner de éxito */}
+        {isSuccess && (
+          <div className="flex items-start gap-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+            <div className="p-2 bg-emerald-500 text-white rounded-full shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-bold text-emerald-950 text-sm">Validación Exitosa</h4>
+              <p className="text-sm text-emerald-800 mt-0.5">
+                Archivo procesado correctamente. {uploadResult.validation?.total_rules ?? 0} reglas
+                de consistencia validadas.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de error */}
+        {!isSuccess && (
+          <div className="flex items-start gap-4 p-4 bg-rose-50 border border-rose-200 rounded-lg">
+            <div className="p-2 bg-rose-500 text-white rounded-full shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-bold text-rose-950 text-sm">Se detectaron errores</h4>
+              <p className="text-sm text-rose-800 mt-0.5">
+                {u.original_filename} — {hcName} {monthYear}. {totalErrors} error(es) encontrado(s).
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Tabla de errores */}
+        {!isSuccess && uploadResult.validation && (
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 text-xs uppercase">
+                    Sección
+                  </th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 text-xs uppercase">
+                    Regla
+                  </th>
+                  <th className="text-left py-2 px-3 font-semibold text-slate-700 text-xs uppercase">
+                    Mensaje
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {uploadResult.validation.results
+                  .filter((r) => !r.passed)
+                  .map((r) => (
+                    <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="py-2 px-3 font-mono text-xs text-slate-600">
+                        {r.context && 'section' in r.context
+                          ? String(r.context.section)
+                          : (r.rule_key.split('_')[0] ?? '—')}
+                      </td>
+                      <td className="py-2 px-3 font-mono text-xs text-slate-700">{r.rule_key}</td>
+                      <td className="py-2 px-3 text-slate-600">{r.message ?? '—'}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Botones */}
+        <div className="flex justify-end gap-2 mt-4">
+          <Button variant="outline" onClick={() => setUploadResult(null)}>
+            Subir otro archivo
+          </Button>
+          <Button onClick={onClose}>Cerrar</Button>
+        </div>
+      </div>
     )
   }
 
