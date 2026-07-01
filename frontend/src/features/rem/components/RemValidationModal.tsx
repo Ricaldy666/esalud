@@ -36,15 +36,11 @@ function getDescripcionLabel(result: RemValidationResult): string {
     const desc = (ctx.description as string) ?? ''
     const src = (ctx.source_sum as number) ?? 0
     const tgt = (ctx.target_sum as number) ?? 0
-    const op =
-      ctx.operator === 'equals'
-        ? 'debe ser igual a'
-        : ctx.operator === 'lte'
-          ? 'no puede superar a'
-          : ctx.operator === 'gte'
-            ? 'debe ser mayor o igual a'
-            : '='
-    return `${desc} — valor registrado: ${src}, valor esperado: ${tgt} (${op})`
+    const cleanDesc = desc
+      .replace(/\([A-Z0-9]+![A-Z]+![A-Z]\d+\)/g, '')
+      .replace(/\([A-Z0-9]+![A-Z]+![A-Z]\d+\+[A-Z]\d+\)/g, '')
+      .trim()
+    return `${cleanDesc} — Registrado: ${src} | Esperado: ${tgt}`
   }
   if (result.message) {
     return result.message.replace(/^\[.*?\]\s*/, '')
@@ -64,10 +60,15 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
         if (!nextOpen) onClose()
       }}
     >
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Resultados de validación</DialogTitle>
-          <DialogDescription>Carga REM #{uploadId}</DialogDescription>
+      <DialogContent
+        className="max-w-3xl w-full sm:max-w-3xl"
+        style={{ maxWidth: '800px', width: '90vw' }}
+      >
+        <DialogHeader className="pb-2 border-b">
+          <DialogTitle className="text-base font-semibold">Resultados de validación</DialogTitle>
+          <DialogDescription className="text-xs text-slate-500">
+            Carga REM #{uploadId}
+          </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
@@ -89,26 +90,26 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
             description="No hay información de validación disponible."
           />
         ) : (
-          <div className="flex flex-col gap-4 overflow-hidden">
+          <>
             {/* Banner resumen */}
             {data.total_errors === 0 && data.total_warnings === 0 ? (
-              <div className="flex items-center gap-3 rounded-lg bg-emerald-50 border border-emerald-200 p-4">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+              <div className="flex items-start gap-3 rounded-lg bg-emerald-50 border border-emerald-200 p-3 mt-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-emerald-800">Validación Exitosa</p>
-                  <p className="text-xs text-emerald-700">
+                  <p className="text-xs text-emerald-700 mt-0.5">
                     Todas las reglas ({data.total_rules}) se cumplieron correctamente.
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-3 rounded-lg bg-red-50 border border-red-200 p-4">
-                <XCircle className="w-5 h-5 text-red-600 shrink-0" />
+              <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 p-3 mt-3">
+                <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 <div>
                   <p className="text-sm font-semibold text-red-800">
                     Estructura de Archivo Rechazada
                   </p>
-                  <p className="text-xs text-red-700">
+                  <p className="text-xs text-red-700 mt-0.5">
                     Se detectaron {data.total_errors} error(es) que deben corregirse antes de enviar
                     al Servicio de Salud.
                   </p>
@@ -116,40 +117,40 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
               </div>
             )}
 
-            {/* Tabla de errores estilo Don Amador */}
+            {/* Tabla de errores */}
             {failedResults.length > 0 && (
-              <div className="overflow-y-auto flex-1 rounded-md border">
+              <div className="mt-4 rounded-md border border-slate-200 overflow-hidden">
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50 border-b">
-                    <tr>
-                      <th className="text-left px-3 py-2 text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                        ARCHIVO ORIGEN
+                  <thead>
+                    <tr className="bg-slate-100 border-b border-slate-200">
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-28">
+                        Archivo Origen
                       </th>
-                      <th className="text-left px-3 py-2 text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                        SECCIÓN / PESTAÑA
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-32">
+                        Sección / Pestaña
                       </th>
-                      <th className="text-left px-3 py-2 text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                        INCONSISTENCIA DETALLADA
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                        Inconsistencia Detectada
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {failedResults.map((result) => (
-                      <tr key={result.id} className="hover:bg-slate-50">
-                        <td className="px-3 py-2 text-slate-600">
-                          {result.rule_type === 'cross_sheet' ? 'REM A (entre secciones)' : 'REM A'}
-                        </td>
-                        <td className="px-3 py-2 font-medium text-red-600">
+                      <tr key={result.id} className="bg-white hover:bg-slate-50">
+                        <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
+                        <td className="px-4 py-3 text-sm font-medium text-red-600 align-top">
                           {getSeccionLabel(result)}
                         </td>
-                        <td className="px-3 py-2 text-red-700">{getDescripcionLabel(result)}</td>
+                        <td className="px-4 py-3 text-sm text-red-700 align-top">
+                          {getDescripcionLabel(result)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             )}
-          </div>
+          </>
         )}
       </DialogContent>
     </Dialog>
