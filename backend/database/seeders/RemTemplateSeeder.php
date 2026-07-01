@@ -97,6 +97,7 @@ class RemTemplateSeeder extends Seeder
                     'source_columns' => ['D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T'],
                     'target_field' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
                 [
                     'key' => 'a01_gender_sum_equals_total',
@@ -105,6 +106,7 @@ class RemTemplateSeeder extends Seeder
                     'source_columns' => ['U','V'],
                     'target_field' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
                 [
                     'key' => 'a01_control_with_partner_le_total',
@@ -113,6 +115,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'W',
                     'parent_column' => 'C',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
                 [
                     'key' => 'a01_friendly_spaces_le_total',
@@ -121,6 +124,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'Y',
                     'parent_column' => 'C',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
                 [
                     'key' => 'a01_sename_le_total',
@@ -129,6 +133,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'Z',
                     'parent_column' => 'C',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
                 [
                     'key' => 'a01_national_protection_le_total',
@@ -137,6 +142,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'AA',
                     'parent_column' => 'C',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
                 [
                     'key' => 'a01_indigenous_le_total',
@@ -145,6 +151,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'AB',
                     'parent_column' => 'C',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
                 [
                     'key' => 'a01_migrant_le_total',
@@ -153,9 +160,10 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'AC',
                     'parent_column' => 'C',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 32],
                 ],
 
-                // A05 — Gestantes (Sección A)
+                // A05 — Gestantes (Sección A, filas 11-14)
                 [
                     'key' => 'a05_age_sum_equals_total',
                     'type' => 'sum_equals',
@@ -163,6 +171,7 @@ class RemTemplateSeeder extends Seeder
                     'source_columns' => ['D','E','F','G','H','I','J','K','L','M','N'],
                     'target_field' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 14],
                 ],
                 [
                     'key' => 'a05_violence_le_total',
@@ -171,6 +180,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'O',
                     'parent_column' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 14],
                 ],
                 [
                     'key' => 'a05_indigenous_le_total',
@@ -179,6 +189,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'V',
                     'parent_column' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 14],
                 ],
                 [
                     'key' => 'a05_migrant_sum_le_total',
@@ -187,9 +198,10 @@ class RemTemplateSeeder extends Seeder
                     'source_columns' => ['W','X'],
                     'parent_column' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 14],
                 ],
 
-                // A23 — Ingresos Agudos IRA (Sección A)
+                // A23 — Ingresos Agudos IRA (Sección A, filas 11-22)
                 [
                     'key' => 'a23_winter_campaign_le_total',
                     'type' => 'max_le_parent',
@@ -197,6 +209,7 @@ class RemTemplateSeeder extends Seeder
                     'child_column' => 'AQ',
                     'parent_column' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 22],
                 ],
                 [
                     'key' => 'a23_indigenous_migrant_sum_le_total',
@@ -205,6 +218,128 @@ class RemTemplateSeeder extends Seeder
                     'source_columns' => ['AO', 'AP'],
                     'parent_column' => 'total',
                     'severity' => 'error',
+                    'row_range' => ['from' => 11, 'to' => 22],
+                ],
+
+                // RCC — Reglas de Consistencia Cruzada (entre secciones)
+                [
+                    'key' => 'rcc_0001_a05_e89_eq_a01_b_f38',
+                    'type' => 'cross_sheet',
+                    'description' => 'Recién nacidos A05!C89 = A01!F38 (Gestantes controladas)',
+                    'severity' => 'warning',
+                    'source' => [
+                        'section' => 'A05',
+                        'row_number' => 89,
+                        'columns' => ['C'],
+                    ],
+                    'target' => [
+                        'section' => 'A01',
+                        'row_numbers' => [38],
+                        'columns' => ['F'],
+                    ],
+                    'operator' => 'equals',
+                ],
+                [
+                    'key' => 'rcc_0002_a01_d74_eq_a01_b_t37_t38',
+                    'type' => 'cross_sheet',
+                    'description' => 'Total 10-14 años (A01!D!C74) = Enfermera + Matrona (A01!B!T37+T38)',
+                    'severity' => 'error',
+                    'source' => [
+                        'section' => 'A01',
+                        'row_number' => 74,
+                        'columns' => ['C'],
+                    ],
+                    'target' => [
+                        'section' => 'A01',
+                        'row_numbers' => [37, 38],
+                        'columns' => ['T'],
+                    ],
+                    'operator' => 'equals',
+                ],
+                [
+                    'key' => 'rcc_0003_a01_d74_eq_a01_b_u37_u38',
+                    'type' => 'cross_sheet',
+                    'description' => 'Total 15-19 años (A01!D!F74) = Enfermera + Matrona (A01!B!U37+U38)',
+                    'severity' => 'error',
+                    'source' => [
+                        'section' => 'A01',
+                        'row_number' => 74,
+                        'columns' => ['F'],
+                    ],
+                    'target' => [
+                        'section' => 'A01',
+                        'row_numbers' => [37, 38],
+                        'columns' => ['U'],
+                    ],
+                    'operator' => 'equals',
+                ],
+                [
+                    'key' => 'rcc_0004_a02_b11_eq_a03_c108_a02_e11_f11',
+                    'type' => 'cross_sheet',
+                    'description' => 'EMP: A02!B11 = A03!C108 + A02!E11 + A02!F11',
+                    'severity' => 'error',
+                    'source' => [
+                        'section' => 'A02',
+                        'row_number' => 11,
+                        'columns' => ['B'],
+                    ],
+                    'target' => [
+                        'section' => 'A03',
+                        'row_numbers' => [108],
+                        'columns' => ['C'],
+                    ],
+                    'operator' => 'gte',
+                ],
+                [
+                    'key' => 'rcc_0005_a03_c108_c112_eq_a27_intervenciones',
+                    'type' => 'cross_sheet',
+                    'description' => 'Intervenciones: A03!(C108+C112) = A27!(D122+D125+D127+D128+D130)',
+                    'severity' => 'warning',
+                    'source' => [
+                        'section' => 'A03',
+                        'row_numbers' => [108, 112],
+                        'columns' => ['C'],
+                    ],
+                    'target' => [
+                        'section' => 'A27',
+                        'row_numbers' => [122, 125, 127, 128, 130],
+                        'columns' => ['D'],
+                    ],
+                    'operator' => 'equals',
+                ],
+                [
+                    'key' => 'rcc_0006_a03_c97_eq_a01_estado_nutricional',
+                    'type' => 'cross_sheet',
+                    'description' => 'Estado nutricional adolescente: A03!C97 = A01!(T37+T38+U37+U38)',
+                    'severity' => 'warning',
+                    'source' => [
+                        'section' => 'A03',
+                        'row_number' => 97,
+                        'columns' => ['C'],
+                    ],
+                    'target' => [
+                        'section' => 'A01',
+                        'row_numbers' => [37, 38],
+                        'columns' => ['T', 'U'],
+                    ],
+                    'operator' => 'equals',
+                ],
+                [
+                    'key' => 'rcc_0007_a03_mchat_e222_f222_eq_e227_f227',
+                    'type' => 'cross_sheet',
+                    'description' => 'MCHAT: A03!(E222+F222) = A03!(E227+F227)',
+                    'severity' => 'warning',
+                    'source' => [
+                        'section' => 'A03',
+                        'row_numbers' => [222],
+                        'columns' => ['E', 'F'],
+                    ],
+                    'target' => [
+                        'section' => 'A03',
+                        'row_numbers' => [227],
+                        'columns' => ['E', 'F'],
+                    ],
+                    'operator' => 'equals',
                 ],
             ],
         ];
@@ -277,11 +412,10 @@ class RemTemplateSeeder extends Seeder
             'section_code' => 'A01',
             'title' => 'Controles de Salud',
             'is_required' => true,
-            'structure' => [
+             'structure' => [
                 'header_row' => 9,
                 'sub_header_row' => 10,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',
@@ -337,7 +471,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -382,7 +515,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -434,7 +566,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'C',
@@ -476,7 +607,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',
@@ -527,7 +657,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -580,10 +709,9 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
-                'total_column' => 'D',
+                'total_column' => 'B',
             ],
             'columns' => array_merge(
                 [
@@ -635,7 +763,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -671,7 +798,7 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
+                'data_end_row' => 22,
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -721,7 +848,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -760,7 +886,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -823,7 +948,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',
@@ -883,7 +1007,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'A',
                 'total_column' => 'B',
@@ -938,7 +1061,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 13,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',
@@ -988,7 +1110,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 13,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'total_column' => 'B',
             ],
@@ -1036,7 +1157,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 13,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',
@@ -1116,7 +1236,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 11,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',
@@ -1164,7 +1283,6 @@ class RemTemplateSeeder extends Seeder
             'structure' => [
                 'header_row' => 9,
                 'data_start_row' => 12,
-                'section_break_pattern' => '/^SECCI[OÓ][NÑ]/u',
                 'concept_column' => 'A',
                 'professional_column' => 'B',
                 'total_column' => 'C',

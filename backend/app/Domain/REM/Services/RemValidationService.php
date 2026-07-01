@@ -32,7 +32,24 @@ class RemValidationService
         $results = collect();
 
         foreach ($rules as $rule) {
+            if ($rule['type'] === 'cross_sheet') {
+                $result = $this->evaluateCrossSheet($rule, $upload);
+                if ($result) {
+                    $results->push($result);
+                }
+                continue;
+            }
+
             $rows = $rowsBySection->get($rule['section'], collect());
+
+            if (isset($rule['row_range'])) {
+                $rows = $rows->filter(function ($row) use ($rule) {
+                    $rowNum = $row->data['row_number'] ?? null;
+                    return $rowNum !== null
+                        && $rowNum >= $rule['row_range']['from']
+                        && $rowNum <= $rule['row_range']['to'];
+                });
+            }
 
             foreach ($rows as $row) {
                 $result = $this->evaluateRule($rule, $row->data, $upload, $row->id);
@@ -57,6 +74,81 @@ class RemValidationService
             'sum_le_parent' => $this->evaluateSumLeParent($rule, $rowData, $upload, $remDataId),
             default => null,
         };
+    }
+
+    private function evaluateCrossSheet(array $rule, RemUpload $upload): ?array
+    {
+        $sourceRowNumbers = $rule['source']['row_numbers'] ?? [$rule['source']['row_number'] ?? null];
+
+        if (empty($sourceRowNumbers) || $sourceRowNumbers[0] === null) {
+            return null;
+        }
+
+        $sourceRows = $upload->remData->filter(
+            fn($d) => $d->section === $rule['source']['section']
+                && in_array($d->data['row_number'] ?? null, $sourceRowNumbers)
+        );
+
+        if ($sourceRows->isEmpty()) {
+            return null;
+        }
+
+        $sourceSum = 0;
+        foreach ($sourceRows as $sourceRow) {
+            $sourceValues = $sourceRow->data['values'] ?? [];
+            foreach ($rule['source']['columns'] as $col) {
+                $sourceSum += (float) ($sourceValues[$col] ?? 0);
+            }
+        }
+
+        $hasSourceData = collect($sourceRows->first()->data['values'] ?? [])
+            ->filter(fn($v) => $v !== null)->isNotEmpty();
+        if (!$hasSourceData) {
+            return null;
+        }
+
+        $targetRowNumbers = $rule['target']['row_numbers'] ?? [$rule['target']['row_number'] ?? null];
+
+        $targetRows = $upload->remData->filter(
+            fn($d) => $d->section === $rule['target']['section']
+                && in_array($d->data['row_number'] ?? null, $targetRowNumbers)
+        );
+
+        $targetSum = 0;
+        foreach ($targetRows as $targetRow) {
+            $targetValues = $targetRow->data['values'] ?? [];
+            foreach ($rule['target']['columns'] as $col) {
+                $targetSum += (float) ($targetValues[$col] ?? 0);
+            }
+        }
+
+        $passed = match ($rule['operator'] ?? 'equals') {
+            'equals' => $sourceSum == $targetSum,
+            'lte' => $sourceSum <= $targetSum,
+            'gte' => $sourceSum >= $targetSum,
+            default => false,
+        };
+
+        return [
+            'rem_upload_id' => $upload->id,
+            'rule_key' => $rule['key'],
+            'rule_type' => 'cross_sheet',
+            'severity' => $rule['severity'] ?? 'error',
+            'passed' => $passed,
+            'message' => $passed ? null : "[RCC] {$rule['description']}: origen {$sourceSum} vs destino {$targetSum}",
+            'context' => json_encode([
+                'description' => $rule['description'],
+                'source_section' => $rule['source']['section'],
+                'source_rows' => $sourceRowNumbers,
+                'source_sum' => $sourceSum,
+                'target_section' => $rule['target']['section'],
+                'target_rows' => $targetRowNumbers,
+                'target_sum' => $targetSum,
+                'operator' => $rule['operator'] ?? 'equals',
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
     }
 
     /**

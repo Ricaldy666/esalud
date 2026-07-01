@@ -133,7 +133,12 @@ class RemParserService
         $columnLetters = array_map(fn($c) => $c['letter'], $columns);
 
         $sheetMaxRow = $worksheet->getHighestRow();
-        $maxRow = min($sheetMaxRow, $maxDataRows);
+        $dataEndRow = $structure['data_end_row'] ?? null;
+        if ($dataEndRow) {
+            $maxRow = min($dataEndRow, $sheetMaxRow);
+        } else {
+            $maxRow = min($sheetMaxRow, $maxDataRows);
+        }
 
         for ($row = $dataStartRow; $row <= $maxRow; $row++) {
             $conceptValue = $worksheet->getCell($conceptCol . $row)->getCalculatedValue();
@@ -163,6 +168,8 @@ class RemParserService
 
             $values = [];
             $rowHasContent = false;
+            $rowErrorCells = 0;
+            $rowErrors = [];
 
             foreach ($columnLetters as $colLetter) {
                 $cellValue = $worksheet->getCell($colLetter . $row)->getCalculatedValue();
@@ -173,8 +180,8 @@ class RemParserService
                     $parsed = $validation['value'];
                 } else {
                     $parsed = null;
-                    $errorCells++;
-                    $errors[] = [
+                    $rowErrorCells++;
+                    $rowErrors[] = [
                         'type' => 'data',
                         'sheet' => $sheetConfig['sheet_name'],
                         'row' => $row,
@@ -189,6 +196,11 @@ class RemParserService
                 }
 
                 $values[$colLetter] = $parsed;
+            }
+
+            if ($rowHasContent && $total !== null) {
+                $errorCells += $rowErrorCells;
+                array_push($errors, ...$rowErrors);
             }
 
             $values[$totalCol] = $total;
@@ -223,6 +235,10 @@ class RemParserService
 
     private function validateCell(mixed $value, array $rules): array
     {
+        if (is_array($value)) {
+            return ['valid' => true, 'value' => null];
+        }
+
         if ($value === null || $value === '') {
             if ($rules['allow_null'] ?? true) {
                 return ['valid' => true, 'value' => null];
