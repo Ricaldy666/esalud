@@ -21,11 +21,11 @@ class RemUploadController extends Controller
         $query = RemUpload::query()->with(['healthCenter', 'user', 'remTemplate']);
 
         $user = $request->user();
-        if (!$user->hasRole('Administrador')) {
-            $query->where(function ($q) use ($user) {
-                $q->where('health_center_id', $user->health_center_id)
-                  ->orWhere('user_id', $user->id);
-            });
+        if ($user->hasRole('Revisor')) {
+            $centroIds = $user->healthCenters()->pluck('health_centers.id');
+            $query->whereIn('health_center_id', $centroIds);
+        } elseif ($user->hasRole('Analista') || $user->hasRole('Auditor')) {
+            // Analista y Auditor ven todos los uploads
         }
 
         if ($year = $request->query('year')) $query->where('year', $year);
