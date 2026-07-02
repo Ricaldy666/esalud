@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useDropzone, type FileRejection } from 'react-dropzone'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -21,6 +21,11 @@ import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCente
 import { REM_TYPE_LABELS, type RemType, type RemUpload } from '../types/rem'
 import type { RemValidationResultsResponse } from '../types/rem'
 import { remUploadsService } from '../services/rem-uploads'
+import {
+  getSeccionLabel,
+  getUbicacionLabel,
+  getDescripcionLabel,
+} from '../utils/validation-display'
 
 const MONTHS = [
   { value: 1, label: 'Enero' },
@@ -50,9 +55,10 @@ type UploadFormValues = z.infer<typeof uploadSchema>
 
 interface RemUploadFormProps {
   onClose: () => void
+  alwaysVisible?: boolean
 }
 
-export function RemUploadForm({ onClose }: RemUploadFormProps) {
+export function RemUploadForm({ onClose, alwaysVisible }: RemUploadFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [uploadResult, setUploadResult] = useState<{
@@ -71,6 +77,7 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<UploadFormValues>({
     resolver: zodResolver(uploadSchema),
@@ -80,6 +87,22 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
       month: currentMonth,
     },
   })
+
+  useEffect(() => {
+    if (alwaysVisible && uploadResult) {
+      const timer = setTimeout(() => {
+        reset({
+          rem_type: 'A' as const,
+          health_center_id: undefined as unknown as number,
+          year: currentYear,
+          month: currentMonth,
+        })
+        setFile(null)
+        setUploadResult(null)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [alwaysVisible, uploadResult, reset, currentYear, currentMonth])
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     setFileError(null)
@@ -146,13 +169,15 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
           <h3 className="text-lg font-bold text-slate-900">
             Importador de Archivos Estadísticos REM
           </h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
-            aria-label="Cerrar"
-          >
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
+          {!alwaysVisible && (
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+              aria-label="Cerrar"
+            >
+              <X className="w-5 h-5 text-slate-500" />
+            </button>
+          )}
         </div>
         <p className="text-sm text-slate-500 mb-6">
           Subí archivos Excel (.xlsx, .xlsm) para procesar y validar antes del envío formal al
@@ -192,33 +217,39 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
 
         {/* Tabla de errores */}
         {!isSuccess && uploadResult.validation && (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm border-collapse">
+          <div className="mt-4 rounded-md border border-slate-200 overflow-hidden">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-2 px-3 font-semibold text-slate-700 text-xs uppercase">
-                    Sección
+                <tr className="bg-slate-100 border-b border-slate-200">
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-28">
+                    Archivo Origen
                   </th>
-                  <th className="text-left py-2 px-3 font-semibold text-slate-700 text-xs uppercase">
-                    Regla
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-32">
+                    Sección / Pestaña
                   </th>
-                  <th className="text-left py-2 px-3 font-semibold text-slate-700 text-xs uppercase">
-                    Mensaje
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-36">
+                    Ubicación Celda
+                  </th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                    Inconsistencia Detectada
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-100">
                 {uploadResult.validation.results
                   .filter((r) => !r.passed)
                   .map((r) => (
-                    <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
-                      <td className="py-2 px-3 font-mono text-xs text-slate-600">
-                        {r.context && 'section' in r.context
-                          ? String(r.context.section)
-                          : (r.rule_key.split('_')[0] ?? '—')}
+                    <tr key={r.id} className="bg-white hover:bg-slate-50">
+                      <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
+                      <td className="px-4 py-3 text-sm font-medium text-red-600 align-top">
+                        {getSeccionLabel(r)}
                       </td>
-                      <td className="py-2 px-3 font-mono text-xs text-slate-700">{r.rule_key}</td>
-                      <td className="py-2 px-3 text-slate-600">{r.message ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-slate-600 align-top">
+                        {getUbicacionLabel(r)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-red-700 align-top">
+                        {getDescripcionLabel(r)}
+                      </td>
                     </tr>
                   ))}
               </tbody>
@@ -231,7 +262,7 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
           <Button variant="outline" onClick={() => setUploadResult(null)}>
             Subir otro archivo
           </Button>
-          <Button onClick={onClose}>Cerrar</Button>
+          {!alwaysVisible && <Button onClick={onClose}>Cerrar</Button>}
         </div>
       </div>
     )
@@ -243,13 +274,15 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
         <h3 className="text-lg font-bold text-slate-900">
           Importador de Archivos Estadísticos REM
         </h3>
-        <button
-          onClick={onClose}
-          className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
-          aria-label="Cerrar"
-        >
-          <X className="w-5 h-5 text-slate-500" />
-        </button>
+        {!alwaysVisible && (
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+            aria-label="Cerrar"
+          >
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        )}
       </div>
       <p className="text-sm text-slate-500 mb-6">
         Subí archivos Excel (.xlsx, .xlsm) para procesar y validar antes del envío formal al
@@ -381,61 +414,72 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
             ${
               isDragReject || fileError
                 ? 'border-rose-400 bg-rose-50'
-                : isDragActive
-                  ? 'border-blue-500 bg-blue-50'
-                  : file
-                    ? 'border-emerald-400 bg-emerald-50/50'
-                    : 'border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50'
+                : createMutation.isPending
+                  ? 'border-blue-300 bg-blue-50'
+                  : isDragActive
+                    ? 'border-blue-500 bg-blue-50'
+                    : file
+                      ? 'border-emerald-400 bg-emerald-50/50'
+                      : 'border-slate-300 hover:border-blue-500 bg-slate-50 hover:bg-blue-50'
             }
           `}
         >
-          <input {...getInputProps()} />
-          <div className="flex flex-col items-center gap-3">
-            <div
-              className={`p-4 shadow-sm rounded-full border ${
-                file ? 'bg-emerald-100 border-emerald-200' : 'bg-white border-slate-200'
-              }`}
-            >
+          <input {...getInputProps()} disabled={createMutation.isPending} />
+          {createMutation.isPending ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-8">
+              <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+              <p className="text-sm text-blue-600 font-medium animate-pulse">
+                Validando integridad estructural y tipos de celdas según matriz MINSAL 2026...
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <div
+                className={`p-4 shadow-sm rounded-full border ${
+                  file ? 'bg-emerald-100 border-emerald-200' : 'bg-white border-slate-200'
+                }`}
+              >
+                {file ? (
+                  <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+                ) : (
+                  <FileSpreadsheet className="w-10 h-10 text-emerald-600" />
+                )}
+              </div>
+
               {file ? (
-                <CheckCircle2 className="w-10 h-10 text-emerald-600" />
+                <>
+                  <p className="text-sm font-medium text-emerald-900">{file.name}</p>
+                  <p className="text-xs text-emerald-700">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB · Listo para subir
+                  </p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setFile(null)
+                    }}
+                    className="text-xs text-rose-600 hover:underline mt-1"
+                  >
+                    Cambiar archivo
+                  </button>
+                </>
               ) : (
-                <FileSpreadsheet className="w-10 h-10 text-emerald-600" />
+                <>
+                  <p className="text-sm font-medium text-slate-700">
+                    {isDragActive ? (
+                      '¡Soltá el archivo acá!'
+                    ) : (
+                      <>
+                        Arrastrá el archivo Excel acá o{' '}
+                        <span className="text-blue-600 underline">buscá en tu PC</span>
+                      </>
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-400">Solo .xlsx, .xlsm, .xls (Máx. 10MB)</p>
+                </>
               )}
             </div>
-
-            {file ? (
-              <>
-                <p className="text-sm font-medium text-emerald-900">{file.name}</p>
-                <p className="text-xs text-emerald-700">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB · Listo para subir
-                </p>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setFile(null)
-                  }}
-                  className="text-xs text-rose-600 hover:underline mt-1"
-                >
-                  Cambiar archivo
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-slate-700">
-                  {isDragActive ? (
-                    '¡Soltá el archivo acá!'
-                  ) : (
-                    <>
-                      Arrastrá el archivo Excel acá o{' '}
-                      <span className="text-blue-600 underline">buscá en tu PC</span>
-                    </>
-                  )}
-                </p>
-                <p className="text-xs text-slate-400">Solo .xlsx, .xlsm, .xls (Máx. 10MB)</p>
-              </>
-            )}
-          </div>
+          )}
         </div>
 
         {fileError && (
@@ -446,14 +490,16 @@ export function RemUploadForm({ onClose }: RemUploadFormProps) {
         )}
 
         <div className="flex justify-end gap-2 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={createMutation.isPending}
-          >
-            Cancelar
-          </Button>
+          {!alwaysVisible && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={createMutation.isPending}
+            >
+              Cancelar
+            </Button>
+          )}
           <Button
             type="submit"
             disabled={createMutation.isPending || !file}

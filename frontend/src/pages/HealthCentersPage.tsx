@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
+import { Plus } from 'lucide-react'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
-import { Button } from '@/shared/components/ui/button'
 import {
   useHealthCenters,
   useCreateHealthCenter,
@@ -78,7 +78,15 @@ export default function HealthCentersPage() {
       <PageHeader
         title="Centros de Salud"
         description="Gestión de centros de salud"
-        actions={<Button onClick={handleOpenCreate}>Nuevo Centro</Button>}
+        actions={
+          <button
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Nuevo Centro
+          </button>
+        }
       />
 
       <HealthCentersTable

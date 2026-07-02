@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
-import { Button } from '@/shared/components/ui/button'
-import { Badge } from '@/shared/components/ui/badge'
 import { DataTable } from '@/shared/components/DataTable'
+import { Pencil, Trash2 } from 'lucide-react'
 import type { HealthCenter } from '../types'
 
 interface HealthCentersTableProps {
@@ -59,26 +58,35 @@ export function HealthCentersTable({
         header: 'Estado',
         accessorKey: 'is_active',
         cell: ({ row }) => (
-          <Badge variant={row.original.is_active ? 'default' : 'secondary'}>
-            {row.original.is_active ? 'Activo' : 'Inactivo'}
-          </Badge>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              row.original.is_active
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-slate-100 text-slate-500 border border-slate-200'
+            }`}
+          >
+            {row.original.is_active ? '● Activo' : '○ Inactivo'}
+          </span>
         ),
       },
       {
         header: 'Acciones',
         cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onEdit?.(row.original)}>
-              Editar
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:text-red-700"
-              onClick={() => onDelete?.(row.original)}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onEdit?.(row.original)}
+              title="Editar"
+              className="p-1.5 rounded-md text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
             >
-              Eliminar
-            </Button>
+              <Pencil className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete?.(row.original)}
+              title="Eliminar"
+              className="p-1.5 rounded-md text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
         ),
       },

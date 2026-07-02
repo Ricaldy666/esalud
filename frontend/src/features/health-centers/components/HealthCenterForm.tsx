@@ -3,13 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/shared/components/ui/select'
 import type { HealthCenter } from '../types'
 import type { HealthCenterCreateFormData, HealthCenterUpdateFormData } from '../schemas'
 import { healthCenterCreateSchema, healthCenterUpdateSchema } from '../schemas'
@@ -65,38 +58,33 @@ export function HealthCenterForm({ center, onSubmit, onCancel, loading }: Health
 
         <div className="space-y-2">
           <Label htmlFor="type">Tipo</Label>
-          <Select
+          <select
             value={watchedType}
-            onValueChange={(value: string | null) => value && setValue('type', value)}
+            onChange={(e) => setValue('type', e.target.value)}
+            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Seleccionar tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              {CENTER_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <option value="" disabled>
+              Seleccionar tipo
+            </option>
+            {CENTER_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
           {errors.type && <p className="text-xs text-red-500">{errors.type.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="is_active">Estado</Label>
-          <Select
+          <select
             value={watchedIsActive ? 'active' : 'inactive'}
-            onValueChange={(value: string | null) => setValue('is_active', value === 'active')}
+            onChange={(e) => setValue('is_active', e.target.value === 'active')}
+            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Activo</SelectItem>
-              <SelectItem value="inactive">Inactivo</SelectItem>
-            </SelectContent>
-          </Select>
+            <option value="active">Activo</option>
+            <option value="inactive">Inactivo</option>
+          </select>
         </div>
 
         <div className="space-y-2">

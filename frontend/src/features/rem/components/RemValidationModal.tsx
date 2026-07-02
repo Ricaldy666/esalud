@@ -9,43 +9,16 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 import { EmptyState } from '@/shared/components/EmptyState'
 import { FileSpreadsheet, AlertCircle, CheckCircle2, XCircle } from 'lucide-react'
 import { useRemUploadValidation } from '../hooks/useRemUploads'
-import type { RemValidationResult } from '../types/rem'
+import {
+  getSeccionLabel,
+  getUbicacionLabel,
+  getDescripcionLabel,
+} from '../utils/validation-display'
 
 interface RemValidationModalProps {
   uploadId: number
   open: boolean
   onClose: () => void
-}
-
-function getSeccionLabel(result: RemValidationResult): string {
-  const ctx = result.context as Record<string, unknown> | null
-  if (result.rule_type === 'cross_sheet') {
-    const src = (ctx?.source_section as string) ?? ''
-    const tgt = (ctx?.target_section as string) ?? ''
-    if (src && tgt && src !== tgt) return `${src} ↔ ${tgt}`
-    if (src) return src
-  }
-  if (ctx?.section) return String(ctx.section)
-  const match = result.rule_key.match(/^(a\d+[a-z]*)/i)
-  return match ? match[1].toUpperCase() : result.rule_key
-}
-
-function getDescripcionLabel(result: RemValidationResult): string {
-  const ctx = result.context as Record<string, unknown> | null
-  if (result.rule_type === 'cross_sheet' && ctx) {
-    const desc = (ctx.description as string) ?? ''
-    const src = (ctx.source_sum as number) ?? 0
-    const tgt = (ctx.target_sum as number) ?? 0
-    const cleanDesc = desc
-      .replace(/\([A-Z0-9]+![A-Z]+![A-Z]\d+\)/g, '')
-      .replace(/\([A-Z0-9]+![A-Z]+![A-Z]\d+\+[A-Z]\d+\)/g, '')
-      .trim()
-    return `${cleanDesc} — Registrado: ${src} | Esperado: ${tgt}`
-  }
-  if (result.message) {
-    return result.message.replace(/^\[.*?\]\s*/, '')
-  }
-  return '-'
 }
 
 export function RemValidationModal({ uploadId, open, onClose }: RemValidationModalProps) {
@@ -129,6 +102,9 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
                       <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-32">
                         Sección / Pestaña
                       </th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-36">
+                        Ubicación Celda
+                      </th>
                       <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide">
                         Inconsistencia Detectada
                       </th>
@@ -140,6 +116,9 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
                         <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
                         <td className="px-4 py-3 text-sm font-medium text-red-600 align-top">
                           {getSeccionLabel(result)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-600 align-top">
+                          {getUbicacionLabel(result)}
                         </td>
                         <td className="px-4 py-3 text-sm text-red-700 align-top">
                           {getDescripcionLabel(result)}

@@ -1,8 +1,7 @@
-import { useState } from 'react'
-import { FileSpreadsheet, Plus } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { FileSpreadsheet, Eye, Calendar, Building2 } from 'lucide-react'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { EmptyState } from '@/shared/components/EmptyState'
-import { Badge } from '@/shared/components/ui/badge'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import {
   Table,
@@ -18,15 +17,32 @@ import { RemUploadForm } from '../components/RemUploadForm'
 import { RemValidationModal } from '../components/RemValidationModal'
 import { REM_TYPE_LABELS, type RemType } from '../types/rem'
 import type { RemUpload, RemUploadStatus } from '../types/rem'
+import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
 
-const statusVariant: Record<RemUploadStatus, 'default' | 'secondary' | 'destructive' | 'outline'> =
-  {
-    pending: 'outline',
-    processing: 'default',
-    success: 'secondary',
-    with_errors: 'destructive',
-    failed: 'destructive',
-  }
+const MONTHS = [
+  { value: 1, label: 'Enero' },
+  { value: 2, label: 'Febrero' },
+  { value: 3, label: 'Marzo' },
+  { value: 4, label: 'Abril' },
+  { value: 5, label: 'Mayo' },
+  { value: 6, label: 'Junio' },
+  { value: 7, label: 'Julio' },
+  { value: 8, label: 'Agosto' },
+  { value: 9, label: 'Septiembre' },
+  { value: 10, label: 'Octubre' },
+  { value: 11, label: 'Noviembre' },
+  { value: 12, label: 'Diciembre' },
+]
+
+const YEARS = Array.from({ length: 16 }, (_, i) => 2015 + i)
+
+const statusStyles: Record<RemUploadStatus, string> = {
+  pending: 'bg-slate-100 text-slate-600 border border-slate-200',
+  processing: 'bg-blue-50 text-blue-700 border border-blue-200',
+  success: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+  with_errors: 'bg-red-50 text-red-700 border border-red-200',
+  failed: 'bg-red-100 text-red-800 border border-red-300',
+}
 
 const statusLabel: Record<RemUploadStatus, string> = {
   pending: 'Pendiente',
@@ -38,9 +54,23 @@ const statusLabel: Record<RemUploadStatus, string> = {
 
 export default function RemUploadsPage() {
   const [page, setPage] = useState(1)
-  const [showUploadForm, setShowUploadForm] = useState(false)
   const [validationModalUploadId, setValidationModalUploadId] = useState<number | null>(null)
+  const [filterYear, setFilterYear] = useState<number | null>(null)
+  const [filterMonth, setFilterMonth] = useState<number | null>(null)
+  const [filterCenter, setFilterCenter] = useState<number | null>(null)
   const { data, isLoading, isError } = useRemUploads({ page, per_page: 15 })
+  const { data: healthCentersPage } = useHealthCenters()
+  const healthCenters = healthCentersPage?.data ?? []
+
+  const filteredUploads = useMemo(() => {
+    if (!data?.data?.length) return []
+    return data.data.filter((upload: RemUpload) => {
+      if (filterYear && upload.year !== filterYear) return false
+      if (filterMonth && upload.month !== filterMonth) return false
+      if (filterCenter && upload.health_center?.id !== filterCenter) return false
+      return true
+    })
+  }, [data, filterYear, filterMonth, filterCenter])
 
   if (isError) {
     return (
@@ -57,20 +87,61 @@ export default function RemUploadsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Cargas REM</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Carga de Datos REM</h1>
           <p className="text-sm text-slate-500">Archivos REM subidos al sistema</p>
         </div>
-        {!showUploadForm && (
-          <Button onClick={() => setShowUploadForm(true)} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Subir REM
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-4 h-4 text-slate-500" />
+            <select
+              value={filterYear?.toString() ?? ''}
+              onChange={(e) => setFilterYear(e.target.value ? Number(e.target.value) : null)}
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Todos los años</option>
+              {YEARS.map((y) => (
+                <option key={y} value={y.toString()}>
+                  {y}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-4 h-4 text-slate-500" />
+            <select
+              value={filterMonth?.toString() ?? ''}
+              onChange={(e) => setFilterMonth(e.target.value ? Number(e.target.value) : null)}
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Todos los meses</option>
+              {MONTHS.map((m) => (
+                <option key={m.value} value={m.value.toString()}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Building2 className="w-4 h-4 text-slate-500" />
+            <select
+              value={filterCenter?.toString() ?? ''}
+              onChange={(e) => setFilterCenter(e.target.value ? Number(e.target.value) : null)}
+              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            >
+              <option value="">Todos los centros</option>
+              {healthCenters.map((hc) => (
+                <option key={hc.id} value={hc.id.toString()}>
+                  {hc.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
-      {showUploadForm && <RemUploadForm onClose={() => setShowUploadForm(false)} />}
+      <RemUploadForm onClose={() => {}} alwaysVisible />
 
       <div className="rounded-md border overflow-x-auto">
         <Table className="min-w-[900px]">
@@ -83,9 +154,10 @@ export default function RemUploadsPage() {
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Filas</TableHead>
               <TableHead className="text-right">Celdas</TableHead>
-              <TableHead className="text-right">Errores</TableHead>
+              <TableHead className="text-right">Val.</TableHead>
               <TableHead>Centro</TableHead>
               <TableHead>Fecha</TableHead>
+              <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -99,9 +171,9 @@ export default function RemUploadsPage() {
                   ))}
                 </TableRow>
               ))
-            ) : !data?.data?.length ? (
+            ) : !filteredUploads.length ? (
               <TableRow>
-                <TableCell colSpan={10}>
+                <TableCell colSpan={11}>
                   <EmptyState
                     icon={<FileSpreadsheet className="h-12 w-12" />}
                     title="No hay cargas REM"
@@ -110,7 +182,7 @@ export default function RemUploadsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              data.data.map((upload: RemUpload) => (
+              filteredUploads.map((upload: RemUpload) => (
                 <TableRow key={upload.id}>
                   <TableCell className="font-mono text-xs">{upload.id}</TableCell>
                   <TableCell className="max-w-[200px] truncate font-medium">
@@ -125,21 +197,11 @@ export default function RemUploadsPage() {
                     {String(upload.month).padStart(2, '0')}/{upload.year}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={statusVariant[upload.status]}
-                      className={
-                        upload.status !== 'pending' && upload.status !== 'processing'
-                          ? 'cursor-pointer'
-                          : ''
-                      }
-                      onClick={() => {
-                        if (upload.status !== 'pending' && upload.status !== 'processing') {
-                          setValidationModalUploadId(upload.id)
-                        }
-                      }}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[upload.status]}`}
                     >
                       {statusLabel[upload.status]}
-                    </Badge>
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     {upload.error_report?.summary?.total_rows_processed ?? '-'}
@@ -148,13 +210,34 @@ export default function RemUploadsPage() {
                     {upload.error_report?.summary?.total_cells_parsed ?? '-'}
                   </TableCell>
                   <TableCell className="text-right">
-                    {upload.error_report?.summary?.total_error_cells ?? '-'}
+                    {upload.status === 'with_errors' ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                        {upload.error_report?.summary?.total_error_cells
+                          ? upload.error_report!.summary!.total_error_cells
+                          : '!'}
+                      </span>
+                    ) : upload.status === 'failed' ? (
+                      <span className="text-red-500 text-xs">Error</span>
+                    ) : (
+                      <span className="text-emerald-600 text-xs">✓</span>
+                    )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
                     {upload.health_center?.name ?? '-'}
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-xs">
                     {new Date(upload.created_at).toLocaleDateString('es-CL')}
+                  </TableCell>
+                  <TableCell>
+                    {upload.status !== 'pending' && upload.status !== 'processing' && (
+                      <button
+                        onClick={() => setValidationModalUploadId(upload.id)}
+                        title="Ver resultados de validación"
+                        className="p-1.5 rounded-md text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
