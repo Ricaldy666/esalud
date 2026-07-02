@@ -46,6 +46,14 @@ class User extends Authenticatable
         return $this->belongsTo(HealthCenter::class);
     }
 
+    public function healthCenters(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Domain\HealthCenters\Models\HealthCenter::class,
+            'user_health_centers'
+        );
+    }
+
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
