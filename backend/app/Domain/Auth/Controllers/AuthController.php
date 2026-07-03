@@ -51,8 +51,9 @@ class AuthController
 
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user()->load(['healthCenters']);
         return response()->json([
-            'data' => new UserResource($request->user()),
+            'data' => new UserResource($user),
             'message' => 'Usuario autenticado',
             'errors' => null,
         ]);

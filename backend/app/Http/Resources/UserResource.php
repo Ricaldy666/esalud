@@ -23,6 +23,7 @@ class UserResource extends JsonResource
                 'type' => $this->healthCenter->type,
             ]),
             'roles' => $this->getRoleNames(),
+            'health_centers' => $this->healthCenters->pluck('id'),
             'last_login_at' => $this->last_login_at ? Carbon::parse($this->last_login_at)->toIso8601String() : null,
             'created_at' => Carbon::parse($this->created_at)->toIso8601String(),
             'updated_at' => Carbon::parse($this->updated_at)->toIso8601String(),

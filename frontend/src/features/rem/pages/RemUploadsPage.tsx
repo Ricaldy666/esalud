@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { FileSpreadsheet, Eye, Calendar, Building2 } from 'lucide-react'
+import { FileSpreadsheet, Eye } from 'lucide-react'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { EmptyState } from '@/shared/components/EmptyState'
 import { Skeleton } from '@/shared/components/ui/skeleton'
@@ -19,7 +19,10 @@ import { REM_TYPE_LABELS, type RemType } from '../types/rem'
 import type { RemUpload, RemUploadStatus } from '../types/rem'
 import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
 
+const CURRENT_YEAR = new Date().getFullYear()
+const YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i)
 const MONTHS = [
+  { value: 0, label: 'Mes' },
   { value: 1, label: 'Enero' },
   { value: 2, label: 'Febrero' },
   { value: 3, label: 'Marzo' },
@@ -33,8 +36,6 @@ const MONTHS = [
   { value: 11, label: 'Noviembre' },
   { value: 12, label: 'Diciembre' },
 ]
-
-const YEARS = Array.from({ length: 16 }, (_, i) => 2015 + i)
 
 const statusStyles: Record<RemUploadStatus, string> = {
   pending: 'bg-slate-100 text-slate-600 border border-slate-200',
@@ -55,9 +56,10 @@ const statusLabel: Record<RemUploadStatus, string> = {
 export default function RemUploadsPage() {
   const [page, setPage] = useState(1)
   const [validationModalUploadId, setValidationModalUploadId] = useState<number | null>(null)
-  const [filterYear, setFilterYear] = useState<number | null>(null)
-  const [filterMonth, setFilterMonth] = useState<number | null>(null)
-  const [filterCenter, setFilterCenter] = useState<number | null>(null)
+  const [filterCenter, setFilterCenter] = useState<number>(0)
+  const [filterType, setFilterType] = useState('')
+  const [filterYear, setFilterYear] = useState(0)
+  const [filterMonth, setFilterMonth] = useState(0)
   const { data, isLoading, isError } = useRemUploads({ page, per_page: 15 })
   const { data: healthCentersPage } = useHealthCenters()
   const healthCenters = healthCentersPage?.data ?? []
@@ -65,12 +67,13 @@ export default function RemUploadsPage() {
   const filteredUploads = useMemo(() => {
     if (!data?.data?.length) return []
     return data.data.filter((upload: RemUpload) => {
+      if (filterType && upload.rem_type !== filterType) return false
       if (filterYear && upload.year !== filterYear) return false
       if (filterMonth && upload.month !== filterMonth) return false
       if (filterCenter && upload.health_center?.id !== filterCenter) return false
       return true
     })
-  }, [data, filterYear, filterMonth, filterCenter])
+  }, [data, filterCenter, filterType, filterYear, filterMonth])
 
   if (isError) {
     return (
@@ -92,56 +95,75 @@ export default function RemUploadsPage() {
           <h1 className="text-2xl font-bold text-slate-900">Carga de Datos REM</h1>
           <p className="text-sm text-slate-500">Archivos REM subidos al sistema</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-slate-500" />
-            <select
-              value={filterYear?.toString() ?? ''}
-              onChange={(e) => setFilterYear(e.target.value ? Number(e.target.value) : null)}
-              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">Todos los años</option>
-              {YEARS.map((y) => (
-                <option key={y} value={y.toString()}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Calendar className="w-4 h-4 text-slate-500" />
-            <select
-              value={filterMonth?.toString() ?? ''}
-              onChange={(e) => setFilterMonth(e.target.value ? Number(e.target.value) : null)}
-              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">Todos los meses</option>
-              {MONTHS.map((m) => (
-                <option key={m.value} value={m.value.toString()}>
-                  {m.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Building2 className="w-4 h-4 text-slate-500" />
-            <select
-              value={filterCenter?.toString() ?? ''}
-              onChange={(e) => setFilterCenter(e.target.value ? Number(e.target.value) : null)}
-              className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="">Todos los centros</option>
-              {healthCenters.map((hc) => (
-                <option key={hc.id} value={hc.id.toString()}>
-                  {hc.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <select
+            value={filterType}
+            onChange={(e) => {
+              setFilterType(e.target.value)
+              setPage(1)
+            }}
+            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
+          >
+            <option value="">Tipo REM</option>
+            {Object.entries(REM_TYPE_LABELS).map(([v, l]) => (
+              <option key={v} value={v}>
+                {l}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterYear}
+            onChange={(e) => {
+              setFilterYear(Number(e.target.value))
+              setPage(1)
+            }}
+            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
+          >
+            <option value={0}>Año</option>
+            {YEARS.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterMonth}
+            onChange={(e) => {
+              setFilterMonth(Number(e.target.value))
+              setPage(1)
+            }}
+            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
+          >
+            {MONTHS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterCenter}
+            onChange={(e) => {
+              setFilterCenter(Number(e.target.value))
+              setPage(1)
+            }}
+            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
+          >
+            <option value={0}>Todos los centros</option>
+            {healthCenters.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      <RemUploadForm onClose={() => {}} alwaysVisible />
+      <RemUploadForm
+        remType={filterType || 'A'}
+        healthCenterId={filterCenter || undefined}
+        onClose={() => {}}
+        alwaysVisible
+      />
 
       <div className="rounded-md border overflow-x-auto">
         <Table className="min-w-[900px]">

@@ -1,8 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useDropzone, type FileRejection } from 'react-dropzone'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import {
   FileSpreadsheet,
   Upload,
@@ -11,14 +8,10 @@ import {
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
-  Calendar,
-  Building2,
-  FileType,
 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { useCreateRemUpload } from '../hooks/useRemUploads'
-import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
-import { REM_TYPE_LABELS, type RemType, type RemUpload } from '../types/rem'
+import { type RemUpload, type RemType } from '../types/rem'
 import type { RemValidationResultsResponse } from '../types/rem'
 import { remUploadsService } from '../services/rem-uploads'
 import {
@@ -27,38 +20,19 @@ import {
   getDescripcionLabel,
 } from '../utils/validation-display'
 
-const MONTHS = [
-  { value: 1, label: 'Enero' },
-  { value: 2, label: 'Febrero' },
-  { value: 3, label: 'Marzo' },
-  { value: 4, label: 'Abril' },
-  { value: 5, label: 'Mayo' },
-  { value: 6, label: 'Junio' },
-  { value: 7, label: 'Julio' },
-  { value: 8, label: 'Agosto' },
-  { value: 9, label: 'Septiembre' },
-  { value: 10, label: 'Octubre' },
-  { value: 11, label: 'Noviembre' },
-  { value: 12, label: 'Diciembre' },
-]
-
-const YEARS = Array.from({ length: 16 }, (_, i) => 2015 + i)
-
-const uploadSchema = z.object({
-  rem_type: z.enum(['A', 'BM', 'D', 'P'] as const),
-  health_center_id: z.number().int().positive(),
-  year: z.number().int().min(2015).max(2030),
-  month: z.number().int().min(1).max(12),
-})
-
-type UploadFormValues = z.infer<typeof uploadSchema>
-
 interface RemUploadFormProps {
   onClose: () => void
   alwaysVisible?: boolean
+  remType?: string
+  healthCenterId?: number
 }
 
-export function RemUploadForm({ onClose, alwaysVisible }: RemUploadFormProps) {
+export function RemUploadForm({
+  onClose,
+  alwaysVisible,
+  remType = 'A',
+  healthCenterId,
+}: RemUploadFormProps) {
   const [file, setFile] = useState<File | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [uploadResult, setUploadResult] = useState<{
@@ -66,43 +40,20 @@ export function RemUploadForm({ onClose, alwaysVisible }: RemUploadFormProps) {
     validation: RemValidationResultsResponse | null
   } | null>(null)
 
-  const { data: healthCentersPage, isLoading: loadingCenters } = useHealthCenters()
-  const healthCenters = healthCentersPage?.data ?? []
   const createMutation = useCreateRemUpload()
 
-  const today = new Date()
-  const currentMonth = today.getMonth() + 1
-  const currentYear = today.getFullYear()
-
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<UploadFormValues>({
-    resolver: zodResolver(uploadSchema),
-    defaultValues: {
-      rem_type: 'A' as const,
-      year: currentYear,
-      month: currentMonth,
-    },
-  })
+  const currentYear = new Date().getFullYear()
+  const currentMonth = new Date().getMonth() + 1
 
   useEffect(() => {
     if (alwaysVisible && uploadResult) {
       const timer = setTimeout(() => {
-        reset({
-          rem_type: 'A' as const,
-          health_center_id: undefined as unknown as number,
-          year: currentYear,
-          month: currentMonth,
-        })
         setFile(null)
         setUploadResult(null)
       }, 3000)
       return () => clearTimeout(timer)
     }
-  }, [alwaysVisible, uploadResult, reset, currentYear, currentMonth])
+  }, [alwaysVisible, uploadResult])
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     setFileError(null)
@@ -135,14 +86,21 @@ export function RemUploadForm({ onClose, alwaysVisible }: RemUploadFormProps) {
     multiple: false,
   })
 
-  const onSubmit = (values: UploadFormValues) => {
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
     if (!file) {
       setFileError('Debés seleccionar un archivo')
       return
     }
 
     createMutation.mutate(
-      { ...values, file },
+      {
+        file,
+        rem_type: remType as RemType,
+        health_center_id: healthCenterId ?? 0,
+        year: currentYear,
+        month: currentMonth,
+      },
       {
         onSuccess: async (data: RemUpload) => {
           try {
@@ -289,123 +247,7 @@ export function RemUploadForm({ onClose, alwaysVisible }: RemUploadFormProps) {
         Servicio de Salud.
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Tipo REM */}
-          <div>
-            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-              <FileType className="w-3.5 h-3.5" />
-              Tipo REM
-            </label>
-            <Controller
-              name="rem_type"
-              control={control}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="">Seleccionar tipo...</option>
-                  {(Object.entries(REM_TYPE_LABELS) as [RemType, string][]).map(
-                    ([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    )
-                  )}
-                </select>
-              )}
-            />
-            {errors.rem_type && (
-              <p className="text-xs text-rose-600 mt-1">{errors.rem_type.message}</p>
-            )}
-          </div>
-
-          {/* Centro de Salud */}
-          <div className="sm:col-span-2 lg:col-span-1">
-            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5" />
-              Centro de Salud
-            </label>
-            <Controller
-              name="health_center_id"
-              control={control}
-              render={({ field }) => (
-                <select
-                  value={field.value?.toString() ?? ''}
-                  onChange={(e) =>
-                    field.onChange(e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  disabled={loadingCenters}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-                >
-                  <option value="">
-                    {loadingCenters ? 'Cargando...' : 'Seleccionar centro...'}
-                  </option>
-                  {healthCenters.map((hc) => (
-                    <option key={hc.id} value={hc.id.toString()}>
-                      {hc.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-            {errors.health_center_id && (
-              <p className="text-xs text-rose-600 mt-1">Centro requerido</p>
-            )}
-          </div>
-
-          {/* Año */}
-          <div>
-            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              Año
-            </label>
-            <Controller
-              name="year"
-              control={control}
-              render={({ field }) => (
-                <select
-                  value={field.value?.toString()}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  {YEARS.map((y) => (
-                    <option key={y} value={y.toString()}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-          </div>
-
-          {/* Mes */}
-          <div>
-            <label className="text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" />
-              Mes
-            </label>
-            <Controller
-              name="month"
-              control={control}
-              render={({ field }) => (
-                <select
-                  value={field.value?.toString()}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                  className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  {MONTHS.map((m) => (
-                    <option key={m.value} value={m.value.toString()}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-          </div>
-        </div>
-
+      <form onSubmit={onSubmit} className="space-y-4">
         <div
           {...getRootProps()}
           className={`

@@ -14,26 +14,21 @@ class RemUploadPolicy
 
     public function view(User $user, RemUpload $remUpload): bool
     {
-        if ($user->hasRole('Administrador')) {
-            return true;
-        }
-
-        return $remUpload->health_center_id === $user->health_center_id
-            || $remUpload->user_id === $user->id;
+        return true;
     }
 
     public function create(User $user): bool
     {
-        return $user->hasRole('Administrador') || $user->hasRole('Analista');
+        return $user->hasRole('Superadmin') || $user->hasRole('Revisor');
     }
 
     public function delete(User $user, RemUpload $remUpload): bool
     {
-        return $user->hasRole('Administrador');
+        return $user->hasRole('Superadmin');
     }
 
     public function restore(User $user, RemUpload $remUpload): bool
     {
-        return $user->hasRole('Administrador');
+        return $user->hasRole('Superadmin');
     }
 }

@@ -9,26 +9,26 @@ class HealthCenterPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('Administrador');
+        return true;
     }
 
     public function view(User $user, HealthCenter $healthCenter): bool
     {
-        return $user->hasRole('Administrador');
+        return true;
     }
 
     public function create(User $user): bool
     {
-        return $user->hasRole('Administrador');
+        return $user->hasRole('Superadmin');
     }
 
     public function update(User $user, HealthCenter $healthCenter): bool
     {
-        return $user->hasRole('Administrador');
+        return $user->hasRole('Superadmin');
     }
 
     public function delete(User $user, HealthCenter $healthCenter): bool
     {
-        return $user->hasRole('Administrador');
+        return $user->hasRole('Superadmin');
     }
 }
