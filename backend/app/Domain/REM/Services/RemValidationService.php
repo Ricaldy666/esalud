@@ -40,6 +40,15 @@ class RemValidationService
                 continue;
             }
 
+            if ($rule['type'] === 'row_range_sum') {
+                $sectionRows = $rowsBySection->get($rule['section'], collect());
+                $result = $this->evaluateRowRangeSum($rule, $sectionRows, $upload);
+                if ($result) {
+                    $results->push($result);
+                }
+                continue;
+            }
+
             $rows = $rowsBySection->get($rule['section'], collect());
 
             if (isset($rule['row_range'])) {
@@ -60,7 +69,9 @@ class RemValidationService
         }
 
         if ($results->isNotEmpty()) {
-            RemValidationResult::insert($results->toArray());
+            collect($results)->chunk(500)->each(
+                fn($batch) => RemValidationResult::insert($batch->toArray())
+            );
         }
 
         return $results;
@@ -72,6 +83,7 @@ class RemValidationService
             'sum_equals' => $this->evaluateSumEquals($rule, $rowData, $upload, $remDataId),
             'max_le_parent' => $this->evaluateMaxLeParent($rule, $rowData, $upload, $remDataId),
             'sum_le_parent' => $this->evaluateSumLeParent($rule, $rowData, $upload, $remDataId),
+            'required_and_le_parent' => $this->evaluateRequiredAndLeParent($rule, $rowData, $upload, $remDataId),
             default => null,
         };
     }
@@ -145,6 +157,74 @@ class RemValidationService
                 'target_rows' => $targetRowNumbers,
                 'target_sum' => $targetSum,
                 'operator' => $rule['operator'] ?? 'equals',
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+
+    /**
+     * Suma de una columna a traves de un rango de filas debe coincidir con el subtotal
+     * declarado en la fila objetivo.
+     *
+     * Ejemplo: fila 111 = suma de filas 98-110 en columna C.
+     */
+    private function evaluateRowRangeSum(array $rule, Collection $sectionRows, RemUpload $upload): ?array
+    {
+        // 1. Buscar la fila objetivo (target_row)
+        $targetRow = $sectionRows->first(
+            fn($row) => ($row->data['row_number'] ?? null) === $rule['target_row']
+        );
+
+        if (!$targetRow) {
+            return null;
+        }
+
+        $column = $rule['column'];
+        $from = $rule['source_row_range']['from'];
+        $to = $rule['source_row_range']['to'];
+
+        // 2. Sumar la columna en el rango de filas origen
+        $sourceRows = $sectionRows->filter(function ($row) use ($from, $to) {
+            $rowNum = $row->data['row_number'] ?? null;
+            return $rowNum !== null && $rowNum >= $from && $rowNum <= $to;
+        });
+
+        if ($sourceRows->isEmpty()) {
+            return null;
+        }
+
+        $computedSum = 0;
+        foreach ($sourceRows as $sourceRow) {
+            $values = $sourceRow->data['values'] ?? [];
+            $computedSum += (float) ($values[$column] ?? 0);
+        }
+
+        // 3. Obtener el valor declarado en la fila target
+        $targetValues = $targetRow->data['values'] ?? [];
+        $declaredValue = (float) ($targetValues[$column] ?? $targetRow->data['total'] ?? 0);
+
+        // 4. Comparar
+        $passed = $computedSum == $declaredValue;
+
+        // 5. Construir resultado
+        $sourceRowNumbers = $sourceRows->pluck('data.row_number')->sort()->values()->toArray();
+
+        return [
+            'rem_upload_id' => $upload->id,
+            'rule_key' => $rule['key'],
+            'rule_type' => 'row_range_sum',
+            'severity' => $rule['severity'] ?? 'error',
+            'passed' => $passed,
+            'message' => $passed ? null : "[{$rule['section']}] Suma de filas {$from}-{$to} en columna {$column} ({$computedSum}) no coincide con subtotal declarado en fila {$rule['target_row']} ({$declaredValue})",
+            'context' => json_encode([
+                'section' => $rule['section'],
+                'column' => $column,
+                'source_row_range' => ['from' => $from, 'to' => $to],
+                'source_rows_found' => $sourceRowNumbers,
+                'target_row' => $rule['target_row'],
+                'computed_sum' => $computedSum,
+                'declared_value' => $declaredValue,
             ]),
             'created_at' => now(),
             'updated_at' => now(),
@@ -230,6 +310,83 @@ class RemValidationService
                 'parent_column' => $rule['parent_column'],
                 'child_value' => $child,
                 'parent_value' => $parent,
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+
+    /**
+     * Si parent > 0 y la columna hija esta vacia -> warning.
+     * Si parent > 0 y la columna hija tiene valor -> debe ser <= parent (error si no).
+     * Si parent = 0 -> no se evalua (la fila no aplica).
+     */
+    private function evaluateRequiredAndLeParent(array $rule, array $rowData, RemUpload $upload, int $remDataId): ?array
+    {
+        $values = $rowData['values'] ?? [];
+
+        // Si la fila no tiene datos cargados, no evaluamos
+        $hasData = collect($values)->filter(fn ($v) => $v !== null)->isNotEmpty();
+        if (!$hasData) {
+            return null;
+        }
+
+        $parent = (float) ($values[$rule['parent_column']] ?? $rowData['total'] ?? 0);
+        $childRaw = $values[$rule['child_column']] ?? null;
+
+        // Si el padre es 0, la regla no aplica
+        if ($parent <= 0) {
+            return null;
+        }
+
+        $label = ($rowData['concept'] ?? '?') . ' / ' . ($rowData['professional'] ?? '?');
+
+        // Caso 1: parent > 0 pero child esta vacio -> warning
+        if ($childRaw === null || $childRaw === '') {
+            return [
+                'rem_upload_id' => $upload->id,
+                'rule_key' => $rule['key'],
+                'rule_type' => 'required_and_le_parent',
+                'severity' => 'warning',
+                'passed' => false,
+                'message' => "[{$rule['section']}] {$label}: Campo {$rule['child_column']} requerido: no puede estar vacio si el total ({$parent}) es mayor a 0.",
+                'context' => json_encode([
+                    'section' => $rule['section'],
+                    'rem_data_id' => $remDataId,
+                    'concept' => $rowData['concept'] ?? null,
+                    'professional' => $rowData['professional'] ?? null,
+                    'child_column' => $rule['child_column'],
+                    'parent_column' => $rule['parent_column'],
+                    'child_value' => null,
+                    'parent_value' => $parent,
+                    'reason' => 'missing_child',
+                ]),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        // Caso 2: child tiene valor -> verificar que no supere al padre
+        $child = (float) $childRaw;
+        $passed = $child <= $parent;
+
+        return [
+            'rem_upload_id' => $upload->id,
+            'rule_key' => $rule['key'],
+            'rule_type' => 'required_and_le_parent',
+            'severity' => $rule['severity'] ?? 'error',
+            'passed' => $passed,
+            'message' => $passed ? null : "[{$rule['section']}] {$label}: La variable {$rule['child_column']} ({$child}) no puede ser mayor al total ({$parent}).",
+            'context' => json_encode([
+                'section' => $rule['section'],
+                'rem_data_id' => $remDataId,
+                'concept' => $rowData['concept'] ?? null,
+                'professional' => $rowData['professional'] ?? null,
+                'child_column' => $rule['child_column'],
+                'parent_column' => $rule['parent_column'],
+                'child_value' => $child,
+                'parent_value' => $parent,
+                'reason' => $passed ? 'ok' : 'exceeds_parent',
             ]),
             'created_at' => now(),
             'updated_at' => now(),
