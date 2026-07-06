@@ -48825,7 +48825,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D', 'E'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 101,
                         'to' => 109,
@@ -48837,7 +48837,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 114,
                         'to' => 117,
@@ -48849,7 +48849,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 122,
                         'to' => 124,
@@ -48861,7 +48861,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 13,
                         'to' => 26,
@@ -48892,7 +48892,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 13,
                         'to' => 26,
@@ -48923,7 +48923,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 13,
                         'to' => 26,
@@ -48935,7 +48935,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 135,
                         'to' => 137,
@@ -48966,7 +48966,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 135,
                         'to' => 137,
@@ -48997,7 +48997,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 135,
                         'to' => 137,
@@ -49009,7 +49009,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['E', 'G', 'I'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 14,
                         'to' => 14,
@@ -49021,7 +49021,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['F', 'H', 'J'],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 14,
                         'to' => 14,
@@ -49033,7 +49033,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['D', 'E', 'F', 'G', 'H'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 141,
                         'to' => 145,
@@ -49045,7 +49045,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['I'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 144,
                         'to' => 144,
@@ -49057,7 +49057,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['D', 'E', 'F', 'G', 'H', 'I'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 146,
                         'to' => 149,
@@ -49069,7 +49069,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['D', 'E'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 154,
                         'to' => 183,
@@ -49098,7 +49098,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 16,
                         'to' => 16,
@@ -49127,7 +49127,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 16,
                         'to' => 16,
@@ -49150,7 +49150,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 17,
                         'to' => 17,
@@ -49173,7 +49173,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 17,
                         'to' => 17,
@@ -49185,7 +49185,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'L', 'U'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 182,
@@ -49197,7 +49197,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['F', 'H', 'J'],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 183,
@@ -49209,7 +49209,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['G', 'I', 'K'],
                     'target_field' => 'E',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 183,
@@ -49221,7 +49221,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['M', 'N'],
                     'target_field' => 'L',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 182,
@@ -49233,7 +49233,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['O', 'Q', 'S'],
                     'target_field' => 'M',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 182,
@@ -49245,7 +49245,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['P', 'R', 'T'],
                     'target_field' => 'N',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 182,
@@ -49257,7 +49257,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['V', 'W'],
                     'target_field' => 'U',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 183,
@@ -49269,7 +49269,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['X', 'Z', 'AB'],
                     'target_field' => 'V',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 183,
@@ -49281,7 +49281,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['Y', 'AA', 'AC'],
                     'target_field' => 'W',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 176,
                         'to' => 183,
@@ -49293,7 +49293,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'U'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 177,
                         'to' => 183,
@@ -49305,7 +49305,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 186,
                         'to' => 189,
@@ -49329,7 +49329,7 @@ class RemTemplateSeeder extends Seeder
                         'AF',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 19,
                         'to' => 19,
@@ -49341,7 +49341,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D', 'E'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 193,
                         'to' => 198,
@@ -49353,7 +49353,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D', 'E'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 202,
                         'to' => 206,
@@ -49373,7 +49373,7 @@ class RemTemplateSeeder extends Seeder
                         'AA',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 21,
                         'to' => 21,
@@ -49393,7 +49393,7 @@ class RemTemplateSeeder extends Seeder
                         'AB',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 21,
                         'to' => 21,
@@ -49405,7 +49405,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['D', 'E', 'F'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 210,
                         'to' => 213,
@@ -49417,7 +49417,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D', 'E'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 217,
                         'to' => 219,
@@ -49447,7 +49447,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 24,
                         'to' => 24,
@@ -49477,7 +49477,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 24,
                         'to' => 24,
@@ -49504,7 +49504,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 25,
                         'to' => 25,
@@ -49531,7 +49531,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 25,
                         'to' => 25,
@@ -49543,7 +49543,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 31,
                         'to' => 48,
@@ -49574,7 +49574,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 31,
                         'to' => 48,
@@ -49605,7 +49605,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 31,
                         'to' => 48,
@@ -49625,7 +49625,7 @@ class RemTemplateSeeder extends Seeder
                         'AA',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 35,
                         'to' => 35,
@@ -49645,7 +49645,7 @@ class RemTemplateSeeder extends Seeder
                         'AB',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 35,
                         'to' => 35,
@@ -49673,7 +49673,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 37,
                         'to' => 37,
@@ -49701,7 +49701,7 @@ class RemTemplateSeeder extends Seeder
                         'AN',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 37,
                         'to' => 38,
@@ -49713,7 +49713,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['E', 'G', 'I'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 47,
                         'to' => 47,
@@ -49725,7 +49725,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['F', 'H', 'J'],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 47,
                         'to' => 47,
@@ -49737,7 +49737,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 53,
                         'to' => 54,
@@ -49749,7 +49749,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['N', 'O'],
                     'target_field' => 'M',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 53,
                         'to' => 54,
@@ -49761,7 +49761,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['C', 'D'],
                     'target_field' => 'B',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 60,
                         'to' => 64,
@@ -49792,7 +49792,7 @@ class RemTemplateSeeder extends Seeder
                         'V',
                     ],
                     'target_field' => 'BQ',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 60,
                         'to' => 64,
@@ -49823,7 +49823,7 @@ class RemTemplateSeeder extends Seeder
                         'V',
                     ],
                     'target_field' => 'BW',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 60,
                         'to' => 64,
@@ -49835,7 +49835,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['D', 'E'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 73,
                         'to' => 75,
@@ -49865,7 +49865,7 @@ class RemTemplateSeeder extends Seeder
                         'AL',
                     ],
                     'target_field' => 'D',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 73,
                         'to' => 74,
@@ -49895,7 +49895,7 @@ class RemTemplateSeeder extends Seeder
                         'AM',
                     ],
                     'target_field' => 'E',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 73,
                         'to' => 74,
@@ -49907,7 +49907,7 @@ class RemTemplateSeeder extends Seeder
                     'section' => 'A04',
                     'source_columns' => ['D', 'E'],
                     'target_field' => 'total',
-                    'severity' => 'error',
+                    'severity' => 'warning',
                     'row_range' => [
                         'from' => 80,
                         'to' => 83,

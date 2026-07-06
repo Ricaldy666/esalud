@@ -7,7 +7,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { EmptyState } from '@/shared/components/EmptyState'
-import { FileSpreadsheet, AlertCircle, CheckCircle2, XCircle } from 'lucide-react'
+import { FileSpreadsheet, AlertCircle, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 import { useRemUploadValidation } from '../hooks/useRemUploads'
 import {
   getSeccionLabel,
@@ -25,6 +25,8 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
   const { data, isLoading, isError } = useRemUploadValidation(uploadId, open)
 
   const failedResults = data?.results.filter((r) => !r.passed) ?? []
+  const hasBlockingErrors = failedResults.some((r) => (r.severity ?? 'error') === 'error')
+  const hasWarningsOnly = failedResults.length > 0 && !hasBlockingErrors
 
   return (
     <Dialog
@@ -75,6 +77,17 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
                   </p>
                 </div>
               </div>
+            ) : hasWarningsOnly ? (
+              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 p-3 mt-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">Advertencias Detectadas</p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    Se detectaron {data.total_warnings} advertencia(s). Puede continuar con el
+                    envío.
+                  </p>
+                </div>
+              </div>
             ) : (
               <div className="flex items-start gap-3 rounded-lg bg-red-50 border border-red-200 p-3 mt-3">
                 <XCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
@@ -85,6 +98,8 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
                   <p className="text-xs text-red-700 mt-0.5">
                     Se detectaron {data.total_errors} error(es) que deben corregirse antes de enviar
                     al Servicio de Salud.
+                    {data.total_warnings > 0 &&
+                      ` Additionally, ${data.total_warnings} advertencia(s).`}
                   </p>
                 </div>
               </div>
@@ -111,20 +126,35 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {failedResults.map((result) => (
-                      <tr key={result.id} className="bg-white hover:bg-slate-50">
-                        <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
-                        <td className="px-4 py-3 text-sm font-medium text-red-600 align-top">
-                          {getSeccionLabel(result)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600 align-top">
-                          {getUbicacionLabel(result)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-red-700 align-top">
-                          {getDescripcionLabel(result)}
-                        </td>
-                      </tr>
-                    ))}
+                    {failedResults.map((result) => {
+                      const severity = result.severity ?? 'error'
+                      const isError = severity === 'error'
+                      return (
+                        <tr key={result.id} className="bg-white hover:bg-slate-50">
+                          <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
+                          <td className="px-4 py-3 text-sm font-medium align-top">
+                            <span
+                              className={`inline-flex items-center gap-1.5 ${isError ? 'text-red-600' : 'text-amber-600'}`}
+                            >
+                              {isError ? (
+                                <XCircle className="w-3.5 h-3.5 shrink-0" />
+                              ) : (
+                                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                              )}
+                              {getSeccionLabel(result)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-600 align-top">
+                            {getUbicacionLabel(result)}
+                          </td>
+                          <td
+                            className={`px-4 py-3 text-sm align-top ${isError ? 'text-red-700' : 'text-amber-700'}`}
+                          >
+                            {getDescripcionLabel(result)}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

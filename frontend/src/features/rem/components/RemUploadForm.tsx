@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   AlertCircle,
   AlertTriangle,
+  XCircle,
 } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { useCreateRemUpload } from '../hooks/useRemUploads'
@@ -114,7 +115,16 @@ export function RemUploadForm({
     )
   }
 
-  const totalErrors = uploadResult?.validation?.total_errors ?? 0
+  const totalErrors = uploadResult?.validation?.results
+    ? uploadResult.validation.results.filter(
+        (r) => !r.passed && (r.severity ?? 'error') === 'error'
+      ).length
+    : 0
+  const totalWarnings = uploadResult?.validation?.results
+    ? uploadResult.validation.results.filter(
+        (r) => !r.passed && (r.severity ?? 'error') === 'warning'
+      ).length
+    : 0
   const isSuccess = uploadResult && totalErrors === 0
 
   if (uploadResult) {
@@ -159,7 +169,7 @@ export function RemUploadForm({
         )}
 
         {/* Banner de error */}
-        {!isSuccess && (
+        {!isSuccess && totalErrors > 0 && (
           <div className="flex items-start gap-4 p-4 bg-rose-50 border border-rose-200 rounded-lg">
             <div className="p-2 bg-rose-500 text-white rounded-full shrink-0">
               <AlertTriangle className="w-5 h-5" />
@@ -167,7 +177,23 @@ export function RemUploadForm({
             <div className="flex-1">
               <h4 className="font-bold text-rose-950 text-sm">Se detectaron errores</h4>
               <p className="text-sm text-rose-800 mt-0.5">
-                {u.original_filename} — {hcName} {monthYear}. {totalErrors} error(es) encontrado(s).
+                {u.original_filename} — {hcName} {monthYear}. {totalErrors} error(es) que deben
+                corregirse.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Banner de advertencias */}
+        {totalWarnings > 0 && (
+          <div className="flex items-start gap-4 p-4 bg-amber-50 border border-amber-200 rounded-lg mt-2">
+            <div className="p-2 bg-amber-500 text-white rounded-full shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-bold text-amber-950 text-sm">Advertencias</h4>
+              <p className="text-sm text-amber-800 mt-0.5">
+                {totalWarnings} advertencia(s) detectada(s). Puede continuar con el envío.
               </p>
             </div>
           </div>
@@ -196,20 +222,35 @@ export function RemUploadForm({
               <tbody className="divide-y divide-slate-100">
                 {uploadResult.validation.results
                   .filter((r) => !r.passed)
-                  .map((r) => (
-                    <tr key={r.id} className="bg-white hover:bg-slate-50">
-                      <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
-                      <td className="px-4 py-3 text-sm font-medium text-red-600 align-top">
-                        {getSeccionLabel(r)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-slate-600 align-top">
-                        {getUbicacionLabel(r)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-red-700 align-top">
-                        {getDescripcionLabel(r)}
-                      </td>
-                    </tr>
-                  ))}
+                  .map((r) => {
+                    const severity = r.severity ?? 'error'
+                    const isError = severity === 'error'
+                    return (
+                      <tr key={r.id} className="bg-white hover:bg-slate-50">
+                        <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
+                        <td className="px-4 py-3 text-sm font-medium align-top">
+                          <span
+                            className={`inline-flex items-center gap-1.5 ${isError ? 'text-red-600' : 'text-amber-600'}`}
+                          >
+                            {isError ? (
+                              <XCircle className="w-3.5 h-3.5 shrink-0" />
+                            ) : (
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            {getSeccionLabel(r)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-600 align-top">
+                          {getUbicacionLabel(r)}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-sm align-top ${isError ? 'text-red-700' : 'text-amber-700'}`}
+                        >
+                          {getDescripcionLabel(r)}
+                        </td>
+                      </tr>
+                    )
+                  })}
               </tbody>
             </table>
           </div>

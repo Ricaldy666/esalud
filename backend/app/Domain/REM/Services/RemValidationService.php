@@ -250,7 +250,11 @@ class RemValidationService
         }
 
         $targetField = $rule['target_field'] ?? 'total';
-        $target = (float) ($rowData[$targetField] ?? $values[$targetField] ?? 0);
+        // Si target_field es literalmente 'total', usar rowData['total'];
+        // si es una columna específica, usar solo $values (sin fallback a rowData['total'])
+        $target = $targetField === 'total'
+            ? (float) ($rowData['total'] ?? 0)
+            : (float) ($values[$targetField] ?? 0);
         $passed = $sum === $target;
 
         $label = ($rowData['concept'] ?? '?') . ' / ' . ($rowData['professional'] ?? '?');
@@ -289,7 +293,10 @@ class RemValidationService
         }
 
         $child = (float) ($values[$rule['child_column']] ?? 0);
-        $parent = (float) ($values[$rule['parent_column']] ?? $rowData['total'] ?? 0);
+        $parentCol = $rule['parent_column'];
+        $parent = $parentCol === 'total'
+            ? (float) ($rowData['total'] ?? 0)
+            : (float) ($values[$parentCol] ?? 0);
         $passed = $child <= $parent;
 
         $label = ($rowData['concept'] ?? '?') . ' / ' . ($rowData['professional'] ?? '?');
@@ -331,7 +338,10 @@ class RemValidationService
             return null;
         }
 
-        $parent = (float) ($values[$rule['parent_column']] ?? $rowData['total'] ?? 0);
+        $parentCol = $rule['parent_column'];
+        $parent = $parentCol === 'total'
+            ? (float) ($rowData['total'] ?? 0)
+            : (float) ($values[$parentCol] ?? 0);
         $childRaw = $values[$rule['child_column']] ?? null;
 
         // Si el padre es 0, la regla no aplica
