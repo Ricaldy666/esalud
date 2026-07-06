@@ -47102,7 +47102,7 @@ class RemTemplateSeeder extends Seeder
                         'AC',
                         'AE',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 88,
@@ -47190,7 +47190,7 @@ class RemTemplateSeeder extends Seeder
                         'AC',
                         'AE',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 12,
@@ -47256,7 +47256,7 @@ class RemTemplateSeeder extends Seeder
                         'AC',
                         'AE',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 22,
@@ -47322,7 +47322,7 @@ class RemTemplateSeeder extends Seeder
                         'AC',
                         'AE',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 29,
@@ -47388,7 +47388,7 @@ class RemTemplateSeeder extends Seeder
                         'AC',
                         'AE',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 34,
@@ -48069,7 +48069,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A03',
                     'source_columns' => ['E', 'G', 'I', 'K', 'M', 'O'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 46,
@@ -48117,7 +48117,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A03',
                     'source_columns' => ['E', 'G'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 54,
@@ -48300,7 +48300,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 13,
@@ -48374,7 +48374,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 135,
@@ -48417,7 +48417,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A04',
                     'source_columns' => ['E', 'G', 'I'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 14,
@@ -48506,7 +48506,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 16,
@@ -48558,7 +48558,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 17,
@@ -48781,7 +48781,7 @@ class RemTemplateSeeder extends Seeder
                         'Y',
                         'AA',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 21,
@@ -48855,7 +48855,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 24,
@@ -48912,7 +48912,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 25,
@@ -48982,7 +48982,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 31,
@@ -49033,7 +49033,7 @@ class RemTemplateSeeder extends Seeder
                         'Y',
                         'AA',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 35,
@@ -49081,7 +49081,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 37,
@@ -49121,7 +49121,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A04',
                     'source_columns' => ['E', 'G', 'I'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'warning',
                     'row_range' => [
                         'from' => 47,
@@ -49718,7 +49718,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A05',
                     'source_columns' => ['E', 'G', 'I', 'K', 'M'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 351,
@@ -49924,7 +49924,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A06',
                     'source_columns' => ['E', 'G', 'I', 'K', 'M'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 114,
@@ -50176,7 +50176,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A06',
                     'source_columns' => ['E', 'G', 'I', 'K'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 179,
@@ -51243,7 +51243,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 12,
@@ -51476,7 +51476,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 188,
@@ -51531,7 +51531,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 189,
@@ -51648,7 +51648,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 20,
@@ -51744,7 +51744,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 31,
@@ -51816,7 +51816,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 41,
@@ -51888,7 +51888,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 51,
@@ -51960,7 +51960,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 61,
@@ -52032,7 +52032,7 @@ class RemTemplateSeeder extends Seeder
                         'AI',
                         'AK',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 72,
@@ -54687,7 +54687,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 102,
@@ -54785,7 +54785,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 12,
@@ -54859,7 +54859,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 124,
@@ -54902,7 +54902,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A23',
                     'source_columns' => ['E', 'G'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 125,
@@ -54944,7 +54944,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 126,
@@ -54996,7 +54996,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 128,
@@ -55061,7 +55061,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 136,
@@ -55164,7 +55164,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A23',
                     'source_columns' => ['E', 'G'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 18,
@@ -55280,7 +55280,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 19,
@@ -55332,7 +55332,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 20,
@@ -55638,7 +55638,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A23',
                     'source_columns' => ['E', 'G'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 46,
@@ -55668,7 +55668,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 47,
@@ -55690,7 +55690,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 48,
@@ -55721,7 +55721,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 49,
@@ -55764,7 +55764,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 58,
@@ -55838,7 +55838,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 63,
@@ -55912,7 +55912,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 71,
@@ -55967,7 +55967,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A23',
                     'source_columns' => ['E', 'G'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 78,
@@ -56010,7 +56010,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 79,
@@ -56071,7 +56071,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 81,
@@ -56123,7 +56123,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 82,
@@ -56198,7 +56198,7 @@ class RemTemplateSeeder extends Seeder
                         'AK',
                         'AM',
                     ],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 95,
@@ -57419,7 +57419,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A29',
                     'source_columns' => ['E', 'G', 'I', 'K'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 12,
@@ -58249,7 +58249,7 @@ class RemTemplateSeeder extends Seeder
                     'type' => 'sum_equals',
                     'section' => 'A32',
                     'source_columns' => ['E', 'G'],
-                    'target_field' => 'total',
+                    'target_field' => 'C',
                     'severity' => 'error',
                     'row_range' => [
                         'from' => 193,
