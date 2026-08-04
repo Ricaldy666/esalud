@@ -19,7 +19,7 @@ class RemUploadPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasRole('Superadmin') || $user->hasRole('Revisor');
+        return $user->hasRole('Superadmin') || $user->hasRole('Revisor') || $user->hasRole('Analista');
     }
 
     public function delete(User $user, RemUpload $remUpload): bool

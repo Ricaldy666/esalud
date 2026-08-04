@@ -4,6 +4,7 @@ namespace App\Domain\REM\Models;
 
 use App\Domain\HealthCenters\Models\HealthCenter;
 use App\Models\User;
+use App\Domain\RemParser\Models\RemTemplateStructure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
@@ -76,6 +77,11 @@ class RemUpload extends Model
     public function validationResults()
     {
         return $this->hasMany(RemValidationResult::class);
+    }
+
+    public function templateStructure()
+    {
+        return $this->hasOne(RemTemplateStructure::class);
     }
 
     public function scopeByCenter(Builder $query, int $id): void

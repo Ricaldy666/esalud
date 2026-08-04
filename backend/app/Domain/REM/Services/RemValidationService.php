@@ -4,6 +4,8 @@ namespace App\Domain\REM\Services;
 
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Models\RemValidationResult;
+use App\Domain\RuleEngine\Services\CellDataStorageService;
+use App\Support\MemoryProbe;
 use Illuminate\Support\Collection;
 
 /**
@@ -16,6 +18,12 @@ use Illuminate\Support\Collection;
  */
 class RemValidationService
 {
+    public function __construct(
+        private ?CellDataStorageService $cellDataStorage = null,
+    ) {
+        $this->cellDataStorage = $cellDataStorage ?? new CellDataStorageService();
+    }
+
     public function validate(RemUpload $upload): Collection
     {
         $upload->validationResults()->delete();
@@ -28,6 +36,11 @@ class RemValidationService
 
         // Agrupamos rem_data por seccion, cada seccion puede tener N filas
         $rowsBySection = $upload->remData->groupBy('section');
+
+        MemoryProbe::log('rem_validation_service.despues_carga_rem_data', [
+            'upload_id' => $upload->id,
+            'rem_data_rows' => $upload->remData->count(),
+        ]);
 
         $results = collect();
 
@@ -66,6 +79,13 @@ class RemValidationService
                     $results->push($result);
                 }
             }
+
+            // Solo 'required_and_le_parent' consulta cellDataStorage (via
+            // isCellNotApplicableForInput()); para el resto es un no-op
+            // seguro. Mismo patron que ValidateRemUploadJob::
+            // evaluateFunctionalRules() -- evita retener el cell_data de
+            // cada hoja mas alla de lo que dura evaluar sus reglas.
+            $this->cellDataStorage->forgetSheet($rule['section']);
         }
 
         if ($results->isNotEmpty()) {
@@ -73,6 +93,11 @@ class RemValidationService
                 fn($batch) => RemValidationResult::insert($batch->toArray())
             );
         }
+
+        MemoryProbe::log('rem_validation_service.fin', [
+            'upload_id' => $upload->id,
+            'results_count' => $results->count(),
+        ]);
 
         return $results;
     }
@@ -344,6 +369,10 @@ class RemValidationService
             : (float) ($values[$parentCol] ?? 0);
         $childRaw = $values[$rule['child_column']] ?? null;
 
+        if ($this->isCellNotApplicableForInput($rule, $rowData, $rule['child_column'])) {
+            return null;
+        }
+
         // Si el padre es 0, la regla no aplica
         if ($parent <= 0) {
             return null;
@@ -401,6 +430,29 @@ class RemValidationService
             'created_at' => now(),
             'updated_at' => now(),
         ];
+    }
+
+    private function isCellNotApplicableForInput(array $rule, array $rowData, string $column): bool
+    {
+        $rowNumber = $rowData['row_number'] ?? null;
+        if ($rowNumber === null) {
+            return false;
+        }
+
+        $sheet = (string) ($rule['sheet'] ?? $rule['section'] ?? $rowData['section'] ?? '');
+        $remSection = (string) ($rowData['rem_section_code'] ?? '');
+        if ($sheet === '' || $remSection === '') {
+            return false;
+        }
+
+        $coordinate = strtoupper($column) . (int) $rowNumber;
+        $cellInfo = $this->cellDataStorage->getCellForCoordinate($sheet, $remSection, $coordinate);
+        if ($cellInfo === null) {
+            return false;
+        }
+
+        return ($cellInfo['esta_bloqueada'] ?? false) === true
+            || ($cellInfo['es_editable'] ?? true) === false;
     }
 
     private function evaluateSumLeParent(array $rule, array $rowData, RemUpload $upload, int $remDataId): ?array

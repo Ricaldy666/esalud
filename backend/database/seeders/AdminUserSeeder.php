@@ -10,14 +10,19 @@ class AdminUserSeeder extends Seeder
 {
     public function run(): void
     {
-        $user = User::create([
+        $user = User::firstOrCreate(['email' => 'admin@esalud.cl'], [
             'name' => 'Administrador Esalud',
             'rut' => '11111111-1',
-            'email' => 'admin@esalud.cl',
             'password' => Hash::make('password'),
             'is_active' => true,
         ]);
 
-        $user->assignRole('Administrador');
+        if (! $user->hasRole('Superadmin')) {
+            $user->assignRole('Superadmin');
+        }
+
+        if (! $user->hasRole('Administrador')) {
+            $user->assignRole('Administrador');
+        }
     }
 }

@@ -8,32 +8,107 @@ import {
   UploadCloud,
   Users,
   Building2,
+  Database,
   FileText,
+  FileSpreadsheet,
+  Gavel,
+  GitCompareArrows,
+  Layers,
+  List,
+  ListChecks,
   LogOut,
+  Settings,
+  ClipboardCheck,
   ChevronLeft,
   ChevronRight,
   Menu,
   X,
+  HeartPulse,
+  Target,
 } from 'lucide-react'
 import { useAuthStore } from '@/app/store/authStore'
-import { usePermissions } from '@/shared/hooks/usePermissions'
 import { useLogout } from '@/features/auth'
+import { getRoleDisplayLabel } from '@/shared/utils/roleLabels'
 
 interface AppLayoutProps {
   children: ReactNode
 }
 
 const MENU_ITEMS = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, adminOnly: false },
-  { to: '/rem-uploads', label: 'Cargas REM', icon: UploadCloud, adminOnly: false },
-  { to: '/users', label: 'Usuarios', icon: Users, adminOnly: true },
-  { to: '/health-centers', label: 'Centros de Salud', icon: Building2, adminOnly: true },
-  { to: '/audit', label: 'Auditoría', icon: FileText, adminOnly: true },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['all'] },
+  { to: '/rem-uploads', label: 'Cargas REM', icon: UploadCloud, roles: ['all'] },
+  {
+    to: '/calibracion',
+    label: 'Calibración REM',
+    icon: ClipboardCheck,
+    roles: ['Superadmin', 'Analista', 'Revisor', 'Auditor'],
+  },
+  {
+    to: '/criterios-funcionales',
+    label: 'Criterios funcionales',
+    icon: ListChecks,
+    roles: ['all'],
+  },
+  // GES y Metas APS: accesos de demostracion visual, solo para el rol Analista
+  // (mostrado como "Estadistica APS"). No agregan funcionalidad real ni
+  // afectan el menu de ningun otro rol.
+  { to: '/ges', label: 'GES', icon: HeartPulse, roles: ['Analista'], comingSoon: true },
+  { to: '/metas-aps', label: 'Metas APS', icon: Target, roles: ['Analista'], comingSoon: true },
+  {
+    to: '/rule-engine',
+    label: 'Motor de Reglas',
+    icon: Gavel,
+    roles: ['Administrador', 'Superadmin', 'Revisor', 'Auditor'],
+  },
+  { to: '/rule-engine/rules', label: 'Reglas', icon: List, roles: ['Administrador', 'Superadmin'] },
+  {
+    to: '/rule-engine/logs',
+    label: 'Logs',
+    icon: FileText,
+    roles: ['Administrador', 'Superadmin'],
+  },
+  {
+    to: '/rule-engine/structures',
+    label: 'Estructuras',
+    icon: Database,
+    roles: ['Administrador', 'Superadmin'],
+  },
+  {
+    to: '/rule-engine/bindings',
+    label: 'Bindings',
+    icon: Layers,
+    roles: ['Administrador', 'Superadmin'],
+  },
+  {
+    to: '/rule-engine/comparison',
+    label: 'Comparación',
+    icon: GitCompareArrows,
+    roles: ['Administrador', 'Superadmin'],
+  },
+  {
+    to: '/rule-engine/config',
+    label: 'Configuración',
+    icon: Settings,
+    roles: ['Administrador', 'Superadmin'],
+  },
+  {
+    to: '/rule-engine/catalog',
+    label: 'Catálogo de Reglas',
+    icon: FileSpreadsheet,
+    roles: ['Administrador', 'Superadmin', 'Revisor'],
+  },
+  { to: '/users', label: 'Usuarios', icon: Users, roles: ['Administrador', 'Superadmin'] },
+  {
+    to: '/health-centers',
+    label: 'Centros de Salud',
+    icon: Building2,
+    roles: ['Administrador', 'Superadmin'],
+  },
+  { to: '/audit', label: 'Auditoría', icon: FileText, roles: ['Administrador', 'Superadmin'] },
 ]
 
 function SidebarContent({
   collapsed,
-  isAdmin,
   user,
   primaryRole,
   handleLogout,
@@ -41,7 +116,6 @@ function SidebarContent({
   onNavigate,
 }: {
   collapsed: boolean
-  isAdmin: boolean
   user: { name?: string; roles?: string[] } | null
   primaryRole: string
   handleLogout: () => Promise<void>
@@ -80,7 +154,7 @@ function SidebarContent({
             {user?.name || 'Usuario'}
           </p>
           <span className="inline-flex items-center px-2 py-0.5 mt-1 rounded text-xs font-medium bg-blue-900/50 text-blue-400 border border-blue-800">
-            {primaryRole}
+            {getRoleDisplayLabel(primaryRole)}
           </span>
         </div>
       )}
@@ -94,7 +168,9 @@ function SidebarContent({
 
       {/* Nav */}
       <nav className="p-3 space-y-1 flex-1 overflow-y-auto">
-        {MENU_ITEMS.filter((item) => !item.adminOnly || isAdmin).map((item) => (
+        {MENU_ITEMS.filter(
+          (item) => item.roles.includes('all') || item.roles.some((r) => user?.roles?.includes(r))
+        ).map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -114,7 +190,16 @@ function SidebarContent({
             {({ isActive }) => (
               <>
                 <item.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-blue-500' : ''}`} />
-                {!collapsed && <span className="truncate">{item.label}</span>}
+                {!collapsed && (
+                  <span className="flex items-center gap-2 truncate">
+                    <span className="truncate">{item.label}</span>
+                    {'comingSoon' in item && item.comingSoon && (
+                      <span className="shrink-0 rounded-full bg-amber-900/50 border border-amber-800 px-1.5 py-0.5 text-[10px] font-medium text-amber-400">
+                        Próximamente
+                      </span>
+                    )}
+                  </span>
+                )}
               </>
             )}
           </NavLink>
@@ -142,7 +227,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const logout = useLogout()
-  const { isAdmin } = usePermissions()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -165,7 +249,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       >
         <SidebarContent
           collapsed={collapsed}
-          isAdmin={isAdmin}
           user={user}
           primaryRole={primaryRole}
           handleLogout={handleLogout}
@@ -189,7 +272,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       >
         <SidebarContent
           collapsed={false}
-          isAdmin={isAdmin}
           user={user}
           primaryRole={primaryRole}
           handleLogout={handleLogout}

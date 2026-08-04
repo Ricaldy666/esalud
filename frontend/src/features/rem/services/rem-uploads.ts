@@ -1,10 +1,13 @@
-import { api } from '@/shared/services/api'
+import { api, fetchCsrfCookie } from '@/shared/services/api'
 import type {
   PaginatedResponse,
   RemUpload,
   RemUploadFilters,
   CreateRemUploadPayload,
   RemValidationResultsResponse,
+  RemUploadPreview,
+  RemUploadStatusResponse,
+  RemValidationSummary,
 } from '../types/rem'
 
 export const remUploadsService = {
@@ -29,9 +32,9 @@ export const remUploadsService = {
     return data.data
   },
 
-  getStatus: async (id: number) => {
-    const { data } = await api.get(`/rem-uploads/${id}/status`)
-    return data
+  getStatus: async (id: number): Promise<RemUploadStatusResponse> => {
+    const { data } = await api.get<{ data: RemUploadStatusResponse }>(`/rem-uploads/${id}/status`)
+    return data.data
   },
 
   getValidationResults: async (id: number): Promise<RemValidationResultsResponse> => {
@@ -41,19 +44,39 @@ export const remUploadsService = {
     return data.data
   },
 
+  getValidationSummary: async (id: number): Promise<RemValidationSummary> => {
+    const { data } = await api.get<{ data: RemValidationSummary }>(
+      `/rule-engine/uploads/${id}/validation-summary`
+    )
+    return data.data
+  },
+
+  preview: async (file: File): Promise<RemUploadPreview> => {
+    console.log('Selected file:', file)
+    console.log('Is File:', file instanceof File)
+
+    const formData = new FormData()
+    formData.append('file', file, file.name)
+
+    console.log('FormData file:', formData.get('file'))
+
+    await fetchCsrfCookie()
+
+    const { data } = await api.post<{ data: RemUploadPreview }>('/rem-uploads/preview', formData)
+    return data.data
+  },
+
   create: async (payload: CreateRemUploadPayload): Promise<RemUpload> => {
     const formData = new FormData()
-    formData.append('file', payload.file)
+    formData.append('file', payload.file, payload.file.name)
     formData.append('year', payload.year.toString())
     formData.append('month', payload.month.toString())
     formData.append('rem_type', payload.rem_type)
     formData.append('health_center_id', payload.health_center_id.toString())
 
-    const { data } = await api.post<{ data: RemUpload }>('/rem-uploads', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
+    await fetchCsrfCookie()
+
+    const { data } = await api.post<{ data: RemUpload }>('/rem-uploads', formData)
     return data.data
   },
 }

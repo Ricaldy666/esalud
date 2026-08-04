@@ -1,0 +1,8450 @@
+[
+  {
+    "key": "a01_w_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "W",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_z_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "Z",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_aa_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AA",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_ab_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AB",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_ac_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AC",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_ad_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AD",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_ae_11_required_le_v",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AE",
+    "parent_column": "V",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_af_11_required_le_u",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AF",
+    "parent_column": "U",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_ag_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AG",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_l_117_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 129
+    }
+  },
+  {
+    "key": "a01_l_136_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 136,
+      "to": 148
+    }
+  },
+  {
+    "key": "a01_m_155_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 155,
+      "to": 165
+    }
+  },
+  {
+    "key": "a01_g_172_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "G",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 172,
+      "to": 182
+    }
+  },
+  {
+    "key": "a01_h_172_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "H",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 172,
+      "to": 182
+    }
+  },
+  {
+    "key": "a01_g_189_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "G",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 189,
+      "to": 199
+    }
+  },
+  {
+    "key": "a01_h_189_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "H",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 189,
+      "to": 199
+    }
+  },
+  {
+    "key": "a01_x_19_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "X",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 19,
+      "to": 26
+    }
+  },
+  {
+    "key": "a01_w_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "W",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a01_ah_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AH",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_ak_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AK",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 39
+    }
+  },
+  {
+    "key": "a01_al_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 39
+    }
+  },
+  {
+    "key": "a01_am_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 39
+    }
+  },
+  {
+    "key": "a01_an_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 39
+    }
+  },
+  {
+    "key": "a01_an_44_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 66
+    }
+  },
+  {
+    "key": "a01_ao_44_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 66
+    }
+  },
+  {
+    "key": "a01_j_78_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "J",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 82
+    }
+  },
+  {
+    "key": "a01_k_78_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "K",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 82
+    }
+  },
+  {
+    "key": "a01_l_78_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 82
+    }
+  },
+  {
+    "key": "a01_m_78_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 82
+    }
+  },
+  {
+    "key": "a01_ag_88_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AG",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 88,
+      "to": 93
+    }
+  },
+  {
+    "key": "a01_ah_88_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "AH",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 88,
+      "to": 93
+    }
+  },
+  {
+    "key": "a01_l_98_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A01",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 98,
+      "to": 110
+    }
+  },
+  {
+    "key": "a02_ag_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AG",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a02_ah_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AH",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a02_ag_22_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AG",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 22,
+      "to": 25
+    }
+  },
+  {
+    "key": "a02_ah_22_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AH",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 22,
+      "to": 25
+    }
+  },
+  {
+    "key": "a02_ag_29_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AG",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 29,
+      "to": 30
+    }
+  },
+  {
+    "key": "a02_ah_29_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AH",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 29,
+      "to": 30
+    }
+  },
+  {
+    "key": "a02_ag_34_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AG",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 34,
+      "to": 35
+    }
+  },
+  {
+    "key": "a02_ah_34_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A02",
+    "child_column": "AH",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 34,
+      "to": 35
+    }
+  },
+  {
+    "key": "a03_v_112_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 112,
+      "to": 117
+    }
+  },
+  {
+    "key": "a03_w_112_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "W",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 112,
+      "to": 117
+    }
+  },
+  {
+    "key": "a03_ab_122_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AB",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 122,
+      "to": 157
+    }
+  },
+  {
+    "key": "a03_ac_122_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AC",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 122,
+      "to": 157
+    }
+  },
+  {
+    "key": "a03_p_199_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 199,
+      "to": 200
+    }
+  },
+  {
+    "key": "a03_q_199_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 199,
+      "to": 200
+    }
+  },
+  {
+    "key": "a03_r_199_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 199,
+      "to": 200
+    }
+  },
+  {
+    "key": "a03_s_199_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 199,
+      "to": 200
+    }
+  },
+  {
+    "key": "a03_r_20_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 41
+    }
+  },
+  {
+    "key": "a03_s_20_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 41
+    }
+  },
+  {
+    "key": "a03_ad_206_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AD",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 206,
+      "to": 207
+    }
+  },
+  {
+    "key": "a03_ae_206_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AE",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 206,
+      "to": 207
+    }
+  },
+  {
+    "key": "a03_af_206_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AF",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 206,
+      "to": 207
+    }
+  },
+  {
+    "key": "a03_ag_206_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AG",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 206,
+      "to": 207
+    }
+  },
+  {
+    "key": "a03_ah_206_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AH",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 206,
+      "to": 207
+    }
+  },
+  {
+    "key": "a03_ai_206_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AI",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 206,
+      "to": 207
+    }
+  },
+  {
+    "key": "a03_s_213_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 213,
+      "to": 215
+    }
+  },
+  {
+    "key": "a03_t_213_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "T",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 213,
+      "to": 215
+    }
+  },
+  {
+    "key": "a03_p_260_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 260,
+      "to": 262
+    }
+  },
+  {
+    "key": "a03_v_271_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_w_271_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "W",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_x_271_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "X",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_y_271_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "Y",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_z_271_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "Z",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_aa_271_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AA",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_ab_271_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AB",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_ac_271_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "AC",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 274
+    }
+  },
+  {
+    "key": "a03_q_46_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "Q",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 46,
+      "to": 49
+    }
+  },
+  {
+    "key": "a03_r_46_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "R",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 46,
+      "to": 49
+    }
+  },
+  {
+    "key": "a03_i_55_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "I",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 57
+    }
+  },
+  {
+    "key": "a03_j_55_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "J",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 57
+    }
+  },
+  {
+    "key": "a03_k_61_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "K",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 61,
+      "to": 67
+    }
+  },
+  {
+    "key": "a03_l_61_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "L",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 61,
+      "to": 67
+    }
+  },
+  {
+    "key": "a03_i_72_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "I",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 72,
+      "to": 74
+    }
+  },
+  {
+    "key": "a03_j_72_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "J",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 72,
+      "to": 74
+    }
+  },
+  {
+    "key": "a03_h_90_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A03",
+    "child_column": "H",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 90,
+      "to": 93
+    }
+  },
+  {
+    "key": "a04_ao_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a04_ap_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a04_aq_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a04_ar_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a04_as_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AS",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a04_ao_135_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a04_ap_135_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AP",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a04_aq_135_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a04_ar_135_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a04_j_141_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "J",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 141,
+      "to": 149
+    }
+  },
+  {
+    "key": "a04_k_141_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "K",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 141,
+      "to": 149
+    }
+  },
+  {
+    "key": "a04_i_144_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "I",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 144,
+      "to": 144
+    }
+  },
+  {
+    "key": "a04_i_146_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "I",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 146,
+      "to": 149
+    }
+  },
+  {
+    "key": "a04_an_154_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 154,
+      "to": 167
+    }
+  },
+  {
+    "key": "a04_ao_154_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 154,
+      "to": 167
+    }
+  },
+  {
+    "key": "a04_t_171_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "T",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 171,
+      "to": 171
+    }
+  },
+  {
+    "key": "a04_u_171_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "U",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 171,
+      "to": 171
+    }
+  },
+  {
+    "key": "a04_ad_176_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AD",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 176,
+      "to": 183
+    }
+  },
+  {
+    "key": "a04_ae_176_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AE",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 176,
+      "to": 183
+    }
+  },
+  {
+    "key": "a04_f_193_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "F",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 198
+    }
+  },
+  {
+    "key": "a04_g_193_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "G",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 198
+    }
+  },
+  {
+    "key": "a04_h_193_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "H",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 198
+    }
+  },
+  {
+    "key": "a04_ao_31_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 48
+    }
+  },
+  {
+    "key": "a04_ap_31_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 48
+    }
+  },
+  {
+    "key": "a04_aq_31_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 48
+    }
+  },
+  {
+    "key": "a04_ar_31_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 48
+    }
+  },
+  {
+    "key": "a04_as_31_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AS",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 48
+    }
+  },
+  {
+    "key": "a04_ab_53_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AB",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 53,
+      "to": 54
+    }
+  },
+  {
+    "key": "a04_ac_53_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AC",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 53,
+      "to": 54
+    }
+  },
+  {
+    "key": "a04_w_60_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "W",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 60,
+      "to": 60
+    }
+  },
+  {
+    "key": "a04_x_60_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "X",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 60,
+      "to": 60
+    }
+  },
+  {
+    "key": "a04_w_61_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "W",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 61,
+      "to": 64
+    }
+  },
+  {
+    "key": "a04_x_61_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "X",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 61,
+      "to": 64
+    }
+  },
+  {
+    "key": "a04_aj_80_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AJ",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 80,
+      "to": 83
+    }
+  },
+  {
+    "key": "a04_ak_80_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AK",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 80,
+      "to": 83
+    }
+  },
+  {
+    "key": "a04_al_80_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 80,
+      "to": 83
+    }
+  },
+  {
+    "key": "a04_am_80_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 80,
+      "to": 83
+    }
+  },
+  {
+    "key": "a04_an_80_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A04",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 80,
+      "to": 83
+    }
+  },
+  {
+    "key": "a05_aj_103_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AJ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 103,
+      "to": 106
+    }
+  },
+  {
+    "key": "a05_ak_103_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AK",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 103,
+      "to": 106
+    }
+  },
+  {
+    "key": "a05_al_103_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 103,
+      "to": 106
+    }
+  },
+  {
+    "key": "a05_o_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "O",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 14
+    }
+  },
+  {
+    "key": "a05_p_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 14
+    }
+  },
+  {
+    "key": "a05_r_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 13
+    }
+  },
+  {
+    "key": "a05_s_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 14
+    }
+  },
+  {
+    "key": "a05_t_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "T",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 14
+    }
+  },
+  {
+    "key": "a05_u_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "U",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 14
+    }
+  },
+  {
+    "key": "a05_v_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 14
+    }
+  },
+  {
+    "key": "a05_ah_119_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AH",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 119,
+      "to": 128
+    }
+  },
+  {
+    "key": "a05_ai_119_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AI",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 119,
+      "to": 128
+    }
+  },
+  {
+    "key": "a05_q_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 13
+    }
+  },
+  {
+    "key": "a05_al_133_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 133,
+      "to": 141
+    }
+  },
+  {
+    "key": "a05_am_133_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 133,
+      "to": 141
+    }
+  },
+  {
+    "key": "a05_r_14_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 14,
+      "to": 14
+    }
+  },
+  {
+    "key": "a05_aq_146_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 146,
+      "to": 150
+    }
+  },
+  {
+    "key": "a05_ar_146_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 146,
+      "to": 150
+    }
+  },
+  {
+    "key": "a05_n_154_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "N",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 154,
+      "to": 158
+    }
+  },
+  {
+    "key": "a05_o_154_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "O",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 154,
+      "to": 156
+    }
+  },
+  {
+    "key": "a05_o_158_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "O",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 158,
+      "to": 161
+    }
+  },
+  {
+    "key": "a05_n_159_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "N",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 159,
+      "to": 161
+    }
+  },
+  {
+    "key": "a05_q_167_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 167,
+      "to": 167
+    }
+  },
+  {
+    "key": "a05_r_167_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 167,
+      "to": 174
+    }
+  },
+  {
+    "key": "a05_q_168_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 168,
+      "to": 174
+    }
+  },
+  {
+    "key": "a05_e_18_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "E",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 18,
+      "to": 31
+    }
+  },
+  {
+    "key": "a05_f_18_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "F",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 18,
+      "to": 31
+    }
+  },
+  {
+    "key": "a05_d_18_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "D",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 18,
+      "to": 31
+    }
+  },
+  {
+    "key": "a05_p_180_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 180,
+      "to": 187
+    }
+  },
+  {
+    "key": "a05_q_180_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 180,
+      "to": 182
+    }
+  },
+  {
+    "key": "a05_p_181_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 181,
+      "to": 182
+    }
+  },
+  {
+    "key": "a05_q_184_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 184,
+      "to": 187
+    }
+  },
+  {
+    "key": "a05_an_193_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AN",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 217
+    }
+  },
+  {
+    "key": "a05_ao_193_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AO",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 217
+    }
+  },
+  {
+    "key": "a05_ar_193_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 193
+    }
+  },
+  {
+    "key": "a05_as_193_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 241
+    }
+  },
+  {
+    "key": "a05_ax_193_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AX",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 193,
+      "to": 241
+    }
+  },
+  {
+    "key": "a05_ar_195_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 195,
+      "to": 217
+    }
+  },
+  {
+    "key": "a05_ao_208_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AO",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 208,
+      "to": 241
+    }
+  },
+  {
+    "key": "a05_ar_208_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 208,
+      "to": 241
+    }
+  },
+  {
+    "key": "a05_an_218_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AN",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 218,
+      "to": 241
+    }
+  },
+  {
+    "key": "a05_aq_245_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AQ",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 245,
+      "to": 245
+    }
+  },
+  {
+    "key": "a05_ar_245_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AR",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 245,
+      "to": 293
+    }
+  },
+  {
+    "key": "a05_au_245_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 245,
+      "to": 293
+    }
+  },
+  {
+    "key": "a05_av_245_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AV",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 245,
+      "to": 293
+    }
+  },
+  {
+    "key": "a05_aw_245_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AW",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 245,
+      "to": 293
+    }
+  },
+  {
+    "key": "a05_ax_245_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AX",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 245,
+      "to": 293
+    }
+  },
+  {
+    "key": "a05_aq_247_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AQ",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 247,
+      "to": 293
+    }
+  },
+  {
+    "key": "a05_al_298_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 298,
+      "to": 301
+    }
+  },
+  {
+    "key": "a05_am_298_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 298,
+      "to": 298
+    }
+  },
+  {
+    "key": "a05_an_298_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 298,
+      "to": 301
+    }
+  },
+  {
+    "key": "a05_ao_298_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 298,
+      "to": 301
+    }
+  },
+  {
+    "key": "a05_am_299_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 299,
+      "to": 301
+    }
+  },
+  {
+    "key": "a05_as_307_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 307,
+      "to": 324
+    }
+  },
+  {
+    "key": "a05_at_307_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AT",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 307,
+      "to": 324
+    }
+  },
+  {
+    "key": "a05_au_307_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 307,
+      "to": 324
+    }
+  },
+  {
+    "key": "a05_av_307_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AV",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 307,
+      "to": 324
+    }
+  },
+  {
+    "key": "a05_at_329_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AT",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 329,
+      "to": 339
+    }
+  },
+  {
+    "key": "a05_au_329_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 329,
+      "to": 339
+    }
+  },
+  {
+    "key": "a05_av_329_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AV",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 329,
+      "to": 339
+    }
+  },
+  {
+    "key": "a05_aw_329_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AW",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 329,
+      "to": 339
+    }
+  },
+  {
+    "key": "a05_aj_344_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AJ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 344,
+      "to": 346
+    }
+  },
+  {
+    "key": "a05_ak_344_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AK",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 344,
+      "to": 346
+    }
+  },
+  {
+    "key": "a05_r_351_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "R",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 351,
+      "to": 352
+    }
+  },
+  {
+    "key": "a05_s_351_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "S",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 351,
+      "to": 352
+    }
+  },
+  {
+    "key": "a05_o_352_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "O",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 352,
+      "to": 352
+    }
+  },
+  {
+    "key": "a05_p_352_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "P",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 352,
+      "to": 352
+    }
+  },
+  {
+    "key": "a05_q_352_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 352,
+      "to": 352
+    }
+  },
+  {
+    "key": "a05_ah_357_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AH",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 357,
+      "to": 366
+    }
+  },
+  {
+    "key": "a05_ai_357_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AI",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 357,
+      "to": 366
+    }
+  },
+  {
+    "key": "a05_q_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_r_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_s_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_v_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_w_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "W",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_x_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "X",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_y_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Y",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_z_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Z",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_aa_36_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AA",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 51
+    }
+  },
+  {
+    "key": "a05_ar_372_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 372,
+      "to": 372
+    }
+  },
+  {
+    "key": "a05_as_372_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AS",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 372,
+      "to": 389
+    }
+  },
+  {
+    "key": "a05_ar_373_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 373,
+      "to": 389
+    }
+  },
+  {
+    "key": "a05_k_394_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "K",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 394,
+      "to": 398
+    }
+  },
+  {
+    "key": "a05_l_394_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 394,
+      "to": 398
+    }
+  },
+  {
+    "key": "a05_k_400_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "K",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 400,
+      "to": 404
+    }
+  },
+  {
+    "key": "a05_l_400_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 400,
+      "to": 404
+    }
+  },
+  {
+    "key": "a05_e_409_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "E",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 409,
+      "to": 411
+    }
+  },
+  {
+    "key": "a05_f_409_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "F",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 409,
+      "to": 411
+    }
+  },
+  {
+    "key": "a05_q_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 59
+    }
+  },
+  {
+    "key": "a05_r_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 59
+    }
+  },
+  {
+    "key": "a05_u_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "U",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 59
+    }
+  },
+  {
+    "key": "a05_v_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 59
+    }
+  },
+  {
+    "key": "a05_w_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "W",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 59
+    }
+  },
+  {
+    "key": "a05_x_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "X",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 59
+    }
+  },
+  {
+    "key": "a05_q_64_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 83
+    }
+  },
+  {
+    "key": "a05_r_64_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 83
+    }
+  },
+  {
+    "key": "a05_q_65_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 65,
+      "to": 83
+    }
+  },
+  {
+    "key": "a05_c_86_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "C",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 86,
+      "to": 86
+    }
+  },
+  {
+    "key": "a05_d_86_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 86,
+      "to": 86
+    }
+  },
+  {
+    "key": "a05_d_89_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "D",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 89,
+      "to": 89
+    }
+  },
+  {
+    "key": "a05_e_89_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "E",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 89,
+      "to": 89
+    }
+  },
+  {
+    "key": "a05_au_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 98
+    }
+  },
+  {
+    "key": "a05_av_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AV",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 98
+    }
+  },
+  {
+    "key": "a05_aw_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A05",
+    "child_column": "AW",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 98
+    }
+  },
+  {
+    "key": "a06_o_114_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "O",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 114,
+      "to": 116
+    }
+  },
+  {
+    "key": "a06_p_114_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "P",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 114,
+      "to": 116
+    }
+  },
+  {
+    "key": "a06_an_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_ao_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_ap_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_aq_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_ar_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_as_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_av_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AV",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_an_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_ao_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_ap_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_aq_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_ar_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_as_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 26
+    }
+  },
+  {
+    "key": "a06_an_135_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a06_ao_135_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a06_ap_135_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a06_aq_135_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a06_ar_135_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 135,
+      "to": 137
+    }
+  },
+  {
+    "key": "a06_r_160_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 160,
+      "to": 168
+    }
+  },
+  {
+    "key": "a06_s_160_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 160,
+      "to": 168
+    }
+  },
+  {
+    "key": "a06_t_160_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "T",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 160,
+      "to": 168
+    }
+  },
+  {
+    "key": "a06_u_160_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "U",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 160,
+      "to": 168
+    }
+  },
+  {
+    "key": "a06_v_160_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 160,
+      "to": 168
+    }
+  },
+  {
+    "key": "a06_s_163_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 167
+    }
+  },
+  {
+    "key": "a06_t_163_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "T",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 167
+    }
+  },
+  {
+    "key": "a06_ap_22_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 22,
+      "to": 22
+    }
+  },
+  {
+    "key": "a06_ap_30_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AP",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 30,
+      "to": 31
+    }
+  },
+  {
+    "key": "a06_aq_30_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AQ",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 30,
+      "to": 31
+    }
+  },
+  {
+    "key": "a06_ar_30_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AR",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 30,
+      "to": 31
+    }
+  },
+  {
+    "key": "a06_as_30_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AS",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 30,
+      "to": 31
+    }
+  },
+  {
+    "key": "a06_at_30_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AT",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 30,
+      "to": 31
+    }
+  },
+  {
+    "key": "a06_au_30_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AU",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 30,
+      "to": 31
+    }
+  },
+  {
+    "key": "a06_al_49_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 49,
+      "to": 50
+    }
+  },
+  {
+    "key": "a06_am_49_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 49,
+      "to": 50
+    }
+  },
+  {
+    "key": "a06_an_49_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 49,
+      "to": 50
+    }
+  },
+  {
+    "key": "a06_al_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 76
+    }
+  },
+  {
+    "key": "a06_am_55_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A06",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 76
+    }
+  },
+  {
+    "key": "a07_u_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "U",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 66
+    }
+  },
+  {
+    "key": "a07_u_129_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "U",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 145
+    }
+  },
+  {
+    "key": "a07_v_129_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "V",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 145
+    }
+  },
+  {
+    "key": "a07_ap_151_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 151,
+      "to": 161
+    }
+  },
+  {
+    "key": "a07_aq_151_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 151,
+      "to": 161
+    }
+  },
+  {
+    "key": "a07_ar_151_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 151,
+      "to": 161
+    }
+  },
+  {
+    "key": "a07_as_151_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 151,
+      "to": 161
+    }
+  },
+  {
+    "key": "a07_at_151_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AT",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 151,
+      "to": 161
+    }
+  },
+  {
+    "key": "a07_ap_167_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 167,
+      "to": 177
+    }
+  },
+  {
+    "key": "a07_as_167_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 167,
+      "to": 177
+    }
+  },
+  {
+    "key": "a07_at_167_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AT",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 167,
+      "to": 177
+    }
+  },
+  {
+    "key": "a07_au_167_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 167,
+      "to": 177
+    }
+  },
+  {
+    "key": "a07_av_167_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AV",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 167,
+      "to": 177
+    }
+  },
+  {
+    "key": "a07_aq_182_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 191
+    }
+  },
+  {
+    "key": "a07_ar_182_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 191
+    }
+  },
+  {
+    "key": "a07_t_196_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "T",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 196
+    }
+  },
+  {
+    "key": "a07_u_196_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "U",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 202
+    }
+  },
+  {
+    "key": "a07_v_196_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 202
+    }
+  },
+  {
+    "key": "a07_w_196_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "W",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 202
+    }
+  },
+  {
+    "key": "a07_x_196_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "X",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 202
+    }
+  },
+  {
+    "key": "a07_y_196_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "Y",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 202
+    }
+  },
+  {
+    "key": "a07_z_196_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "Z",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 202
+    }
+  },
+  {
+    "key": "a07_aa_196_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A07",
+    "child_column": "AA",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 196,
+      "to": 202
+    }
+  },
+  {
+    "key": "a08_an_107_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 107,
+      "to": 113
+    }
+  },
+  {
+    "key": "a08_ao_107_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 107,
+      "to": 109
+    }
+  },
+  {
+    "key": "a08_am_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 15
+    }
+  },
+  {
+    "key": "a08_an_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 15
+    }
+  },
+  {
+    "key": "a08_ao_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 15
+    }
+  },
+  {
+    "key": "a08_ap_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 13
+    }
+  },
+  {
+    "key": "a08_aq_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 13
+    }
+  },
+  {
+    "key": "a08_ar_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 13
+    }
+  },
+  {
+    "key": "a08_as_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AS",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 15
+    }
+  },
+  {
+    "key": "a08_an_123_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a08_af_129_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AF",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 131
+    }
+  },
+  {
+    "key": "a08_ag_129_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AG",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 131
+    }
+  },
+  {
+    "key": "a08_ah_129_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AH",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 131
+    }
+  },
+  {
+    "key": "a08_ai_129_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AI",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 131
+    }
+  },
+  {
+    "key": "a08_aj_129_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AJ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 131
+    }
+  },
+  {
+    "key": "a08_ak_129_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AK",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 131
+    }
+  },
+  {
+    "key": "a08_ai_129_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AI",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 131
+    }
+  },
+  {
+    "key": "a08_j_141_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "J",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 141,
+      "to": 141
+    }
+  },
+  {
+    "key": "a08_j_142_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "J",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 142,
+      "to": 142
+    }
+  },
+  {
+    "key": "a08_ap_15_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 15,
+      "to": 15
+    }
+  },
+  {
+    "key": "a08_aq_15_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 15,
+      "to": 15
+    }
+  },
+  {
+    "key": "a08_ar_15_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 15,
+      "to": 15
+    }
+  },
+  {
+    "key": "a08_ai_195_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AI",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 195,
+      "to": 196
+    }
+  },
+  {
+    "key": "a08_aj_195_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AJ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 195,
+      "to": 196
+    }
+  },
+  {
+    "key": "a08_ak_195_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AK",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 195,
+      "to": 196
+    }
+  },
+  {
+    "key": "a08_al_195_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 195,
+      "to": 196
+    }
+  },
+  {
+    "key": "a08_am_195_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 195,
+      "to": 196
+    }
+  },
+  {
+    "key": "a08_am_20_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 20
+    }
+  },
+  {
+    "key": "a08_an_20_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 26
+    }
+  },
+  {
+    "key": "a08_ao_20_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 23
+    }
+  },
+  {
+    "key": "a08_ap_20_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 23
+    }
+  },
+  {
+    "key": "a08_aq_20_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 26
+    }
+  },
+  {
+    "key": "a08_ar_20_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 26
+    }
+  },
+  {
+    "key": "a08_ax_20_required_le_as",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AX",
+    "parent_column": "AS",
+    "severity": "error",
+    "row_range": {
+      "from": 20,
+      "to": 20
+    }
+  },
+  {
+    "key": "a08_ak_205_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AK",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 205,
+      "to": 205
+    }
+  },
+  {
+    "key": "a08_al_205_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 205,
+      "to": 205
+    }
+  },
+  {
+    "key": "a08_am_205_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 205,
+      "to": 205
+    }
+  },
+  {
+    "key": "a08_an_205_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 205,
+      "to": 205
+    }
+  },
+  {
+    "key": "a08_am_21_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 21,
+      "to": 26
+    }
+  },
+  {
+    "key": "a08_m_211_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 211,
+      "to": 215
+    }
+  },
+  {
+    "key": "a08_n_211_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "N",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 211,
+      "to": 215
+    }
+  },
+  {
+    "key": "a08_o_211_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "O",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 211,
+      "to": 215
+    }
+  },
+  {
+    "key": "a08_am_31_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 36
+    }
+  },
+  {
+    "key": "a08_an_31_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a08_am_41_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 41,
+      "to": 41
+    }
+  },
+  {
+    "key": "a08_an_41_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 41,
+      "to": 46
+    }
+  },
+  {
+    "key": "a08_am_42_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 42,
+      "to": 46
+    }
+  },
+  {
+    "key": "a08_am_51_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 51,
+      "to": 56
+    }
+  },
+  {
+    "key": "a08_an_51_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 51,
+      "to": 56
+    }
+  },
+  {
+    "key": "a08_ao_51_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 51,
+      "to": 51
+    }
+  },
+  {
+    "key": "a08_am_61_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AM",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 61,
+      "to": 65
+    }
+  },
+  {
+    "key": "a08_an_61_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A08",
+    "child_column": "AN",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 61,
+      "to": 65
+    }
+  },
+  {
+    "key": "a09_ax_104_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 104,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_ar_12_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a09_at_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a09_au_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AU",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a09_av_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a09_aw_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a09_ax_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 17
+    }
+  },
+  {
+    "key": "a09_ao_128_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AO",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 128,
+      "to": 129
+    }
+  },
+  {
+    "key": "a09_ar_163_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 173
+    }
+  },
+  {
+    "key": "a09_at_163_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 173
+    }
+  },
+  {
+    "key": "a09_au_163_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AU",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 173
+    }
+  },
+  {
+    "key": "a09_av_163_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 173
+    }
+  },
+  {
+    "key": "a09_aw_163_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 173
+    }
+  },
+  {
+    "key": "a09_ax_163_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 163,
+      "to": 173
+    }
+  },
+  {
+    "key": "a09_aq_182_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AQ",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 198
+    }
+  },
+  {
+    "key": "a09_ar_182_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 182
+    }
+  },
+  {
+    "key": "a09_as_182_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AS",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 182
+    }
+  },
+  {
+    "key": "a09_at_182_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 226
+    }
+  },
+  {
+    "key": "a09_au_182_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AU",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 226
+    }
+  },
+  {
+    "key": "a09_aw_182_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 182
+    }
+  },
+  {
+    "key": "a09_ax_182_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 182,
+      "to": 182
+    }
+  },
+  {
+    "key": "a09_aq_183_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AQ",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 183,
+      "to": 226
+    }
+  },
+  {
+    "key": "a09_as_183_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AS",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 183,
+      "to": 226
+    }
+  },
+  {
+    "key": "a09_ar_184_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 184,
+      "to": 226
+    }
+  },
+  {
+    "key": "a09_av_184_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 184,
+      "to": 224
+    }
+  },
+  {
+    "key": "a09_aw_184_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 184,
+      "to": 226
+    }
+  },
+  {
+    "key": "a09_ax_184_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 184,
+      "to": 226
+    }
+  },
+  {
+    "key": "a09_ar_21_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 21,
+      "to": 38
+    }
+  },
+  {
+    "key": "a09_at_21_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 21,
+      "to": 38
+    }
+  },
+  {
+    "key": "a09_au_21_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AU",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 21,
+      "to": 38
+    }
+  },
+  {
+    "key": "a09_av_21_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 21,
+      "to": 38
+    }
+  },
+  {
+    "key": "a09_aw_21_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 21,
+      "to": 38
+    }
+  },
+  {
+    "key": "a09_ax_21_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 21,
+      "to": 38
+    }
+  },
+  {
+    "key": "a09_ac_232_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AC",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 232,
+      "to": 235
+    }
+  },
+  {
+    "key": "a09_ah_232_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AH",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 232,
+      "to": 235
+    }
+  },
+  {
+    "key": "a09_ai_232_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AI",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 232,
+      "to": 235
+    }
+  },
+  {
+    "key": "a09_g_242_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "G",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 242,
+      "to": 246
+    }
+  },
+  {
+    "key": "a09_h_242_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "H",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 242,
+      "to": 246
+    }
+  },
+  {
+    "key": "a09_i_242_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "I",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 242,
+      "to": 246
+    }
+  },
+  {
+    "key": "a09_j_242_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "J",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 242,
+      "to": 246
+    }
+  },
+  {
+    "key": "a09_k_242_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "K",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 242,
+      "to": 246
+    }
+  },
+  {
+    "key": "a09_am_251_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AM",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 251,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_ar_251_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 251,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_at_251_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 251,
+      "to": 251
+    }
+  },
+  {
+    "key": "a09_au_251_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AU",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 251,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_aw_251_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 251,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_ax_251_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 251,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_at_252_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 252,
+      "to": 329
+    }
+  },
+  {
+    "key": "a09_ao_253_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AO",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 253,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_ap_253_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AP",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 253,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_aq_253_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AQ",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 253,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_av_256_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 256,
+      "to": 328
+    }
+  },
+  {
+    "key": "a09_as_265_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AS",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 265,
+      "to": 282
+    }
+  },
+  {
+    "key": "a09_at_330_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 330,
+      "to": 330
+    }
+  },
+  {
+    "key": "a09_aq_341_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AQ",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 341,
+      "to": 345
+    }
+  },
+  {
+    "key": "a09_ar_44_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 44
+    }
+  },
+  {
+    "key": "a09_at_44_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 66
+    }
+  },
+  {
+    "key": "a09_au_44_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AU",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 66
+    }
+  },
+  {
+    "key": "a09_av_44_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 66
+    }
+  },
+  {
+    "key": "a09_aw_44_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 66
+    }
+  },
+  {
+    "key": "a09_ax_44_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AX",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 66
+    }
+  },
+  {
+    "key": "a09_ar_45_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AR",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 45,
+      "to": 66
+    }
+  },
+  {
+    "key": "a09_ap_91_required_le_f",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AP",
+    "parent_column": "F",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_aq_91_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AQ",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_as_91_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AS",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_at_91_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_au_91_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AU",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_av_91_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 91
+    }
+  },
+  {
+    "key": "a09_aw_91_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AW",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_ao_91_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AO",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 142
+    }
+  },
+  {
+    "key": "a09_av_92_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A09",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 92,
+      "to": 142
+    }
+  },
+  {
+    "key": "a11_av_101_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 101,
+      "to": 118
+    }
+  },
+  {
+    "key": "a11_aw_101_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AW",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 101,
+      "to": 118
+    }
+  },
+  {
+    "key": "a11_av_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 140
+    }
+  },
+  {
+    "key": "a11_aw_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AW",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 140
+    }
+  },
+  {
+    "key": "a11_av_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 30
+    }
+  },
+  {
+    "key": "a11_aw_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AW",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 30
+    }
+  },
+  {
+    "key": "a11_as_161_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 161,
+      "to": 183
+    }
+  },
+  {
+    "key": "a11_au_161_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 161,
+      "to": 183
+    }
+  },
+  {
+    "key": "a11_at_161_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 161,
+      "to": 183
+    }
+  },
+  {
+    "key": "a11_av_161_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 161,
+      "to": 183
+    }
+  },
+  {
+    "key": "a11_as_188_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 188,
+      "to": 210
+    }
+  },
+  {
+    "key": "a11_au_188_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 188,
+      "to": 210
+    }
+  },
+  {
+    "key": "a11_at_188_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 188,
+      "to": 210
+    }
+  },
+  {
+    "key": "a11_av_188_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 188,
+      "to": 210
+    }
+  },
+  {
+    "key": "a11_ap_215_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 215,
+      "to": 221
+    }
+  },
+  {
+    "key": "a11_aq_215_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 215,
+      "to": 221
+    }
+  },
+  {
+    "key": "a11_ap_226_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 226,
+      "to": 232
+    }
+  },
+  {
+    "key": "a11_aq_226_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 226,
+      "to": 232
+    }
+  },
+  {
+    "key": "a11_as_237_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 237,
+      "to": 259
+    }
+  },
+  {
+    "key": "a11_au_237_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 237,
+      "to": 259
+    }
+  },
+  {
+    "key": "a11_at_237_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 237,
+      "to": 259
+    }
+  },
+  {
+    "key": "a11_av_237_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 237,
+      "to": 259
+    }
+  },
+  {
+    "key": "a11_ac_264_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AC",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 264,
+      "to": 265
+    }
+  },
+  {
+    "key": "a11_ad_264_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AD",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 264,
+      "to": 265
+    }
+  },
+  {
+    "key": "a11_ak_271_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AK",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 272
+    }
+  },
+  {
+    "key": "a11_al_271_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AL",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 271,
+      "to": 272
+    }
+  },
+  {
+    "key": "a11_av_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 52
+    }
+  },
+  {
+    "key": "a11_aw_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AW",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 52
+    }
+  },
+  {
+    "key": "a11_av_57_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 57,
+      "to": 74
+    }
+  },
+  {
+    "key": "a11_aw_57_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AW",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 57,
+      "to": 74
+    }
+  },
+  {
+    "key": "a11_av_79_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AV",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 79,
+      "to": 96
+    }
+  },
+  {
+    "key": "a11_aw_79_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11",
+    "child_column": "AW",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 79,
+      "to": 96
+    }
+  },
+  {
+    "key": "a11a_m_100_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 100,
+      "to": 105
+    }
+  },
+  {
+    "key": "a11a_n_100_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "N",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 100,
+      "to": 105
+    }
+  },
+  {
+    "key": "a11a_s_109_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "S",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 109,
+      "to": 113
+    }
+  },
+  {
+    "key": "a11a_t_109_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "T",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 109,
+      "to": 113
+    }
+  },
+  {
+    "key": "a11a_l_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 19
+    }
+  },
+  {
+    "key": "a11a_m_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 19
+    }
+  },
+  {
+    "key": "a11a_c_22_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "C",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 22,
+      "to": 23
+    }
+  },
+  {
+    "key": "a11a_d_22_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 22,
+      "to": 23
+    }
+  },
+  {
+    "key": "a11a_l_27_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 27,
+      "to": 32
+    }
+  },
+  {
+    "key": "a11a_m_27_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 27,
+      "to": 32
+    }
+  },
+  {
+    "key": "a11a_c_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "C",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 36
+    }
+  },
+  {
+    "key": "a11a_d_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 36
+    }
+  },
+  {
+    "key": "a11a_l_40_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 40,
+      "to": 47
+    }
+  },
+  {
+    "key": "a11a_m_40_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 40,
+      "to": 47
+    }
+  },
+  {
+    "key": "a11a_c_50_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "C",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 50,
+      "to": 53
+    }
+  },
+  {
+    "key": "a11a_d_50_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 50,
+      "to": 53
+    }
+  },
+  {
+    "key": "a11a_c_56_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "C",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 56,
+      "to": 59
+    }
+  },
+  {
+    "key": "a11a_d_56_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 56,
+      "to": 59
+    }
+  },
+  {
+    "key": "a11a_l_64_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 73
+    }
+  },
+  {
+    "key": "a11a_m_64_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 73
+    }
+  },
+  {
+    "key": "a11a_l_78_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 88
+    }
+  },
+  {
+    "key": "a11a_m_78_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 88
+    }
+  },
+  {
+    "key": "a11a_c_91_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "C",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 96
+    }
+  },
+  {
+    "key": "a11a_d_91_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A11a",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 91,
+      "to": 96
+    }
+  },
+  {
+    "key": "a19a_al_122_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AL",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 122,
+      "to": 124
+    }
+  },
+  {
+    "key": "a19a_o_129_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "O",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 129,
+      "to": 148
+    }
+  },
+  {
+    "key": "a19a_an_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 89
+    }
+  },
+  {
+    "key": "a19a_aq_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 89
+    }
+  },
+  {
+    "key": "a19a_ar_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 89
+    }
+  },
+  {
+    "key": "a19a_at_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AT",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 89
+    }
+  },
+  {
+    "key": "a19a_au_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 89
+    }
+  },
+  {
+    "key": "a19a_ap_94_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 94,
+      "to": 105
+    }
+  },
+  {
+    "key": "a19a_aq_94_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 94,
+      "to": 105
+    }
+  },
+  {
+    "key": "a19a_ar_94_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 94,
+      "to": 105
+    }
+  },
+  {
+    "key": "a19a_as_94_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 94,
+      "to": 105
+    }
+  },
+  {
+    "key": "a19a_an_94_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AN",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 94,
+      "to": 105
+    }
+  },
+  {
+    "key": "a19a_ao_94_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A19a",
+    "child_column": "AO",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 94,
+      "to": 105
+    }
+  },
+  {
+    "key": "a19b_f_113_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "F",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 113,
+      "to": 122
+    }
+  },
+  {
+    "key": "a19b_g_113_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "G",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 113,
+      "to": 122
+    }
+  },
+  {
+    "key": "a19b_h_113_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "H",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 113,
+      "to": 122
+    }
+  },
+  {
+    "key": "a19b_i_113_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "I",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 113,
+      "to": 122
+    }
+  },
+  {
+    "key": "a19b_j_113_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "J",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 113,
+      "to": 122
+    }
+  },
+  {
+    "key": "a19b_k_113_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "K",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 113,
+      "to": 122
+    }
+  },
+  {
+    "key": "a19b_l_113_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "L",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 113,
+      "to": 122
+    }
+  },
+  {
+    "key": "a19b_j_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "J",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 57
+    }
+  },
+  {
+    "key": "a19b_q_62_required_le_p",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "Q",
+    "parent_column": "P",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 73
+    }
+  },
+  {
+    "key": "a19b_r_62_required_le_o",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "R",
+    "parent_column": "O",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 73
+    }
+  },
+  {
+    "key": "a19b_s_62_required_le_n",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "S",
+    "parent_column": "N",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 73
+    }
+  },
+  {
+    "key": "a19b_t_62_required_le_n",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "T",
+    "parent_column": "N",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 73
+    }
+  },
+  {
+    "key": "a19b_u_62_required_le_n",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "U",
+    "parent_column": "N",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 73
+    }
+  },
+  {
+    "key": "a19b_v_62_required_le_n",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "V",
+    "parent_column": "N",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 73
+    }
+  },
+  {
+    "key": "a19b_w_62_required_le_n",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "W",
+    "parent_column": "N",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 73
+    }
+  },
+  {
+    "key": "a19b_f_78_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "F",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 91
+    }
+  },
+  {
+    "key": "a19b_g_78_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "G",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 91
+    }
+  },
+  {
+    "key": "a19b_h_78_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "H",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 91
+    }
+  },
+  {
+    "key": "a19b_i_78_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "I",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 91
+    }
+  },
+  {
+    "key": "a19b_j_78_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "J",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 91
+    }
+  },
+  {
+    "key": "a19b_k_78_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "K",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 91
+    }
+  },
+  {
+    "key": "a19b_l_78_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "L",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 91
+    }
+  },
+  {
+    "key": "a19b_n_97_required_le_m",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "N",
+    "parent_column": "M",
+    "severity": "error",
+    "row_range": {
+      "from": 97,
+      "to": 108
+    }
+  },
+  {
+    "key": "a19b_o_97_required_le_l",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "O",
+    "parent_column": "L",
+    "severity": "error",
+    "row_range": {
+      "from": 97,
+      "to": 108
+    }
+  },
+  {
+    "key": "a19b_p_97_required_le_k",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "P",
+    "parent_column": "K",
+    "severity": "error",
+    "row_range": {
+      "from": 97,
+      "to": 108
+    }
+  },
+  {
+    "key": "a19b_q_97_required_le_k",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "Q",
+    "parent_column": "K",
+    "severity": "error",
+    "row_range": {
+      "from": 97,
+      "to": 108
+    }
+  },
+  {
+    "key": "a19b_r_97_required_le_k",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "R",
+    "parent_column": "K",
+    "severity": "error",
+    "row_range": {
+      "from": 97,
+      "to": 108
+    }
+  },
+  {
+    "key": "a19b_s_97_required_le_k",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "S",
+    "parent_column": "K",
+    "severity": "error",
+    "row_range": {
+      "from": 97,
+      "to": 108
+    }
+  },
+  {
+    "key": "a19b_t_97_required_le_k",
+    "type": "required_and_le_parent",
+    "section": "A19b",
+    "child_column": "T",
+    "parent_column": "K",
+    "severity": "error",
+    "row_range": {
+      "from": 97,
+      "to": 108
+    }
+  },
+  {
+    "key": "a21_aa_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "AA",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 11
+    }
+  },
+  {
+    "key": "a21_f_118_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "F",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 118,
+      "to": 118
+    }
+  },
+  {
+    "key": "a21_g_119_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "G",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 119,
+      "to": 119
+    }
+  },
+  {
+    "key": "a21_c_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "C",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 124
+    }
+  },
+  {
+    "key": "a21_d_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 123
+    }
+  },
+  {
+    "key": "a21_e_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "E",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 124
+    }
+  },
+  {
+    "key": "a21_d_124_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "D",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 124,
+      "to": 124
+    }
+  },
+  {
+    "key": "a21_h_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "H",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a21_i_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "I",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a21_j_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "J",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a21_k_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "K",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a21_l_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "L",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a21_m_31_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A21",
+    "child_column": "M",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 31,
+      "to": 31
+    }
+  },
+  {
+    "key": "a23_ao_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 22
+    }
+  },
+  {
+    "key": "a23_ap_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 22
+    }
+  },
+  {
+    "key": "a23_aq_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 22
+    }
+  },
+  {
+    "key": "a23_ap_28_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 28,
+      "to": 40
+    }
+  },
+  {
+    "key": "a23_aq_28_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 28,
+      "to": 40
+    }
+  },
+  {
+    "key": "a23_ar_28_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 28,
+      "to": 40
+    }
+  },
+  {
+    "key": "a23_ao_46_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 46,
+      "to": 53
+    }
+  },
+  {
+    "key": "a23_aq_46_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 46,
+      "to": 53
+    }
+  },
+  {
+    "key": "a23_ar_46_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A23",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 46,
+      "to": 53
+    }
+  },
+  {
+    "key": "a24_l_109_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "L",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 109,
+      "to": 109
+    }
+  },
+  {
+    "key": "a24_aa_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "AA",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 23
+    }
+  },
+  {
+    "key": "a24_ab_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "AB",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 23
+    }
+  },
+  {
+    "key": "a24_ac_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "AC",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 23
+    }
+  },
+  {
+    "key": "a24_ad_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "AD",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 23
+    }
+  },
+  {
+    "key": "a24_ae_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "AE",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 23
+    }
+  },
+  {
+    "key": "a24_l_144_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "L",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 144,
+      "to": 144
+    }
+  },
+  {
+    "key": "a24_m_144_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "M",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 144,
+      "to": 144
+    }
+  },
+  {
+    "key": "a24_n_144_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "N",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 144,
+      "to": 144
+    }
+  },
+  {
+    "key": "a24_e_152_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "E",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 152,
+      "to": 154
+    }
+  },
+  {
+    "key": "a24_d_156_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A24",
+    "child_column": "D",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 156,
+      "to": 158
+    }
+  },
+  {
+    "key": "a26_n_10_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "N",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 10,
+      "to": 10
+    }
+  },
+  {
+    "key": "a26_o_10_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "O",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 10,
+      "to": 35
+    }
+  },
+  {
+    "key": "a26_p_10_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 10,
+      "to": 35
+    }
+  },
+  {
+    "key": "a26_r_10_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 10,
+      "to": 35
+    }
+  },
+  {
+    "key": "a26_s_10_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 10,
+      "to": 35
+    }
+  },
+  {
+    "key": "a26_n_11_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "N",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 35
+    }
+  },
+  {
+    "key": "a26_m_18_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "M",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 18,
+      "to": 35
+    }
+  },
+  {
+    "key": "a26_q_23_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 23,
+      "to": 25
+    }
+  },
+  {
+    "key": "a26_j_50_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "J",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 50,
+      "to": 58
+    }
+  },
+  {
+    "key": "a26_k_50_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "K",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 50,
+      "to": 58
+    }
+  },
+  {
+    "key": "a26_l_50_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "L",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 50,
+      "to": 58
+    }
+  },
+  {
+    "key": "a26_m_50_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "M",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 50,
+      "to": 58
+    }
+  },
+  {
+    "key": "a26_q_64_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "Q",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 64
+    }
+  },
+  {
+    "key": "a26_r_64_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "R",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 64
+    }
+  },
+  {
+    "key": "a26_s_64_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "S",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 69
+    }
+  },
+  {
+    "key": "a26_t_64_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "T",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 69
+    }
+  },
+  {
+    "key": "a26_u_64_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "U",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 69
+    }
+  },
+  {
+    "key": "a26_q_65_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "Q",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 65,
+      "to": 69
+    }
+  },
+  {
+    "key": "a26_r_65_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A26",
+    "child_column": "R",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 65,
+      "to": 69
+    }
+  },
+  {
+    "key": "a27_h_107_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "H",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 107,
+      "to": 112
+    }
+  },
+  {
+    "key": "a27_ac_11_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AC",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 52
+    }
+  },
+  {
+    "key": "a27_ad_11_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AD",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 52
+    }
+  },
+  {
+    "key": "a27_ah_11_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AH",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 52
+    }
+  },
+  {
+    "key": "a27_ai_11_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AI",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 52
+    }
+  },
+  {
+    "key": "a27_v_116_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "V",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 118
+    }
+  },
+  {
+    "key": "a27_w_116_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "W",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 118
+    }
+  },
+  {
+    "key": "a27_ab_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AB",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 50
+    }
+  },
+  {
+    "key": "a27_ae_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AE",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 52
+    }
+  },
+  {
+    "key": "a27_ai_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AI",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 52
+    }
+  },
+  {
+    "key": "a27_q_153_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "Q",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 153,
+      "to": 168
+    }
+  },
+  {
+    "key": "a27_i_171_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "I",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 171,
+      "to": 202
+    }
+  },
+  {
+    "key": "a27_ah_208_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "AH",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 208,
+      "to": 215
+    }
+  },
+  {
+    "key": "a27_i_56_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A27",
+    "child_column": "I",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 56,
+      "to": 97
+    }
+  },
+  {
+    "key": "a28_aq_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A28",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 24
+    }
+  },
+  {
+    "key": "a28_ar_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A28",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 24
+    }
+  },
+  {
+    "key": "a28_as_13_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A28",
+    "child_column": "AS",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 24
+    }
+  },
+  {
+    "key": "a29_s_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A29",
+    "child_column": "S",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 28
+    }
+  },
+  {
+    "key": "a29_t_12_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A29",
+    "child_column": "T",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 28
+    }
+  },
+  {
+    "key": "a29_p_32_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A29",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 32,
+      "to": 70
+    }
+  },
+  {
+    "key": "a29_q_32_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A29",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 32,
+      "to": 32
+    }
+  },
+  {
+    "key": "a29_q_34_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A29",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 34,
+      "to": 71
+    }
+  },
+  {
+    "key": "a29_p_71_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A29",
+    "child_column": "P",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 71,
+      "to": 71
+    }
+  },
+  {
+    "key": "a31_ao_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 27
+    }
+  },
+  {
+    "key": "a31_ap_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 27
+    }
+  },
+  {
+    "key": "a31_aq_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 27
+    }
+  },
+  {
+    "key": "a31_ar_12_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 27
+    }
+  },
+  {
+    "key": "a31_q_71_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "Q",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 71,
+      "to": 84
+    }
+  },
+  {
+    "key": "a31_r_71_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "R",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 71,
+      "to": 84
+    }
+  },
+  {
+    "key": "a31_s_71_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "S",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 71,
+      "to": 84
+    }
+  },
+  {
+    "key": "a31_t_71_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A31",
+    "child_column": "T",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 71,
+      "to": 84
+    }
+  },
+  {
+    "key": "a32_v_11_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "V",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 15
+    }
+  },
+  {
+    "key": "a32_w_11_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "W",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 15
+    }
+  },
+  {
+    "key": "a32_x_11_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "X",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 15
+    }
+  },
+  {
+    "key": "a32_y_11_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "Y",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 15
+    }
+  },
+  {
+    "key": "a32_z_11_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "Z",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 15
+    }
+  },
+  {
+    "key": "a32_n_116_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "N",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_o_116_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "O",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_p_116_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "P",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_q_116_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "Q",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_r_116_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "R",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_s_116_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "S",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_t_116_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "T",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_n_117_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "N",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_o_117_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "O",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_p_117_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "P",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_q_117_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "Q",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_r_117_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "R",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_s_117_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "S",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_t_117_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "T",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_v_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "V",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a32_w_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "W",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a32_x_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "X",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a32_y_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "Y",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a32_z_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "Z",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a32_aa_123_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AA",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a32_an_130_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 130,
+      "to": 150
+    }
+  },
+  {
+    "key": "a32_ao_130_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AO",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 130,
+      "to": 150
+    }
+  },
+  {
+    "key": "a32_ap_130_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AP",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 130,
+      "to": 150
+    }
+  },
+  {
+    "key": "a32_aq_130_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AQ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 130,
+      "to": 150
+    }
+  },
+  {
+    "key": "a32_ar_130_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 130,
+      "to": 150
+    }
+  },
+  {
+    "key": "a32_as_130_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 130,
+      "to": 150
+    }
+  },
+  {
+    "key": "a32_an_140_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 140,
+      "to": 140
+    }
+  },
+  {
+    "key": "a32_ah_156_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AH",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 156,
+      "to": 163
+    }
+  },
+  {
+    "key": "a32_ai_156_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AI",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 156,
+      "to": 163
+    }
+  },
+  {
+    "key": "a32_ah_168_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AH",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 168,
+      "to": 170
+    }
+  },
+  {
+    "key": "a32_ai_168_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AI",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 168,
+      "to": 170
+    }
+  },
+  {
+    "key": "a32_v_28_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "V",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 28,
+      "to": 28
+    }
+  },
+  {
+    "key": "a32_w_28_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "W",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 28,
+      "to": 28
+    }
+  },
+  {
+    "key": "a32_v_29_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "V",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 29,
+      "to": 29
+    }
+  },
+  {
+    "key": "a32_w_29_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "W",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 29,
+      "to": 29
+    }
+  },
+  {
+    "key": "a32_ao_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AO",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 89
+    }
+  },
+  {
+    "key": "a32_ap_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 89
+    }
+  },
+  {
+    "key": "a32_aq_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AQ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 89
+    }
+  },
+  {
+    "key": "a32_ar_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 35
+    }
+  },
+  {
+    "key": "a32_as_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AS",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 89
+    }
+  },
+  {
+    "key": "a32_aj_35_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AJ",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 89
+    }
+  },
+  {
+    "key": "a32_ar_36_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 36
+    }
+  },
+  {
+    "key": "a32_ap_36_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AP",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 89
+    }
+  },
+  {
+    "key": "a32_ar_37_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 37,
+      "to": 37
+    }
+  },
+  {
+    "key": "a32_ar_38_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 38,
+      "to": 38
+    }
+  },
+  {
+    "key": "a32_ar_39_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 39,
+      "to": 39
+    }
+  },
+  {
+    "key": "a32_ar_40_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 40,
+      "to": 40
+    }
+  },
+  {
+    "key": "a32_ar_41_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 41,
+      "to": 41
+    }
+  },
+  {
+    "key": "a32_ar_42_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 42,
+      "to": 42
+    }
+  },
+  {
+    "key": "a32_ar_43_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 43,
+      "to": 43
+    }
+  },
+  {
+    "key": "a32_ar_44_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 44,
+      "to": 44
+    }
+  },
+  {
+    "key": "a32_ar_45_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 45,
+      "to": 45
+    }
+  },
+  {
+    "key": "a32_ar_46_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 46,
+      "to": 46
+    }
+  },
+  {
+    "key": "a32_ar_47_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 47,
+      "to": 47
+    }
+  },
+  {
+    "key": "a32_ar_48_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 48,
+      "to": 48
+    }
+  },
+  {
+    "key": "a32_ar_49_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 49,
+      "to": 49
+    }
+  },
+  {
+    "key": "a32_ar_50_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 50,
+      "to": 50
+    }
+  },
+  {
+    "key": "a32_ar_51_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 51,
+      "to": 51
+    }
+  },
+  {
+    "key": "a32_ar_52_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 52,
+      "to": 52
+    }
+  },
+  {
+    "key": "a32_ar_53_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 53,
+      "to": 53
+    }
+  },
+  {
+    "key": "a32_ar_54_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 54,
+      "to": 54
+    }
+  },
+  {
+    "key": "a32_ar_55_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 55
+    }
+  },
+  {
+    "key": "a32_ar_56_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 56,
+      "to": 56
+    }
+  },
+  {
+    "key": "a32_ar_57_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 57,
+      "to": 57
+    }
+  },
+  {
+    "key": "a32_ar_58_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 58,
+      "to": 58
+    }
+  },
+  {
+    "key": "a32_ar_59_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 59,
+      "to": 59
+    }
+  },
+  {
+    "key": "a32_ar_60_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 60,
+      "to": 60
+    }
+  },
+  {
+    "key": "a32_ar_61_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 61,
+      "to": 61
+    }
+  },
+  {
+    "key": "a32_ar_62_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 62,
+      "to": 62
+    }
+  },
+  {
+    "key": "a32_ar_63_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 63,
+      "to": 63
+    }
+  },
+  {
+    "key": "a32_ar_64_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 64
+    }
+  },
+  {
+    "key": "a32_ar_65_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 65,
+      "to": 65
+    }
+  },
+  {
+    "key": "a32_ar_66_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 66,
+      "to": 66
+    }
+  },
+  {
+    "key": "a32_ar_67_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 67,
+      "to": 67
+    }
+  },
+  {
+    "key": "a32_ar_68_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 68,
+      "to": 68
+    }
+  },
+  {
+    "key": "a32_ar_69_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 69,
+      "to": 69
+    }
+  },
+  {
+    "key": "a32_ar_70_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 70,
+      "to": 70
+    }
+  },
+  {
+    "key": "a32_ar_71_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 71,
+      "to": 71
+    }
+  },
+  {
+    "key": "a32_ar_72_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 72,
+      "to": 72
+    }
+  },
+  {
+    "key": "a32_ar_73_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 73,
+      "to": 73
+    }
+  },
+  {
+    "key": "a32_ar_74_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 74,
+      "to": 74
+    }
+  },
+  {
+    "key": "a32_ar_75_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 75,
+      "to": 75
+    }
+  },
+  {
+    "key": "a32_ar_76_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 76,
+      "to": 76
+    }
+  },
+  {
+    "key": "a32_ar_77_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 77,
+      "to": 77
+    }
+  },
+  {
+    "key": "a32_ar_78_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 78,
+      "to": 78
+    }
+  },
+  {
+    "key": "a32_ar_79_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 79,
+      "to": 79
+    }
+  },
+  {
+    "key": "a32_ar_80_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 80,
+      "to": 80
+    }
+  },
+  {
+    "key": "a32_ar_81_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 81,
+      "to": 81
+    }
+  },
+  {
+    "key": "a32_ar_82_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 82,
+      "to": 82
+    }
+  },
+  {
+    "key": "a32_ar_83_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 83,
+      "to": 83
+    }
+  },
+  {
+    "key": "a32_ar_84_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 84,
+      "to": 84
+    }
+  },
+  {
+    "key": "a32_ar_85_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 85,
+      "to": 85
+    }
+  },
+  {
+    "key": "a32_ar_86_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 86,
+      "to": 86
+    }
+  },
+  {
+    "key": "a32_ar_87_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 87,
+      "to": 87
+    }
+  },
+  {
+    "key": "a32_ar_88_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 88,
+      "to": 88
+    }
+  },
+  {
+    "key": "a32_ar_89_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 89,
+      "to": 89
+    }
+  },
+  {
+    "key": "a32_ar_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AR",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 103
+    }
+  },
+  {
+    "key": "a32_as_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 103
+    }
+  },
+  {
+    "key": "a32_an_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 103
+    }
+  },
+  {
+    "key": "a32_at_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AT",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 103
+    }
+  },
+  {
+    "key": "a32_au_95_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AU",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 103
+    }
+  },
+  {
+    "key": "a32_as_96_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A32",
+    "child_column": "AS",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 96,
+      "to": 103
+    }
+  },
+  {
+    "key": "a33_ao_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A33",
+    "child_column": "AO",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 34
+    }
+  },
+  {
+    "key": "a33_ap_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A33",
+    "child_column": "AP",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 34
+    }
+  },
+  {
+    "key": "a33_aq_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A33",
+    "child_column": "AQ",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 34
+    }
+  },
+  {
+    "key": "a33_ar_12_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A33",
+    "child_column": "AR",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 12,
+      "to": 34
+    }
+  },
+  {
+    "key": "a33_au_39_required_le_e",
+    "type": "required_and_le_parent",
+    "section": "A33",
+    "child_column": "AU",
+    "parent_column": "E",
+    "severity": "error",
+    "row_range": {
+      "from": 39,
+      "to": 41
+    }
+  },
+  {
+    "key": "a33_at_40_required_le_d",
+    "type": "required_and_le_parent",
+    "section": "A33",
+    "child_column": "AT",
+    "parent_column": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 40,
+      "to": 41
+    }
+  },
+  {
+    "key": "a34_y_104_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A34",
+    "child_column": "Y",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 104,
+      "to": 105
+    }
+  },
+  {
+    "key": "a34_an_13_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A34",
+    "child_column": "AN",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 13,
+      "to": 15
+    }
+  },
+  {
+    "key": "a34_aj_29_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A34",
+    "child_column": "AJ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 29,
+      "to": 33
+    }
+  },
+  {
+    "key": "a34_aj_35_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A34",
+    "child_column": "AJ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 49
+    }
+  },
+  {
+    "key": "a34_ai_55_required_le_b",
+    "type": "required_and_le_parent",
+    "section": "A34",
+    "child_column": "AI",
+    "parent_column": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 55,
+      "to": 57
+    }
+  },
+  {
+    "key": "a34_aj_64_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A34",
+    "child_column": "AJ",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 64,
+      "to": 71
+    }
+  },
+  {
+    "key": "a34_v_86_required_le_c",
+    "type": "required_and_le_parent",
+    "section": "A34",
+    "child_column": "V",
+    "parent_column": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 86,
+      "to": 94
+    }
+  }
+]

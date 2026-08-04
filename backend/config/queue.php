@@ -40,7 +40,10 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            // Debe ser mayor al timeout mas largo entre ProcessRemUploadJob (300s),
+            // ValidateRemUploadJob (120s) y ValidateWithEngineJob (120s), con margen,
+            // para que un job todavia en ejecucion no sea tomado por un segundo worker.
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 400),
             'after_commit' => false,
         ],
 

@@ -1,0 +1,257 @@
+[
+  {
+    "key": "a01_uv_11_sum_equals",
+    "type": "sum_equals",
+    "section": "A01",
+    "source_columns": [
+      "U",
+      "V"
+    ],
+    "target_field": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 32
+    }
+  },
+  {
+    "key": "a01_de_36_sum_equals",
+    "type": "sum_equals",
+    "section": "A01",
+    "source_columns": [
+      "D",
+      "E"
+    ],
+    "target_field": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 36,
+      "to": 39
+    }
+  },
+  {
+    "key": "a11_amak_161_sum_equals",
+    "type": "sum_equals",
+    "section": "A11",
+    "source_columns": [
+      "AM",
+      "AK"
+    ],
+    "target_field": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 161,
+      "to": 183
+    }
+  },
+  {
+    "key": "a11_anal_161_sum_equals",
+    "type": "sum_equals",
+    "section": "A11",
+    "source_columns": [
+      "AN",
+      "AL"
+    ],
+    "target_field": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 161,
+      "to": 183
+    }
+  },
+  {
+    "key": "a11_amak_188_sum_equals",
+    "type": "sum_equals",
+    "section": "A11",
+    "source_columns": [
+      "AM",
+      "AK"
+    ],
+    "target_field": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 188,
+      "to": 210
+    }
+  },
+  {
+    "key": "a11_anal_188_sum_equals",
+    "type": "sum_equals",
+    "section": "A11",
+    "source_columns": [
+      "AN",
+      "AL"
+    ],
+    "target_field": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 188,
+      "to": 210
+    }
+  },
+  {
+    "key": "a11_amak_237_sum_equals",
+    "type": "sum_equals",
+    "section": "A11",
+    "source_columns": [
+      "AM",
+      "AK"
+    ],
+    "target_field": "total",
+    "severity": "error",
+    "row_range": {
+      "from": 237,
+      "to": 259
+    }
+  },
+  {
+    "key": "a11_anal_237_sum_equals",
+    "type": "sum_equals",
+    "section": "A11",
+    "source_columns": [
+      "AN",
+      "AL"
+    ],
+    "target_field": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 237,
+      "to": 259
+    }
+  },
+  {
+    "key": "a26_tu_95_sum_equals",
+    "type": "sum_equals",
+    "section": "A26",
+    "source_columns": [
+      "T",
+      "U"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 95,
+      "to": 109
+    }
+  },
+  {
+    "key": "a27_kl_122_sum_equals",
+    "type": "sum_equals",
+    "section": "A27",
+    "source_columns": [
+      "K",
+      "L"
+    ],
+    "target_field": "D",
+    "severity": "error",
+    "row_range": {
+      "from": 122,
+      "to": 130
+    }
+  },
+  {
+    "key": "a32_tu_11_sum_equals",
+    "type": "sum_equals",
+    "section": "A32",
+    "source_columns": [
+      "T",
+      "U"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 11,
+      "to": 15
+    }
+  },
+  {
+    "key": "a32_cd_116_sum_equals",
+    "type": "sum_equals",
+    "section": "A32",
+    "source_columns": [
+      "C",
+      "D"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 116,
+      "to": 116
+    }
+  },
+  {
+    "key": "a32_cd_117_sum_equals",
+    "type": "sum_equals",
+    "section": "A32",
+    "source_columns": [
+      "C",
+      "D"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 117,
+      "to": 117
+    }
+  },
+  {
+    "key": "a32_tu_123_sum_equals",
+    "type": "sum_equals",
+    "section": "A32",
+    "source_columns": [
+      "T",
+      "U"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 123,
+      "to": 125
+    }
+  },
+  {
+    "key": "a32_xy_28_sum_equals",
+    "type": "sum_equals",
+    "section": "A32",
+    "source_columns": [
+      "X",
+      "Y"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 28,
+      "to": 28
+    }
+  },
+  {
+    "key": "a32_xy_29_sum_equals",
+    "type": "sum_equals",
+    "section": "A32",
+    "source_columns": [
+      "X",
+      "Y"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 29,
+      "to": 29
+    }
+  },
+  {
+    "key": "a32_tu_35_sum_equals",
+    "type": "sum_equals",
+    "section": "A32",
+    "source_columns": [
+      "T",
+      "U"
+    ],
+    "target_field": "B",
+    "severity": "error",
+    "row_range": {
+      "from": 35,
+      "to": 89
+    }
+  }
+]

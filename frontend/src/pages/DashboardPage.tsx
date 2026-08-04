@@ -1,5 +1,6 @@
 import { useAuthStore } from '@/app/store/authStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
+import { getRoleDisplayLabel } from '@/shared/utils/roleLabels'
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
@@ -16,7 +17,10 @@ export default function DashboardPage() {
           <p className="text-sm text-gray-500">
             {user && (
               <>
-                Rol(es): <span className="font-medium text-gray-900">{user.roles.join(', ')}</span>
+                Rol(es):{' '}
+                <span className="font-medium text-gray-900">
+                  {user.roles.map(getRoleDisplayLabel).join(', ')}
+                </span>
               </>
             )}
           </p>

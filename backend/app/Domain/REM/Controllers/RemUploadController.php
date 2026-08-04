@@ -6,6 +6,7 @@ use App\Domain\REM\Jobs\ProcessRemUploadJob;
 use App\Domain\REM\Models\RemTemplate;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Requests\StoreRemUploadRequest;
+use App\Domain\REM\Services\RemUploadPreviewService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RemUploadResource;
 use Illuminate\Http\JsonResponse;
@@ -25,7 +26,6 @@ class RemUploadController extends Controller
             $centroIds = $user->healthCenters()->pluck('health_centers.id');
             $query->whereIn('health_center_id', $centroIds);
         } elseif ($user->hasRole('Analista') || $user->hasRole('Auditor')) {
-            // Analista y Auditor ven todos los uploads
         }
 
         if ($year = $request->query('year')) $query->where('year', $year);
@@ -111,19 +111,101 @@ class RemUploadController extends Controller
         ], 201);
     }
 
+    public function preview(Request $request): JsonResponse
+    {
+        $this->authorize('create', RemUpload::class);
+
+        \Log::info('Preview upload debug', [
+            'has_file' => $request->hasFile('file'),
+            'file_value' => $request->file('file'),
+            'content_type' => $request->header('Content-Type'),
+            'all_files' => array_keys($request->allFiles()),
+        ]);
+
+        $request->validate([
+            'file' => ['required', 'file', 'max:10240', 'mimes:xlsx,xlsm,xls'],
+        ]);
+
+        $service = app(RemUploadPreviewService::class);
+        $result = $service->preview($request->file('file'));
+
+        return response()->json([
+            'data' => $result,
+            'message' => 'Archivo previsualizado exitosamente',
+            'errors' => null,
+        ]);
+    }
+
     public function status(Request $request, RemUpload $remUpload): JsonResponse
     {
         $this->authorize('view', $remUpload);
+
+        $status = $remUpload->status;
+        $currentStep = match ($status) {
+            'pending' => 'upload',
+            'processing' => 'parsing',
+            'validating' => 'rule_engine',
+            'success', 'with_errors', 'rejected' => 'report',
+            'failed' => 'report',
+            default => 'upload',
+        };
+        $progress = match ($status) {
+            'pending' => 20,
+            'processing' => 50,
+            'validating' => 75,
+            'success', 'with_errors', 'rejected' => 100,
+            'failed' => 100,
+            default => 0,
+        };
+        $message = match ($status) {
+            'pending' => 'Archivo recibido, esperando procesamiento',
+            'processing' => 'Procesando archivo REM',
+            'validating' => 'Validando datos y reglas de consistencia',
+            'success' => 'Procesamiento completado exitosamente',
+            'with_errors' => 'Procesamiento completado con observaciones',
+            'rejected' => 'Estructura no disponible para la serie y período seleccionados',
+            'failed' => 'Error en el procesamiento del archivo',
+            default => 'Estado desconocido',
+        };
+
+        $validationResults = $remUpload->validationResults();
+
+        $validationSummary = null;
+        if ($validationResults->count() > 0) {
+            $total = $validationResults->count();
+            $passed = $validationResults->where('passed', true)->count();
+            $failed = $validationResults->where('passed', false)->count();
+            $applicable = $passed + $failed;
+            $compliance = $applicable > 0 ? round(($passed / $applicable) * 100, 2) : null;
+
+            $validationSummary = [
+                'total_rules' => $total,
+                'applicable' => $applicable,
+                'passed' => $passed,
+                'failed' => $failed,
+                'compliance' => $compliance,
+            ];
+        }
 
         return response()->json([
             'data' => [
                 'id' => $remUpload->id,
                 'uuid' => $remUpload->uuid,
-                'status' => $remUpload->status,
+                'original_filename' => $remUpload->original_filename,
+                'status' => $status,
+                'current_step' => $currentStep,
+                'progress' => $progress,
+                'message' => $message,
+                'rem_type' => $remUpload->rem_type,
+                'period' => $remUpload->year . '-' . str_pad($remUpload->month, 2, '0', STR_PAD_LEFT),
+                'health_center' => $remUpload->healthCenter ? [
+                    'id' => $remUpload->healthCenter->id,
+                    'name' => $remUpload->healthCenter->name,
+                ] : null,
                 'processed_at' => $remUpload->processed_at,
                 'has_errors' => !is_null($remUpload->error_report),
                 'error_summary' => $remUpload->error_report['summary'] ?? null,
-                'data_rows_count' => $remUpload->remData()->count(),
+                'validation_summary' => $validationSummary,
             ],
             'message' => 'Estado del upload obtenido',
             'errors' => null,
@@ -139,13 +221,19 @@ class RemUploadController extends Controller
             ->orderBy('rule_key')
             ->get();
 
+        $totalRules = $results->count();
+        $passed = $results->where('passed', true)->count();
+        $failedResults = $results->where('passed', false);
+
         return response()->json([
             'data' => [
                 'rem_upload_id' => $remUpload->id,
                 'status' => $remUpload->status,
-                'total_rules' => $results->count(),
-                'total_errors' => $results->where('passed', false)->where('severity', 'error')->count(),
-                'total_warnings' => $results->where('passed', false)->where('severity', 'warning')->count(),
+                'total_rules' => $totalRules,
+                'applicable' => $passed + $failedResults->count(),
+                'passed' => $passed,
+                'failed' => $failedResults->count(),
+                'compliance' => $passed + $failedResults->count() > 0 ? round(($passed / ($passed + $failedResults->count())) * 100, 2) : null,
                 'results' => $results->map(fn ($r) => [
                     'id' => $r->id,
                     'rule_key' => $r->rule_key,

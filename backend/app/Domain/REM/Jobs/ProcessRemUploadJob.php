@@ -5,6 +5,7 @@ namespace App\Domain\REM\Jobs;
 use App\Domain\REM\Models\RemData;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Services\RemParserService;
+use App\Support\MemoryProbe;
 use Illuminate\Bus\Queueable;
 use App\Domain\REM\Jobs\ValidateRemUploadJob;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,8 +35,30 @@ class ProcessRemUploadJob implements ShouldQueue
             'error_report' => null,
         ]);
 
+        MemoryProbe::log('process_job.antes_parse', ['upload_id' => $upload->id]);
+
         try {
             $result = $parser->parse($upload);
+
+            MemoryProbe::log('process_job.despues_parse', [
+                'upload_id' => $upload->id,
+                'extracted_data_count' => count($result->extractedData),
+            ]);
+
+            if (empty($result->extractedData)) {
+                $upload->update([
+                    'status' => 'rejected',
+                    'error_report' => [
+                        'summary' => [
+                            'total_rows_processed' => 0,
+                            'error' => 'El archivo no contiene datos válidos después del procesamiento. Verifique el formato, las secciones y las columnas del archivo Excel.',
+                        ],
+                        'errors' => $result->errors,
+                    ],
+                    'processed_at' => now(),
+                ]);
+                return;
+            }
 
             foreach ($result->extractedData as $entry) {
                 RemData::create([
@@ -44,6 +67,11 @@ class ProcessRemUploadJob implements ShouldQueue
                     'data' => $entry,
                 ]);
             }
+
+            MemoryProbe::log('process_job.despues_persistencia_rem_data', [
+                'upload_id' => $upload->id,
+                'rows_persisted' => count($result->extractedData),
+            ]);
 
             $errorReport = [
                 'summary' => [
@@ -54,11 +82,19 @@ class ProcessRemUploadJob implements ShouldQueue
                 'errors' => $result->errors,
             ];
 
+            // El estado final (success/with_errors) lo decide unicamente
+            // ValidateRemUploadJob al terminar -- $result->status es solo el
+            // resultado del parseo (PhpSpreadsheet), no de la validacion, y
+            // escribirlo aqui como estado del upload hacia que el frontend
+            // (que deja de sondear en estados terminales) mostrara un
+            // resultado prematuro antes de que corriera ninguna regla.
             $upload->update([
-                'status' => $result->status,
+                'status' => 'validating',
                 'error_report' => $errorReport,
                 'processed_at' => now(),
             ]);
+
+            MemoryProbe::log('process_job.despues_generacion_informe', ['upload_id' => $upload->id]);
 
             ValidateRemUploadJob::dispatch($upload);
         } catch (\Throwable $e) {

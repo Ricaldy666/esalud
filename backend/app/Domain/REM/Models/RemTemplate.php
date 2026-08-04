@@ -2,6 +2,7 @@
 
 namespace App\Domain\REM\Models;
 
+use App\Domain\RemParser\Models\RemTemplateStructure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
@@ -32,6 +33,11 @@ class RemTemplate extends Model
     public function scopeForYearAndType(Builder $query, int $year, string $type): void
     {
         $query->where('year', $year)->where('rem_type', $type);
+    }
+
+    public function templateStructures()
+    {
+        return $this->hasMany(RemTemplateStructure::class);
     }
 
     public function getActivitylogOptions(): LogOptions

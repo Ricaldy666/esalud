@@ -26,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
             AddQueuedCookiesToResponse::class,
             StartSession::class,
         ]);
+
+        $middleware->redirectTo(
+            guests: fn (Request $request) => $request->is('api/*') ? null : '/login',
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
@@ -33,12 +37,10 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if ($request->is('api/*')) {
-                return response()->json([
-                    'data' => null,
-                    'message' => 'No autenticado',
-                    'errors' => ['auth' => ['Debe iniciar sesión para acceder a este recurso.']],
-                ], 401);
-            }
+            return response()->json([
+                'data' => null,
+                'message' => 'No autenticado',
+                'errors' => ['auth' => ['Debe iniciar sesión para acceder a este recurso.']],
+            ], 401);
         });
     })->create();
