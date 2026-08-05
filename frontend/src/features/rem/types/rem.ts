@@ -197,21 +197,29 @@ export interface RemValidationSummary {
 }
 
 export const PROCESSING_STEPS: { key: ProcessingStep; label: string; description: string }[] = [
-  { key: 'upload', label: 'Archivo recibido', description: 'El archivo fue subido correctamente' },
+  {
+    key: 'upload',
+    label: 'Archivo recibido',
+    description: 'El archivo fue recibido correctamente',
+  },
   {
     key: 'parsing',
     label: 'Leyendo estructura',
-    description: 'Extrayendo datos del archivo Excel',
+    description: 'Analizando secciones del REM...',
   },
   {
     key: 'data_import',
     label: 'Importando datos',
-    description: 'Guardando registros en el sistema',
+    description: 'Validando datos cargados...',
   },
   {
     key: 'rule_engine',
     label: 'Validando consistencias',
-    description: 'Evaluando reglas de consistencia',
+    description: 'Evaluando reglas de consistencia...',
   },
-  { key: 'report', label: 'Generando informe', description: 'Preparando resultados de validación' },
+  {
+    key: 'report',
+    label: 'Generando informe',
+    description: 'Preparando resultados de validación...',
+  },
 ]

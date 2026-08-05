@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { X, Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
+import { X, Loader2, AlertTriangle, Info, RefreshCw } from 'lucide-react'
 import {
   useCreateRemUpload,
   useRemUploadPreview,
@@ -236,20 +236,19 @@ export function RemUploadForm({ onClose, alwaysVisible, healthCenterId }: RemUpl
           </p>
           <RemProcessingSteps currentStep={currentStep} progress={progress} message={stepMessage} />
           {statusPoll.isStalled && (
-            <div className="mt-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="mt-4 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="text-sm font-medium text-amber-800">
-                  El procesamiento sigue pendiente
-                </p>
-                <p className="text-xs text-amber-700 mt-1">
-                  La carga no se perdió: sigue en la cola esperando ser procesada. Si esto se
-                  extiende demasiado, verifique que el proceso de cola (worker) esté en ejecución.
+                <p className="text-sm font-medium text-blue-800">Procesando información</p>
+                <p className="text-xs text-blue-700 mt-1">
+                  El archivo fue recibido correctamente y está siendo validado por el sistema.
+                  Algunas validaciones pueden tardar unos minutos dependiendo del tamaño y
+                  complejidad del REM.
                 </p>
                 <button
                   type="button"
                   onClick={() => statusPoll.refetch()}
-                  className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 text-xs font-medium text-amber-800 bg-amber-100 rounded-lg hover:bg-amber-200 transition-colors"
+                  className="inline-flex items-center gap-2 mt-3 px-3 py-1.5 text-xs font-medium text-blue-800 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   Consultar estado ahora
