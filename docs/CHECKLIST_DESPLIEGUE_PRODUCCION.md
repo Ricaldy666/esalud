@@ -8,8 +8,14 @@
 > esos documentos — es la versión ejecutable, paso a paso, con criterio de
 > "hecho/no hecho" para cada punto.
 >
-> Repositorio: `https://github.com/Ricaldy666/esalud.git` — commit de
-> referencia al cerrar esta fase: `1ae35bf` (rama `main`).
+> Repositorio: `https://github.com/Ricaldy666/esalud.git` — **commit
+> estable actual: `d02e88e1964f5060bedbb3f289e1a24ed127de15`** (rama
+> `main`, sincronizado con `origin/main`; actualizado desde el `1ae35bf`
+> original tras sumarse `3ab026d`, `abe0751` y `d02e88e` — ver
+> [`docs/ESTADO_ACTUAL_PROYECTO.md`](ESTADO_ACTUAL_PROYECTO.md) para el
+> detalle de qué agregó cada uno). Los 19 puntos de este checklist siguen
+> vigentes sin cambios — el módulo Usuarios (permisos + rediseño visual)
+> no afecta ningún paso de despliegue del backend/estructura REM.
 >
 > Convención de cada punto: **Comando(s) exacto(s)** → **⚠️ Si se omite** →
 > **✅ Evidencia para marcar como completado**.

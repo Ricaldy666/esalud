@@ -5,9 +5,15 @@ Linux limpio con Nginx + PHP-FPM + MySQL/MariaDB + Supervisor. No usar
 `php artisan serve`, no usar `npm run dev`, no depender de una terminal
 `queue:listen` abierta manualmente.
 
+> Ver también [`docs/ESTADO_ACTUAL_PROYECTO.md`](../ESTADO_ACTUAL_PROYECTO.md)
+> para un resumen de estado más corto y siempre actualizado.
+
 ---
 
 ## 0. ESTADO GENERAL DEL DESPLIEGUE (actualizado 2026-08-05)
+
+**Último commit estable: `d02e88e1964f5060bedbb3f289e1a24ed127de15`
+(rama `main`, sincronizado con `origin/main`).**
 
 ### ✅ RESUELTO
 
@@ -15,9 +21,12 @@ Linux limpio con Nginx + PHP-FPM + MySQL/MariaDB + Supervisor. No usar
   `npm run build` quedaron corregidos (ver detalle en riesgo #1, abajo,
   ahora marcado como resuelto). `npx tsc -b`: 0 errores. `npm run build`:
   exitoso, `dist/` se genera correctamente.
-- **Parser REM**: mecanismo de jerarquía de overflow con herencia
+- **Parser REM v2**: mecanismo de jerarquía de overflow con herencia
   vertical, fixes de `total_column`/`professional_column`, certificación
-  A01-A09 — verificado con `tests/Feature/REM` en verde.
+  A01-A09 (las 14 secciones de A09 aprobadas funcionalmente) — verificado
+  con `tests/Feature/REM` en verde.
+- **RuleEngine (RF-02)**: operativo — 764 reglas activas, 859 bindings,
+  estructura activa **v15/id=36**.
 - **Pipeline de carga**: `ProcessRemUploadJob` → `ValidateRemUploadJob` →
   `ValidateWithEngineJob` verificado de punta a punta contra uploads
   reales, sin quedar atascado en `validating`.
@@ -26,41 +35,43 @@ Linux limpio con Nginx + PHP-FPM + MySQL/MariaDB + Supervisor. No usar
   insuficiente), confirmado que el worker local ya procesa uploads reales
   hasta el final.
 - **Tests REM**: `tests/Feature/REM` **64/64** en verde, reconfirmado
-  después del fix de TypeScript (el fix fue solo frontend, no debía
-  afectar backend, y no lo hizo).
+  después de cada fase posterior (TypeScript, permisos, rediseño visual
+  de Usuarios) — ninguna de esas fases tocó backend REM/RuleEngine.
+- **Módulo Usuarios**: cerrado funcional y visualmente (commit
+  `d02e88e`). Listar/crear/editar/eliminar usuarios verificado. Permisos
+  de `Superadmin`/`Administrador` corregidos en `UserPolicy`,
+  `ActivityLogPolicy`, `HealthCenterPolicy` (antes solo `Administrador`
+  pasaba, pese a que el menú ya mostraba la opción a `Superadmin` — ver
+  `AGENTS.md`/historial de commits para el detalle). El rol Analista
+  ("Estadística APS" en la interfaz) confirmado **sin acceso** a
+  Usuarios/Centros de Salud/Auditoría (403 real, no solo oculto en el
+  menú).
+- **ESLint**: 0 errores/warnings en todos los archivos tocados en las
+  fases de permisos y rediseño visual.
 
-### ⏳ PENDIENTE ANTES DEL PUSH
+### ⏳ PENDIENTE — trabajo operativo de servidor, no de código
 
-- [ ] Revisar `git status` completo (146 entradas) y confirmar la
-      clasificación de §1 antes de cualquier `git add`.
-- [ ] Excluir del commit los scripts temporales y `cookies.txt`/
-      `test_cookies.txt` (§1.2).
-- [ ] Versionar (mover a `backend/database/seeders/data/`) el CSV que
-      requiere `RuleCatalogCsvSeeder` (§3.3) — hoy fuera del alcance de
-      git.
-- [ ] Preparar exportación/importación de: estructura activa
-      **v15/id=36**, `rem_rules` (764), `rem_rule_bindings` (859),
-      `cell_data` (108MB/381 archivos), `reglas-funcionales.json` (2.4MB)
-      — plan detallado en §3, **no ejecutado todavía**.
-- [ ] Preparar configuración final de Supervisor/Nginx (§6) — la
-      propuesta ya está redactada, falta que Nelson la aplique en el
-      servidor real.
-- [ ] Confirmar con Nelson si el servidor sirve por HTTP o HTTPS mañana
+- [ ] Confirmar con Nelson si el servidor sirve por HTTP o HTTPS
       — condiciona `SESSION_SECURE_COOKIE` y `APP_URL` (§11).
-- [ ] Preparar y entregar a Nelson los comandos finales de despliegue
-      (§8) — ya redactados, pendiente de ejecución real.
+- [ ] Generar y transportar el dump de estructura activa **v15/id=36**,
+      `rem_rules` (764), `rem_rule_bindings` (859), `cell_data`
+      (108MB/381 archivos), `reglas-funcionales.json` (2.4MB) — plan
+      detallado en §3, **no ejecutado todavía**.
+- [ ] Aplicar la configuración de Supervisor/Nginx (§6) en el servidor
+      real — la propuesta ya está redactada.
+- [ ] Ejecutar la secuencia de despliegue con Nelson (§8) y el checklist
+      de prueba REM real post-despliegue
+      (`docs/CHECKLIST_DESPLIEGUE_PRODUCCION.md` / `ESTADO_ACTUAL_PROYECTO.md` §7).
 
-### Riesgos bloqueantes restantes al cierre de esta auditoría
+### Riesgos bloqueantes restantes
 
-**Ninguno de código o build.** Los dos bloqueantes duros identificados
-originalmente (build de frontend roto, `.env.example` con IP hardcodeada)
-están resueltos. Lo que queda pendiente (lista de arriba) es **trabajo
-operativo de transporte de datos y configuración de servidor**, no
-defectos de código — nada de eso se corrige con más cambios de código,
-se ejecuta como procedimiento el día del despliegue. El único punto que
-sigue siendo una decisión abierta (no un bloqueante técnico) es
-confirmar HTTP vs. HTTPS con Nelson antes de fijar `SESSION_SECURE_COOKIE`
-en el `.env` de producción.
+**Ninguno de código, build, permisos o UI.** Todo lo pendiente es
+trabajo operativo de transporte de datos y configuración de servidor —
+nada de eso se corrige con más cambios de código, se ejecuta como
+procedimiento el día del despliegue. El único punto que sigue siendo una
+decisión abierta (no un bloqueante técnico) es confirmar HTTP vs. HTTPS
+con Nelson antes de fijar `SESSION_SECURE_COOKIE` en el `.env` de
+producción.
 
 ---
 
@@ -139,6 +150,13 @@ en el `.env` de producción.
 ---
 
 ## 1. Clasificación de `git status` (146 entradas)
+
+> **Nota (2026-08-05): esta clasificación ya se ejecutó.** El commit
+> `1ae35bf` (y los posteriores `3ab026d`, `abe0751`, `d02e88e`) aplicaron
+> exactamente esta clasificación — los archivos de §1.2 nunca se
+> commitearon, la reubicación de §1.3 se verificó idéntica antes de
+> confirmarla. Esta sección queda como referencia histórica de cómo se
+> decidió cada caso.
 
 ### 1.1 Deben formar parte del despliegue (código real)
 
@@ -361,6 +379,9 @@ ls backend/storage/app/private/certificacion/cell-data/ | wc -l  # debe ser 381
 | `npm install` (tras liberar el lock) | ✅ 185 instalados, 70 actualizados — 7 vulnerabilidades (1 moderada, 6 altas) reportadas por `npm audit`, no revisadas en detalle — 2026-08-04 |
 | `npx tsc -b` | ✅ **0 errores** — 2026-08-05, tras corregir los 19 errores de TypeScript |
 | `npm run build` | ✅ **Exitoso** — 2026-08-05. 2332 módulos, build en 648ms, `dist/` regenerado. Único aviso no bloqueante: bundle principal >500kB (sugerencia de code-splitting de Vite, no aplicada) |
+| `tests/Feature/REM` (reconfirmado tras permisos + rediseño Usuarios) | ✅ **64/64** — 2026-08-05, commit `d02e88e` |
+| Suite completa backend (reconfirmado) | ⚠️ 215/250 — mismos 35 fallos preexistentes de RuleEngine, sin cambios frente a las corridas anteriores |
+| ESLint (permisos + rediseño Usuarios, 6 archivos) | ✅ 0 errores/warnings — 2026-08-05 |
 
 ---
 
@@ -495,8 +516,12 @@ command=php /var/www/esalud/backend/artisan queue:work database --queue=default 
       desactiva/retira.
 - [ ] Respaldo de la base de datos de producción si ya existe algo ahí
       (§9).
-- [ ] `git add` selectivo (no `git add -A` a ciegas) revisando que
-      `cookies.txt`/`test_cookies.txt` no queden incluidos.
+- [x] ~~`git add` selectivo~~ — hecho. 4 commits en `main`, sincronizados
+      con `origin/main`: `1ae35bf` (motor de reglas/parser/calibración),
+      `3ab026d` (checklist de despliegue), `abe0751` (fix de permisos
+      Usuarios/Auditoría/Centros de Salud), `d02e88e` (rediseño visual
+      del módulo Usuarios). `cookies.txt`/`test_cookies.txt` confirmados
+      fuera del repositorio (revisados y eliminados, no solo excluidos).
 
 ## 8. Checklist POST-DEPLOY (comandos exactos que ejecuta Nelson)
 
@@ -576,9 +601,12 @@ equipo — preferir `checkout` a un commit conocido, revisable.
 
 - No se tocó RuleEngine (`RuleEngineService`, evaluadores) — según
   instrucción.
-- No se corrigieron los 35 tests históricos de RuleEngine.
-- No se hizo commit ni push — todo el trabajo de esta sesión sigue sin
-  confirmar en el working tree.
+- No se corrigieron los 35 tests históricos de RuleEngine (siguen igual,
+  documentados, no bloqueantes).
+- Commit/push: **sí se ejecutaron**, con autorización explícita en cada
+  caso — ver §0 para los 4 hashes. Lo que sigue sin ejecutar es
+  únicamente el trabajo operativo en el servidor real (transporte de
+  datos, Supervisor/Nginx, secuencia de despliegue con Nelson).
 
 ---
 
