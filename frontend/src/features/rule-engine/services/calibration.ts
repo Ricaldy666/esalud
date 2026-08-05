@@ -1,4 +1,4 @@
-import { api } from '@/shared/services/api'
+import { api, fetchCsrfCookie } from '@/shared/services/api'
 import type { ApiResponse } from '@/shared/types/api'
 import type {
   BulkFunctionalPayload,
@@ -36,6 +36,8 @@ export const calibrationService = {
     row: number,
     payload: RowFunctionalRulePayload
   ) => {
+    await fetchCsrfCookie()
+
     const { data } = await api.post<
       ApiResponse<{
         success: boolean
@@ -57,6 +59,8 @@ export const calibrationService = {
   },
 
   saveQuestions: async (sheet: string, section: string, questions: CalibrationQuestion[]) => {
+    await fetchCsrfCookie()
+
     const { data } = await api.post<ApiResponse<{ success: boolean; message: string }>>(
       `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/questions`,
       { questions }
@@ -65,6 +69,8 @@ export const calibrationService = {
   },
 
   bulkFunctional: async (sheet: string, section: string, payload: BulkFunctionalPayload) => {
+    await fetchCsrfCookie()
+
     const { data } = await api.post<
       ApiResponse<{
         success: boolean
@@ -101,6 +107,8 @@ export const calibrationService = {
     section: string,
     questions: CalibrationQuestion[]
   ) => {
+    await fetchCsrfCookie()
+
     const { data } = await api.post<ApiResponse<{ success: boolean; message: string }>>(
       `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/pattern-questions`,
       { questions }
