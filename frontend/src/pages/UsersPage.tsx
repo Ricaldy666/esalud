@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
-import { PageHeader } from '@/shared/components/PageHeader'
+import { UserPlus, Users as UsersIcon } from 'lucide-react'
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 import { Button } from '@/shared/components/ui/button'
+import { Card } from '@/shared/components/ui/card'
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '@/features/users'
 import { useRoles } from '@/features/roles'
 import { UsersTable } from '@/features/users/components/UsersTable'
@@ -70,26 +71,45 @@ export default function UsersPage() {
   const isMutating = createUser.isPending || updateUser.isPending || deleteUser.isPending
 
   return (
-    <div>
-      <PageHeader
-        title="Usuarios"
-        description="Gestión de usuarios del sistema"
-        actions={<Button onClick={handleOpenCreate}>Nuevo Usuario</Button>}
-      />
+    <div className="mx-auto max-w-6xl space-y-6">
+      <Card className="border border-slate-200 bg-white px-5 py-5 shadow-sm">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
+              <UsersIcon className="size-5" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900">Usuarios</h1>
+              <p className="text-sm text-slate-500">
+                Gestión de cuentas, roles y acceso al sistema
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleOpenCreate}
+            className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700"
+          >
+            <UserPlus className="size-4" />
+            Nuevo Usuario
+          </Button>
+        </div>
+      </Card>
 
-      <UsersTable
-        data={usersData?.data ?? []}
-        loading={isLoading}
-        pagination={usersData?.meta}
-        onPageChange={setPage}
-        search={search}
-        onSearch={(value) => {
-          setSearch(value)
-          setPage(1)
-        }}
-        onEdit={handleOpenEdit}
-        onDelete={handleOpenDelete}
-      />
+      <Card className="border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <UsersTable
+          data={usersData?.data ?? []}
+          loading={isLoading}
+          pagination={usersData?.meta}
+          onPageChange={setPage}
+          search={search}
+          onSearch={(value) => {
+            setSearch(value)
+            setPage(1)
+          }}
+          onEdit={handleOpenEdit}
+          onDelete={handleOpenDelete}
+        />
+      </Card>
 
       <UserDialog
         open={dialogOpen}
