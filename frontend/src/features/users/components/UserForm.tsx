@@ -128,10 +128,10 @@ export function UserForm({ user, roles, onSubmit, onCancel, loading }: UserFormP
             }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Sin centro" />
+              <SelectValue placeholder="Sin centro específico / Toda la red APS" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Sin centro</SelectItem>
+              <SelectItem value="none">Sin centro específico / Toda la red APS</SelectItem>
               {centers.map((center) => (
                 <SelectItem key={center.id} value={String(center.id)}>
                   {center.name}
@@ -139,6 +139,10 @@ export function UserForm({ user, roles, onSubmit, onCancel, loading }: UserFormP
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-slate-500">
+            Utilice esta opción para usuarios de Estadística APS o usuarios que trabajen a nivel de
+            toda la red.
+          </p>
         </div>
 
         <div className="space-y-2">

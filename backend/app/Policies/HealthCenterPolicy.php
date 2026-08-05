@@ -19,16 +19,16 @@ class HealthCenterPolicy
 
     public function create(User $user): bool
     {
-        return $user->hasRole('Superadmin');
+        return $user->hasAnyRole(['Superadmin', 'Administrador']);
     }
 
     public function update(User $user, HealthCenter $healthCenter): bool
     {
-        return $user->hasRole('Superadmin');
+        return $user->hasAnyRole(['Superadmin', 'Administrador']);
     }
 
     public function delete(User $user, HealthCenter $healthCenter): bool
     {
-        return $user->hasRole('Superadmin');
+        return $user->hasAnyRole(['Superadmin', 'Administrador']);
     }
 }

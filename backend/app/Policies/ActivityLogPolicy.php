@@ -9,11 +9,11 @@ class ActivityLogPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole('Administrador');
+        return $user->hasAnyRole(['Superadmin', 'Administrador']);
     }
 
     public function view(User $user, Activity $activity): bool
     {
-        return $user->hasRole('Administrador');
+        return $user->hasAnyRole(['Superadmin', 'Administrador']);
     }
 }
