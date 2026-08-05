@@ -3,10 +3,7 @@ import LoginForm from '@/features/auth/components/LoginForm'
 
 export default function LoginPage() {
   return (
-    <AuthLayout
-      title="Iniciar sesión"
-      description="Ingrese sus credenciales para acceder al sistema"
-    >
+    <AuthLayout title="Bienvenido" description="Inicia sesión para continuar">
       <LoginForm />
     </AuthLayout>
   )

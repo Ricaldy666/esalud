@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react'
 import { Button } from '@/shared/components/ui/button'
 import { Input } from '@/shared/components/ui/input'
 import { Label } from '@/shared/components/ui/label'
@@ -9,6 +11,10 @@ import type { LoginCredentials } from '../types'
 export default function LoginForm() {
   const navigate = useNavigate()
   const login = useLogin()
+  const [showPassword, setShowPassword] = useState(false)
+  // Solo visual: el backend siempre mantiene la sesion recordada hoy
+  // (Auth::attempt(..., true) fijo), este checkbox no se envia todavia.
+  const [rememberMe, setRememberMe] = useState(false)
 
   const {
     register,
@@ -39,36 +45,71 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="email">Correo electrónico</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="admin@esalud.cl"
-          {...register('email', {
-            required: 'El correo electrónico es obligatorio',
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Ingrese un correo válido',
-            },
-          })}
-        />
-        {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+        <Label htmlFor="email" className="text-slate-700">
+          Correo electrónico
+        </Label>
+        <div className="relative">
+          <Mail className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="admin@esalud.cl"
+            className="border-slate-300 bg-white pl-9 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500/30"
+            {...register('email', {
+              required: 'El correo electrónico es obligatorio',
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Ingrese un correo válido',
+              },
+            })}
+          />
+        </div>
+        {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Contraseña</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          {...register('password', {
-            required: 'La contraseña es obligatoria',
-          })}
-        />
-        {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+        <Label htmlFor="password" className="text-slate-700">
+          Contraseña
+        </Label>
+        <div className="relative">
+          <Lock className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            id="password"
+            type={showPassword ? 'text' : 'password'}
+            placeholder="••••••••"
+            className="border-slate-300 bg-white px-9 text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500/30"
+            {...register('password', {
+              required: 'La contraseña es obligatoria',
+            })}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            tabIndex={-1}
+            title={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            className="absolute top-1/2 right-0 flex w-9 -translate-y-1/2 items-center justify-center text-slate-400 hover:text-slate-600"
+          >
+            {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+          </button>
+        </div>
+        {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
       </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
+      <label className="flex cursor-pointer items-center gap-2 select-none">
+        <input
+          type="checkbox"
+          checked={rememberMe}
+          onChange={(e) => setRememberMe(e.target.checked)}
+          className="size-4 rounded border-slate-300 text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500/30"
+        />
+        <span className="text-sm text-slate-600">Recordar sesión</span>
+      </label>
+
+      <Button
+        type="submit"
+        disabled={isSubmitting}
+        className="w-full bg-blue-600 text-white hover:bg-blue-700"
+      >
         {isSubmitting ? 'Iniciando sesión...' : 'Iniciar sesión'}
       </Button>
     </form>
