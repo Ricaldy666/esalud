@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import RowCellMatrix from './RowCellMatrix'
 import type { ColumnGroup, PatternGroup } from '../../types/calibration'
@@ -11,7 +11,7 @@ const COBERTURA_LABELS: Record<string, { text: string; color: string }> = {
     color: 'bg-yellow-100 text-yellow-700',
   },
   excepción: { text: 'Excepción', color: 'bg-orange-100 text-orange-700' },
-  'no aplica': { text: 'No aplica', color: 'bg-gray-100 text-gray-500' },
+  'no aplica': { text: 'No aplica', color: 'bg-slate-100 text-slate-500' },
 }
 
 interface Props {
@@ -86,17 +86,17 @@ function hasConfirmedEvidence(pattern: PatternGroup, warnings?: string[]) {
 function TechnicalDetails({ pattern }: { pattern: PatternGroup }) {
   const rules = pattern.rows[0]?.functional_rules ?? []
   return (
-    <details className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
+    <details className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs">
       <summary className="cursor-pointer font-medium text-indigo-700">Ver detalle técnico</summary>
       <div className="mt-2 space-y-2">
         {rules.map((rule) => (
-          <div key={`${pattern.id}-${rule.total_column}`} className="rounded-md bg-gray-50 p-2">
+          <div key={`${pattern.id}-${rule.total_column}`} className="rounded-md bg-slate-50 p-2">
             <div>
-              <span className="font-medium text-gray-600">Destino:</span>{' '}
+              <span className="font-medium text-slate-600">Destino:</span>{' '}
               <span className="font-mono">{rule.destination || rule.total_column}</span>
             </div>
             <div>
-              <span className="font-medium text-gray-600">Origen:</span>{' '}
+              <span className="font-medium text-slate-600">Origen:</span>{' '}
               <span className="font-mono">
                 {rule.origin_coordinates?.join(', ') ||
                   rule.origin_columns?.join(', ') ||
@@ -104,7 +104,7 @@ function TechnicalDetails({ pattern }: { pattern: PatternGroup }) {
               </span>
             </div>
             <div>
-              <span className="font-medium text-gray-600">Fórmula:</span>{' '}
+              <span className="font-medium text-slate-600">Fórmula:</span>{' '}
               <span className="font-mono">
                 {rule.formula_exacta || rule.formula_template || 'sin fórmula'}
               </span>
@@ -161,21 +161,21 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
   const confirmedEvidence = hasConfirmedEvidence(pattern, warnings)
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors text-left"
+        className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors text-left"
       >
         <div className="flex items-center gap-4">
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold">
             {pattern.id}
           </span>
           <div>
-            <h3 className="text-base font-semibold text-gray-900">{pattern.nombre}</h3>
-            <p className="text-sm text-gray-500">{pattern.descripcion}</p>
+            <h3 className="text-base font-semibold text-slate-900">{pattern.nombre}</h3>
+            <p className="text-sm text-slate-500">{pattern.descripcion}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm text-gray-500">
+        <div className="flex items-center gap-4 text-sm text-slate-500">
           <span>{pattern.cantidad_filas} filas</span>
           {!confirmedEvidence && <span className="font-mono text-indigo-600">={formulaText}</span>}
           {confirmedEvidence && <span className="text-emerald-700">Lectura XLSM confirmada</span>}
@@ -185,44 +185,44 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
 
       {open && (
         <>
-          <div className="px-6 py-3 bg-gray-50 border-t border-b border-gray-200 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+          <div className="px-6 py-3 bg-slate-50 border-t border-b border-slate-200 grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <div>
-              <span className="text-gray-500">Filas:</span>
+              <span className="text-slate-500">Filas:</span>
               <span className="font-mono ml-1">{pattern.filas.join(', ')}</span>
             </div>
             <div>
-              <span className="text-gray-500">Columna total:</span>
+              <span className="text-slate-500">Columna total:</span>
               <span className="font-mono ml-1">{totalColumns.join(', ')}</span>
             </div>
             <div>
-              <span className="text-gray-500">Columnas origen:</span>
+              <span className="text-slate-500">Columnas origen:</span>
               <span className="font-mono text-xs ml-1">{originColumns.join(', ')}</span>
             </div>
             <div>
-              <span className="text-gray-500">Columnas en fórmula:</span>
+              <span className="text-slate-500">Columnas en fórmula:</span>
               <span className="font-mono text-xs ml-1">{originColumns.length}</span>
             </div>
             <div>
-              <span className="text-gray-500">Fuente:</span>
+              <span className="text-slate-500">Fuente:</span>
               <span className="ml-1">
                 {pattern.source === 'structure_inferred' ? 'Estructura preliminar' : 'Celdas XLSM'}
               </span>
             </div>
             {pattern.conceptos.length > 0 && (
               <div>
-                <span className="text-gray-500">Conceptos:</span>
+                <span className="text-slate-500">Conceptos:</span>
                 <span className="ml-1">{pattern.conceptos.join(', ')}</span>
               </div>
             )}
             {pattern.profesionales.length > 0 && (
               <div>
-                <span className="text-gray-500">Profesionales:</span>
+                <span className="text-slate-500">Profesionales:</span>
                 <span className="ml-1">{pattern.profesionales.join(', ')}</span>
               </div>
             )}
             {pattern.regla_funcional_label && (
               <div className="col-span-2 lg:col-span-4">
-                <span className="text-gray-500">Regla funcional:</span>
+                <span className="text-slate-500">Regla funcional:</span>
                 <span className="ml-1 font-medium text-indigo-700">
                   {pattern.regla_funcional_label}
                 </span>
@@ -231,7 +231,7 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
           </div>
 
           {confirmedEvidence && (
-            <div className="border-b border-gray-200 px-6 py-4">
+            <div className="border-b border-slate-200 px-6 py-4">
               <ConfirmedRulesSummary pattern={pattern} columnGroups={columnGroups} />
             </div>
           )}
@@ -239,7 +239,7 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-gray-50 text-gray-500 uppercase tracking-wider">
+                <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider">
                   <th className="px-3 py-2 text-left font-mono">Fila</th>
                   <th className="px-3 py-2 text-left">Concepto</th>
                   <th className="px-3 py-2 text-left">Profesional</th>
@@ -254,11 +254,11 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
                   <th className="px-3 py-2 text-left">Estado técnico</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {pattern.rows.map((r) => {
                   const cLabel = COBERTURA_LABELS[r.cobertura] ?? {
                     text: r.cobertura,
-                    color: 'bg-gray-100 text-gray-600',
+                    color: 'bg-slate-100 text-slate-600',
                   }
                   const functionalRules = r.functional_rules?.length
                     ? r.functional_rules
@@ -279,18 +279,18 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
                     new Set(functionalRules.flatMap((rule) => rule.origin_columns ?? []))
                   )
                   return (
-                    <tr key={r.fila} className="hover:bg-gray-50">
-                      <td className="px-3 py-2 font-mono font-bold text-gray-700">{r.fila}</td>
-                      <td className="px-3 py-2 text-gray-600 max-w-[140px] truncate">
+                    <tr key={r.fila} className="hover:bg-slate-50">
+                      <td className="px-3 py-2 font-mono font-bold text-slate-700">{r.fila}</td>
+                      <td className="px-3 py-2 text-slate-600 max-w-[140px] truncate">
                         {r.concepto || '\u2014'}
                       </td>
-                      <td className="px-3 py-2 text-gray-600">{r.profesional || '\u2014'}</td>
+                      <td className="px-3 py-2 text-slate-600">{r.profesional || '\u2014'}</td>
                       <td className="px-3 py-2 text-xs">
                         <div className="space-y-1">
                           {functionalRules.map((rule) => (
                             <div
                               key={`${r.fila}-${rule.total_column}`}
-                              className="font-medium text-gray-800"
+                              className="font-medium text-slate-800"
                             >
                               {rule.destino_funcional}
                             </div>
@@ -301,11 +301,11 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
                         <div className="space-y-1">
                           {functionalRules.map((rule) => (
                             <div key={`${r.fila}-${rule.total_column}-origin`}>
-                              <span className="text-gray-700">
+                              <span className="text-slate-700">
                                 {rule.descripcion_funcional_origen || '\u2014'}
                               </span>
                               {rule.origin_columns?.length ? (
-                                <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                                   {rule.origin_columns.join(', ')}
                                 </div>
                               ) : null}
@@ -318,13 +318,13 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
                           {functionalRules.map((rule) => (
                             <div
                               key={`${r.fila}-${rule.total_column}-label`}
-                              className="font-medium text-gray-700"
+                              className="font-medium text-slate-700"
                             >
                               {rule.label || r.regla_funcional_label || '\u2014'}
                             </div>
                           ))}
                         </div>
-                        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                           {pattern.nombre}
                         </div>
                       </td>
@@ -339,12 +339,12 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
                             />
                           ))}
                           {r.editables.length > 8 && (
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-[10px] text-slate-400">
                               +{r.editables.length - 8}
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-gray-400 mt-0.5">
+                        <div className="text-[10px] text-slate-400 mt-0.5">
                           {r.editables.length} cols
                         </div>
                       </td>
@@ -359,12 +359,12 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
                             />
                           ))}
                           {r.bloqueadas.length > 8 && (
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-[10px] text-slate-400">
                               +{r.bloqueadas.length - 8}
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-gray-400 mt-0.5">
+                        <div className="text-[10px] text-slate-400 mt-0.5">
                           {r.bloqueadas.length} cols
                         </div>
                       </td>
@@ -398,7 +398,7 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
                           {cLabel.text}
                         </span>
                       </td>
-                      <td className="px-3 py-2 text-[10px] text-gray-600">
+                      <td className="px-3 py-2 text-[10px] text-slate-600">
                         {r.estado_tecnico || 'Pendiente'}
                       </td>
                     </tr>

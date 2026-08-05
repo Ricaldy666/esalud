@@ -17,7 +17,7 @@ export default function RuleCertificationDetailPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-6 w-48" />
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-4">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-3/4" />
@@ -31,7 +31,7 @@ export default function RuleCertificationDetailPage() {
   }
 
   if (!data?.regla) {
-    return <div className="text-center py-12 text-sm text-gray-400">Regla no encontrada.</div>
+    return <div className="text-center py-12 text-sm text-slate-400">Regla no encontrada.</div>
   }
 
   return (

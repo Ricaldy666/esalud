@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Save } from 'lucide-react'
 import { toast } from 'sonner'
@@ -145,7 +145,7 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
 
   if (isLoading) {
     return (
-      <div className="h-24 rounded-lg border border-gray-200 bg-white p-4 text-sm text-gray-500">
+      <div className="h-24 rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-500">
         Cargando decisiones funcionales...
       </div>
     )
@@ -154,11 +154,11 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
   if (rows.length === 0) return null
 
   return (
-    <section className="rounded-lg border border-gray-200 bg-white">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3">
+    <section className="rounded-lg border border-slate-200 bg-white">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold text-gray-900">Decisiones funcionales por fila</h2>
-          <p className="text-xs text-gray-500">
+          <h2 className="text-sm font-semibold text-slate-900">Decisiones funcionales por fila</h2>
+          <p className="text-xs text-slate-500">
             Revise por que cada fila exige 0, permite vacio o hereda una decision.
           </p>
         </div>
@@ -171,8 +171,8 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-100 text-xs">
-          <thead className="bg-gray-50 text-left text-[11px] uppercase text-gray-500">
+        <table className="min-w-full divide-y divide-slate-100 text-xs">
+          <thead className="bg-slate-50 text-left text-[11px] uppercase text-slate-500">
             <tr>
               <th className="px-3 py-2">Fila</th>
               <th className="px-3 py-2">Concepto</th>
@@ -202,7 +202,7 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
               {!readOnly && <th className="px-3 py-2">Accion rapida</th>}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {rows.map((row) => {
               const selected = drafts[row.row] ?? defaultSelection(row)
               return (
@@ -210,21 +210,21 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
                   key={row.row}
                   className={row.possible_inconsistency ? 'bg-amber-50/60' : undefined}
                 >
-                  <td className="whitespace-nowrap px-3 py-2 font-semibold text-gray-800">
+                  <td className="whitespace-nowrap px-3 py-2 font-semibold text-slate-800">
                     {row.row}
                   </td>
-                  <td className="min-w-44 px-3 py-2 text-gray-700">{row.concept || '-'}</td>
-                  <td className="min-w-36 px-3 py-2 text-gray-700">{row.professional || '-'}</td>
+                  <td className="min-w-44 px-3 py-2 text-slate-700">{row.concept || '-'}</td>
+                  <td className="min-w-36 px-3 py-2 text-slate-700">{row.professional || '-'}</td>
                   <td className="px-3 py-2">
                     <DecisionBadge
                       value={row.explicit_decision}
                       explicit={row.has_explicit_decision}
                     />
                   </td>
-                  <td className="px-3 py-2 text-gray-600">
+                  <td className="px-3 py-2 text-slate-600">
                     <div>{inheritedText(row)}</div>
                     {!row.has_explicit_decision && row.inherited_decision && (
-                      <div className="mt-0.5 text-[11px] text-gray-500">
+                      <div className="mt-0.5 text-[11px] text-slate-500">
                         {label(row.inherited_decision)}
                       </div>
                     )}
@@ -236,8 +236,8 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
                   </td>
                   <td className="px-3 py-2">{ORIGIN_LABELS[row.origin] ?? row.origin}</td>
                   <td className="px-3 py-2">{row.status ?? '-'}</td>
-                  <td className="min-w-40 px-3 py-2 text-gray-600">{reviewedText(row)}</td>
-                  <td className="min-w-44 px-3 py-2 text-gray-600">
+                  <td className="min-w-40 px-3 py-2 text-slate-600">{reviewedText(row)}</td>
+                  <td className="min-w-44 px-3 py-2 text-slate-600">
                     {row.observation || row.condition || '-'}
                   </td>
                   {!readOnly && (
@@ -251,7 +251,7 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
                               [row.row]: event.target.value as EditableDecision,
                             }))
                           }
-                          className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs text-gray-700 outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-300"
+                          className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-300"
                         >
                           <option value="debe_registrar_cero">Debe registrar 0</option>
                           <option value="puede_quedar_vacio">Puede quedar vacio</option>
@@ -282,13 +282,13 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
 }
 
 function DecisionBadge({ value, explicit }: { value: string | null; explicit: boolean }) {
-  if (!value) return <span className="text-gray-400">Sin decision</span>
+  if (!value) return <span className="text-slate-400">Sin decision</span>
   return (
     <span
       className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
         explicit
           ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200'
-          : 'bg-gray-100 text-gray-600'
+          : 'bg-slate-100 text-slate-600'
       }`}
     >
       {label(value)}

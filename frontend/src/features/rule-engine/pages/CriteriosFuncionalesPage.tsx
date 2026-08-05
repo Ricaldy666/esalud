@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, ListChecks } from 'lucide-react'
+import { PageHeader } from '@/shared/components/PageHeader'
 import { certificationService } from '../services/certification'
 
 const SERIES_ORDER = [
@@ -59,23 +60,21 @@ export default function CriteriosFuncionalesPage() {
   )
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Criterios funcionales</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Revisa y define el comportamiento funcional de cada fila en los formularios REM. Las filas
-          pendientes usan la regla técnica por defecto hasta que tomes una decisión.
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Criterios funcionales"
+        description="Revisa y define el comportamiento funcional de cada fila en los formularios REM. Las filas pendientes usan la regla técnica por defecto hasta que tomes una decisión."
+        icon={ListChecks}
+      />
 
       {isLoading ? (
         <div className="grid gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse">
-              <div className="h-5 w-32 bg-gray-100 rounded mb-3" />
+            <div key={i} className="bg-white rounded-xl border border-slate-200 p-5 animate-pulse">
+              <div className="h-5 w-32 bg-slate-100 rounded mb-3" />
               <div className="flex gap-2">
                 {[1, 2, 3].map((j) => (
-                  <div key={j} className="h-8 w-24 bg-gray-50 rounded" />
+                  <div key={j} className="h-8 w-24 bg-slate-50 rounded" />
                 ))}
               </div>
             </div>
@@ -86,27 +85,27 @@ export default function CriteriosFuncionalesPage() {
           {sortedSeries.map(([serie, sections]) => (
             <div
               key={serie}
-              className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+              className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
             >
-              <div className="px-5 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-gray-100">
+              <div className="px-5 py-3 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-slate-100">
                 <h2 className="text-base font-semibold text-indigo-900">Serie {serie}</h2>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-slate-100">
                 {sections
                   .sort((a, b) => a.codigo.localeCompare(b.codigo))
                   .map((s) => (
                     <button
                       key={s.codigo}
                       onClick={() => navigate(`/criterios-funcionales/${s.codigo}/sections/A`)}
-                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors text-left"
+                      className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
                         <span className="font-mono text-sm font-medium text-indigo-600">
                           {s.codigo}
                         </span>
-                        <span className="text-sm text-gray-600">{s.count} reglas</span>
+                        <span className="text-sm text-slate-600">{s.count} reglas</span>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                      <ChevronRight className="w-4 h-4 text-slate-300" />
                     </button>
                   ))}
               </div>

@@ -23,9 +23,9 @@ const UploadValidationSummaryPage: React.FC = () => {
   const id = Number(uploadId)
   const { data, loading, error } = useValidationSummary(id)
 
-  if (loading) return <div className="p-6 text-gray-500">Cargando resumen de validación...</div>
+  if (loading) return <div className="p-6 text-slate-500">Cargando resumen de validación...</div>
   if (error) return <div className="p-6 text-red-600">Error: {error}</div>
-  if (!data) return <div className="p-6 text-gray-500">Sin datos</div>
+  if (!data) return <div className="p-6 text-slate-500">Sin datos</div>
 
   const status = data.upload.estado_legacy
   const extra = data as typeof data & { applicable?: number; not_applicable?: number }
@@ -51,7 +51,7 @@ const UploadValidationSummaryPage: React.FC = () => {
           : RefreshCw
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-xs text-slate-500">
         <button
@@ -77,8 +77,8 @@ const UploadValidationSummaryPage: React.FC = () => {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Validación REM</h1>
-            <p className="text-sm text-gray-500">
+            <h1 className="text-xl font-bold text-slate-900">Validación REM</h1>
+            <p className="text-sm text-slate-500">
               {data.upload.serie} · {data.upload.periodo} · {data.upload.centro}
             </p>
           </div>
@@ -106,26 +106,26 @@ const UploadValidationSummaryPage: React.FC = () => {
           failed={data.failed}
           skipped={notApplicable}
         />
-        <div className="bg-white rounded-lg border p-4">
-          <h3 className="text-sm font-medium text-gray-600 mb-1">Archivo</h3>
-          <p className="text-sm text-gray-900 break-all">{data.upload.filename}</p>
-          <div className="mt-2 text-xs text-gray-500 space-y-1">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 className="text-sm font-medium text-slate-600 mb-1">Archivo</h3>
+          <p className="text-sm text-slate-900 break-all">{data.upload.filename}</p>
+          <div className="mt-2 text-xs text-slate-500 space-y-1">
             <div>
-              Serie: <span className="font-medium text-gray-700">{data.upload.serie}</span>
+              Serie: <span className="font-medium text-slate-700">{data.upload.serie}</span>
             </div>
             <div>
-              Período: <span className="font-medium text-gray-700">{data.upload.periodo}</span>
+              Período: <span className="font-medium text-slate-700">{data.upload.periodo}</span>
             </div>
             <div>
               Establecimiento:{' '}
-              <span className="font-medium text-gray-700">{data.upload.centro}</span>
+              <span className="font-medium text-slate-700">{data.upload.centro}</span>
             </div>
             <div>
               Estado:{' '}
               <span
                 className={`font-medium ${
                   status === 'success'
-                    ? 'text-green-600'
+                    ? 'text-emerald-600'
                     : status === 'with_errors'
                       ? 'text-amber-600'
                       : 'text-red-600'
@@ -136,31 +136,31 @@ const UploadValidationSummaryPage: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <h3 className="text-sm font-medium text-gray-600 mb-1">Última ejecución</h3>
-          <p className="text-sm text-gray-900">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 className="text-sm font-medium text-slate-600 mb-1">Última ejecución</h3>
+          <p className="text-sm text-slate-900">
             {data.ultima_ejecucion
               ? new Date(data.ultima_ejecucion).toLocaleString('es-CL')
               : 'Sin ejecuciones'}
           </p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
-          <h3 className="text-sm font-medium text-gray-600 mb-1">Reglas evaluadas</h3>
-          <p className="text-2xl font-bold text-gray-900">{data.total_rules}</p>
-          <p className="text-xs text-gray-500 mt-1">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h3 className="text-sm font-medium text-slate-600 mb-1">Reglas evaluadas</h3>
+          <p className="text-2xl font-bold text-slate-900">{data.total_rules}</p>
+          <p className="text-xs text-slate-500 mt-1">
             {applicable} aplicables · {notApplicable} no aplican
           </p>
         </div>
       </div>
 
       {data.por_severidad.length > 0 && (
-        <div className="bg-white rounded-lg border p-4">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">Errores por severidad</h2>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-700 mb-3">Errores por severidad</h2>
           <div className="flex gap-4">
             {data.por_severidad.map((s) => (
               <div key={s.severidad} className="flex items-center gap-2">
                 <SeverityBadge severity={s.severidad} />
-                <span className="text-sm text-gray-600">{s.failed} regla(s)</span>
+                <span className="text-sm text-slate-600">{s.failed} regla(s)</span>
               </div>
             ))}
           </div>
@@ -168,9 +168,9 @@ const UploadValidationSummaryPage: React.FC = () => {
       )}
 
       {data.por_formulario.length > 0 && (
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-gray-700">Desglose por formulario</h2>
+            <h2 className="text-sm font-semibold text-slate-700">Desglose por formulario</h2>
             {data.failed > 0 && (
               <Link
                 to={`/rule-engine/uploads/${id}/validation-errors`}

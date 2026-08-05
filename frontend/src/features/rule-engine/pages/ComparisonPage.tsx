@@ -4,11 +4,15 @@ import { ComparisonDiffTable } from '../components/ComparisonDiffTable'
 import { HelpTooltip } from '../components/HelpTooltip'
 import { TechnicalInfo } from '../components/TechnicalInfo'
 import { PageHeader } from '@/shared/components/PageHeader'
+import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
+import { Button } from '@/shared/components/ui/button'
 import { Loader2, AlertTriangle, CheckCircle2, GitCompareArrows } from 'lucide-react'
 import { getHelpText, getStatusLabel, getStructureStatusLabel } from '../utils/labels'
 
-const SELECT_CLASS =
-  'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none'
+const INPUT_CLASS =
+  'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500/30'
+const LABEL_CLASS = 'text-xs text-slate-500 mb-1 block'
 
 export default function ComparisonPage() {
   const [structureId, setStructureId] = useState('')
@@ -21,42 +25,41 @@ export default function ComparisonPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <PageHeader
-          title="Comparación de Resultados"
-          description="Compara los resultados del motor actual con el sistema anterior para verificar su precisión"
-        />
-        <HelpTooltip text={getHelpText('comparison') ?? ''} />
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Comparación de Resultados"
+        description="Compara los resultados del motor actual con el sistema anterior para verificar su precisión"
+        icon={GitCompareArrows}
+        actions={<HelpTooltip text={getHelpText('comparison') ?? ''} />}
+      />
 
       {/* Form */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="text-xs font-medium text-gray-500 mb-1 block">ID de Estructura</label>
-            <input
+            <Label className={LABEL_CLASS}>ID de Estructura</Label>
+            <Input
               type="number"
-              className={SELECT_CLASS + ' w-32'}
+              className={`w-32 ${INPUT_CLASS}`}
               placeholder="7"
               value={structureId}
               onChange={(e) => setStructureId(e.target.value)}
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-500 mb-1 block">ID de Archivo</label>
-            <input
+            <Label className={LABEL_CLASS}>ID de Archivo</Label>
+            <Input
               type="number"
-              className={SELECT_CLASS + ' w-32'}
+              className={`w-32 ${INPUT_CLASS}`}
               placeholder="1"
               value={uploadId}
               onChange={(e) => setUploadId(e.target.value)}
             />
           </div>
-          <button
+          <Button
             onClick={handleCompare}
             disabled={isPending || !structureId || !uploadId}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="bg-blue-600 text-white hover:bg-blue-700"
           >
             {isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -64,7 +67,7 @@ export default function ComparisonPage() {
               <GitCompareArrows className="h-4 w-4" />
             )}
             {isPending ? 'Comparando...' : 'Comparar'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -80,41 +83,41 @@ export default function ComparisonPage() {
       {result && result.summary && (
         <>
           {/* Context */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-3">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3 shadow-sm">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
               Contexto
             </h3>
             <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
-                <dt className="text-gray-500">Estructura</dt>
-                <dd className="text-gray-900 font-medium">
+                <dt className="text-slate-500">Estructura</dt>
+                <dd className="text-slate-900 font-medium">
                   {result.structure
                     ? `${result.structure.serie} ${result.structure.anio} v${result.structure.version_number} (${getStructureStatusLabel(result.structure.status)})`
                     : `#${result.structure_id}`}
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-500">Archivo</dt>
-                <dd className="text-gray-900 font-medium">
+                <dt className="text-slate-500">Archivo</dt>
+                <dd className="text-slate-900 font-medium">
                   {result.upload
                     ? `${result.upload.filename} (${result.upload.period})`
                     : `#${result.upload_id}`}
                 </dd>
               </div>
               <div>
-                <dt className="text-gray-500">ID de Archivo</dt>
-                <dd className="text-gray-900 font-mono">#{result.upload_id}</dd>
+                <dt className="text-slate-500">ID de Archivo</dt>
+                <dd className="text-slate-900 font-mono">#{result.upload_id}</dd>
               </div>
               <div>
-                <dt className="text-gray-500">Tiempo</dt>
-                <dd className="text-gray-900 font-medium">{result.execution_time_ms} ms</dd>
+                <dt className="text-slate-500">Tiempo</dt>
+                <dd className="text-slate-900 font-medium">{result.execution_time_ms} ms</dd>
               </div>
             </dl>
           </div>
 
           {/* Summary cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
               <div className="flex justify-center mb-2">
                 <span
                   className={`inline-flex items-center justify-center w-10 h-10 rounded-full ${
@@ -128,73 +131,73 @@ export default function ComparisonPage() {
                   )}
                 </span>
               </div>
-              <p className="text-2xl font-bold tabular-nums text-gray-900">
+              <p className="text-2xl font-bold tabular-nums text-slate-900">
                 {result.summary.match_percentage}%
               </p>
-              <p className="text-xs text-gray-500 mt-1">Precisión</p>
+              <p className="text-xs text-slate-500 mt-1">Precisión</p>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
               <div className="flex justify-center mb-2">
                 <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-100">
                   <GitCompareArrows className="h-5 w-5 text-blue-600" />
                 </span>
               </div>
-              <p className="text-2xl font-bold tabular-nums text-gray-900">
+              <p className="text-2xl font-bold tabular-nums text-slate-900">
                 {result.summary.total_rules_in_map}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Reglas</p>
+              <p className="text-xs text-slate-500 mt-1">Reglas</p>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
               <div className="flex justify-center mb-2">
                 <span
                   className={`inline-flex items-center justify-center w-10 h-10 rounded-full ${
-                    result.summary.match_count > 0 ? 'bg-emerald-100' : 'bg-gray-100'
+                    result.summary.match_count > 0 ? 'bg-emerald-100' : 'bg-slate-100'
                   }`}
                 >
                   <CheckCircle2
-                    className={`h-5 w-5 ${result.summary.match_count > 0 ? 'text-emerald-600' : 'text-gray-400'}`}
+                    className={`h-5 w-5 ${result.summary.match_count > 0 ? 'text-emerald-600' : 'text-slate-400'}`}
                   />
                 </span>
               </div>
               <p className="text-2xl font-bold tabular-nums text-emerald-600">
                 {result.summary.match_count}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Coincidencias</p>
+              <p className="text-xs text-slate-500 mt-1">Coincidencias</p>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
+            <div className="bg-white rounded-xl border border-slate-200 p-4 text-center shadow-sm">
               <div className="flex justify-center mb-2">
                 <span
                   className={`inline-flex items-center justify-center w-10 h-10 rounded-full ${
-                    result.summary.difference_count > 0 ? 'bg-rose-100' : 'bg-gray-100'
+                    result.summary.difference_count > 0 ? 'bg-rose-100' : 'bg-slate-100'
                   }`}
                 >
                   <AlertTriangle
-                    className={`h-5 w-5 ${result.summary.difference_count > 0 ? 'text-rose-600' : 'text-gray-400'}`}
+                    className={`h-5 w-5 ${result.summary.difference_count > 0 ? 'text-rose-600' : 'text-slate-400'}`}
                   />
                 </span>
               </div>
               <p
-                className={`text-2xl font-bold tabular-nums ${result.summary.difference_count > 0 ? 'text-rose-600' : 'text-gray-900'}`}
+                className={`text-2xl font-bold tabular-nums ${result.summary.difference_count > 0 ? 'text-rose-600' : 'text-slate-900'}`}
               >
                 {result.summary.difference_count}
               </p>
-              <p className="text-xs text-gray-500 mt-1">Diferencias</p>
+              <p className="text-xs text-slate-500 mt-1">Diferencias</p>
             </div>
           </div>
 
           {/* Legacy vs Engine stats */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 Sistema Anterior
               </h3>
               <div className="space-y-2">
                 {Object.entries(result.summary.legacy).map(([status, count]) => (
                   <div key={status} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700 font-medium">
+                    <span className="text-sm text-slate-700 font-medium">
                       {getStatusLabel(status)}
                     </span>
                     <span
@@ -203,7 +206,7 @@ export default function ComparisonPage() {
                           ? 'text-emerald-600'
                           : status === 'failed'
                             ? 'text-rose-600'
-                            : 'text-gray-500'
+                            : 'text-slate-500'
                       }`}
                     >
                       {count}
@@ -212,14 +215,14 @@ export default function ComparisonPage() {
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 Motor Actual
               </h3>
               <div className="space-y-2">
                 {Object.entries(result.summary.engine).map(([status, count]) => (
                   <div key={status} className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700 font-medium">
+                    <span className="text-sm text-slate-700 font-medium">
                       {getStatusLabel(status)}
                     </span>
                     <span
@@ -228,7 +231,7 @@ export default function ComparisonPage() {
                           ? 'text-emerald-600'
                           : status === 'failed'
                             ? 'text-rose-600'
-                            : 'text-gray-500'
+                            : 'text-slate-500'
                       }`}
                     >
                       {count}
@@ -245,7 +248,7 @@ export default function ComparisonPage() {
           {/* JSON viewer inside TechnicalInfo */}
           <TechnicalInfo title="Reporte completo">
             <div className="p-4">
-              <pre className="bg-gray-50 rounded-lg p-4 text-xs font-mono text-gray-700 overflow-auto max-h-96 whitespace-pre-wrap">
+              <pre className="bg-slate-50 rounded-lg p-4 text-xs font-mono text-slate-700 overflow-auto max-h-96 whitespace-pre-wrap">
                 {JSON.stringify(result, null, 2)}
               </pre>
             </div>

@@ -8,9 +8,21 @@ import { SectionRulesTable } from '../components/SectionRulesTable'
 import { SectionCalibrationTable } from '../components/SectionCalibrationTable'
 import PatternCalibrationSummary from '../components/patterns/PatternCalibrationSummary'
 import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
+import { Button } from '@/shared/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 
-const SELECT_CLASS =
-  'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none'
+const SELECT_TRIGGER_CLASS =
+  'h-9 w-full border-slate-300 bg-white text-sm text-slate-900 focus-visible:border-blue-500 focus-visible:ring-blue-500/30'
+const SELECT_CONTENT_CLASS = 'border border-slate-200 bg-white shadow-lg'
+const SELECT_ITEM_CLASS = 'text-slate-700 focus:bg-blue-50 focus:text-blue-700'
+const LABEL_CLASS = 'text-xs text-slate-500 mb-1 block'
 
 type TabView = 'rules' | 'calibration' | 'patterns'
 
@@ -35,8 +47,12 @@ export default function RuleSectionPage() {
 
   const { data: matrixData, isLoading: matrixLoading } = useCalibrationMatrix(sheet, section)
 
+  const filaOptions = data?.reglas
+    ? [...new Set(data.reglas.map((r) => r.rango_filas).filter(Boolean))].sort()
+    : []
+
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button
@@ -46,40 +62,40 @@ export default function RuleSectionPage() {
             <ArrowLeft className="w-4 h-4" />
             Catálogo
           </button>
-          <span className="text-gray-300 text-sm">/</span>
+          <span className="text-slate-300 text-sm">/</span>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-slate-900">
               <span className="font-mono text-indigo-600">{sheet}</span>
-              <span className="text-gray-400 mx-1">/</span>
+              <span className="text-slate-400 mx-1">/</span>
               <span className="font-mono">Sección {section}</span>
             </h1>
             {data?.section?.titulo && (
-              <p className="text-sm text-gray-500">{data.section.titulo}</p>
+              <p className="text-sm text-slate-500">{data.section.titulo}</p>
             )}
           </div>
         </div>
         <a
           href={functionalRuleService.getSectionExportUrl(sheet ?? 'A01', section ?? 'A')}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <Download className="w-4 h-4" />
           Exportar sección
         </a>
       </div>
 
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-slate-200">
         <TabButton active={tab === 'rules'} onClick={() => setTab('rules')}>
           <TableIcon className="w-4 h-4" />
           Reglas detectadas
           {data?.reglas && (
-            <span className="ml-1.5 text-xs text-gray-400">({data.reglas.length})</span>
+            <span className="ml-1.5 text-xs text-slate-400">({data.reglas.length})</span>
           )}
         </TabButton>
         <TabButton active={tab === 'calibration'} onClick={() => setTab('calibration')}>
           <Grid3X3 className="w-4 h-4" />
           Matriz de calibración
           {matrixData?.rows && (
-            <span className="ml-1.5 text-xs text-gray-400">({matrixData.rows.length} filas)</span>
+            <span className="ml-1.5 text-xs text-slate-400">({matrixData.rows.length} filas)</span>
           )}
         </TabButton>
         <TabButton active={tab === 'patterns'} onClick={() => setTab('patterns')}>
@@ -96,50 +112,67 @@ export default function RuleSectionPage() {
                 placeholder="Buscar por regla o descripción..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                className="border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500/30"
               />
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Fila</label>
-              <select
-                className={SELECT_CLASS}
-                value={fila}
-                onChange={(e) => setFila(e.target.value)}
+            <div className="w-40">
+              <Label className={LABEL_CLASS}>Fila</Label>
+              <Select
+                value={fila || 'all'}
+                onValueChange={(v: string | null) => setFila(v && v !== 'all' ? v : '')}
               >
-                <option value="">Todas las filas</option>
-                {data?.reglas &&
-                  [...new Set(data.reglas.map((r) => r.rango_filas).filter(Boolean))]
-                    .sort()
-                    .map((f) => (
-                      <option key={f} value={f!}>
-                        {f}
-                      </option>
-                    ))}
-              </select>
+                <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                  <SelectValue placeholder="Todas las filas" />
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                  <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+                    Todas las filas
+                  </SelectItem>
+                  {filaOptions.map((f) => (
+                    <SelectItem key={f} value={f!} className={SELECT_ITEM_CLASS}>
+                      {f}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">Estado técnico</label>
-              <select
-                className={SELECT_CLASS}
-                value={estado}
-                onChange={(e) => setEstado(e.target.value)}
+            <div className="w-44">
+              <Label className={LABEL_CLASS}>Estado técnico</Label>
+              <Select
+                value={estado || 'all'}
+                onValueChange={(v: string | null) => setEstado(v && v !== 'all' ? v : '')}
               >
-                <option value="">Todos</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Certificada técnicamente">Certificada</option>
-                <option value="Requiere revisión">Requiere revisión</option>
-              </select>
+                <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                  <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+                    Todos
+                  </SelectItem>
+                  <SelectItem value="Pendiente" className={SELECT_ITEM_CLASS}>
+                    Pendiente
+                  </SelectItem>
+                  <SelectItem value="Certificada técnicamente" className={SELECT_ITEM_CLASS}>
+                    Certificada
+                  </SelectItem>
+                  <SelectItem value="Requiere revisión" className={SELECT_ITEM_CLASS}>
+                    Requiere revisión
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             {(fila || estado || search) && (
-              <button
+              <Button
+                variant="outline"
                 onClick={() => {
                   setFila('')
                   setEstado('')
                   setSearch('')
                 }}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                className="border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               >
                 Limpiar
-              </button>
+              </Button>
             )}
           </div>
 
@@ -189,7 +222,7 @@ function TabButton({
       className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
         active
           ? 'border-indigo-500 text-indigo-700'
-          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
       }`}
     >
       {children}

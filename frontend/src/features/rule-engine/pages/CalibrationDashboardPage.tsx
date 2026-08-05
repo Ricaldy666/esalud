@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import { CalendarDays, ChevronRight, FileSpreadsheet, Layers3 } from 'lucide-react'
+import { CalendarDays, ChevronRight, ClipboardCheck, FileSpreadsheet, Layers3 } from 'lucide-react'
+import { PageHeader } from '@/shared/components/PageHeader'
 import { useStructures } from '../hooks/useStructures'
 import type { Structure } from '../types/structure'
 
@@ -24,34 +25,33 @@ export default function CalibrationDashboardPage() {
     data?.data.filter((structure) => structure.status !== 'superseded') ?? []
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Calibración REM</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Selecciona una plantilla REM para revisar sus series, hojas y secciones calibrables.
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Calibración REM"
+        description="Selecciona una plantilla REM para revisar sus series, hojas y secciones calibrables"
+        icon={ClipboardCheck}
+      />
 
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {[1, 2, 3].map((item) => (
             <div
               key={item}
-              className="h-44 rounded-lg border border-gray-200 bg-white p-5 animate-pulse"
+              className="h-44 rounded-lg border border-slate-200 bg-white p-5 animate-pulse"
             >
-              <div className="h-5 w-36 rounded bg-gray-100" />
-              <div className="mt-5 h-3 w-full rounded bg-gray-100" />
-              <div className="mt-3 h-3 w-2/3 rounded bg-gray-100" />
+              <div className="h-5 w-36 rounded bg-slate-100" />
+              <div className="mt-5 h-3 w-full rounded bg-slate-100" />
+              <div className="mt-3 h-3 w-2/3 rounded bg-slate-100" />
             </div>
           ))}
         </div>
       ) : visibleStructures.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center">
-          <FileSpreadsheet className="mx-auto h-8 w-8 text-gray-300" />
-          <p className="mt-3 text-sm font-medium text-gray-700">
+        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
+          <FileSpreadsheet className="mx-auto h-8 w-8 text-slate-300" />
+          <p className="mt-3 text-sm font-medium text-slate-700">
             No hay plantillas REM disponibles
           </p>
-          <p className="mt-1 text-xs text-gray-500">
+          <p className="mt-1 text-xs text-slate-500">
             Cuando existan estructuras REM activas o en borrador aparecerán aquí.
           </p>
         </div>
@@ -81,15 +81,17 @@ function TemplateCard({ structure, onOpen }: { structure: Structure; onOpen: () 
     <button
       type="button"
       onClick={onOpen}
-      className="rounded-lg border border-gray-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50/30"
+      className="rounded-lg border border-slate-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50/30"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-gray-400">Plantilla REM</p>
-          <h2 className="mt-1 text-lg font-semibold text-gray-900">{structure.anio}</h2>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+            Plantilla REM
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900">{structure.anio}</h2>
         </div>
         <span
-          className={`rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[structure.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}
+          className={`rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[structure.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}
         >
           {STATUS_LABELS[structure.status] ?? structure.status}
         </span>
@@ -101,9 +103,9 @@ function TemplateCard({ structure, onOpen }: { structure: Structure; onOpen: () 
         <Metric icon={CalendarDays} label="Secciones" value={String(sections)} />
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-gray-100 pt-4">
-        <span className="text-xs text-gray-500">Progreso: sin datos suficientes</span>
-        <ChevronRight className="h-4 w-4 text-gray-400" />
+      <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+        <span className="text-xs text-slate-500">Progreso: sin datos suficientes</span>
+        <ChevronRight className="h-4 w-4 text-slate-400" />
       </div>
     </button>
   )
@@ -120,11 +122,11 @@ function Metric({
 }) {
   return (
     <div>
-      <div className="flex items-center gap-1.5 text-gray-400">
+      <div className="flex items-center gap-1.5 text-slate-400">
         <Icon className="h-3.5 w-3.5" />
         <span className="text-xs">{label}</span>
       </div>
-      <p className="mt-1 font-medium text-gray-900">{value}</p>
+      <p className="mt-1 font-medium text-slate-900">{value}</p>
     </div>
   )
 }

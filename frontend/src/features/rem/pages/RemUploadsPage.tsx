@@ -1,50 +1,61 @@
-import { useState, useMemo } from 'react'
-import { FileSpreadsheet, ExternalLink, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
+import { useNavigate } from 'react-router-dom'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ExternalLink,
+  FileSpreadsheet,
+  UploadCloud,
+} from 'lucide-react'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { EmptyState } from '@/shared/components/EmptyState'
-import { Skeleton } from '@/shared/components/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/shared/components/ui/table'
+import { DataTable } from '@/shared/components/DataTable'
 import { Button } from '@/shared/components/ui/button'
+import { Badge } from '@/shared/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
+import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
 import { useRemUploads } from '../hooks/useRemUploads'
 import { RemUploadForm } from '../components/RemUploadForm'
 import { REM_TYPE_LABELS, type RemType } from '../types/rem'
 import type { RemUpload, RemUploadStatus } from '../types/rem'
-import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
-import { useNavigate } from 'react-router-dom'
 
 const CURRENT_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: 6 }, (_, i) => CURRENT_YEAR - i)
 const MONTHS = [
-  { value: 0, label: 'Mes' },
-  { value: 1, label: 'Enero' },
-  { value: 2, label: 'Febrero' },
-  { value: 3, label: 'Marzo' },
-  { value: 4, label: 'Abril' },
-  { value: 5, label: 'Mayo' },
-  { value: 6, label: 'Junio' },
-  { value: 7, label: 'Julio' },
-  { value: 8, label: 'Agosto' },
-  { value: 9, label: 'Septiembre' },
-  { value: 10, label: 'Octubre' },
-  { value: 11, label: 'Noviembre' },
-  { value: 12, label: 'Diciembre' },
+  { value: '1', label: 'Enero' },
+  { value: '2', label: 'Febrero' },
+  { value: '3', label: 'Marzo' },
+  { value: '4', label: 'Abril' },
+  { value: '5', label: 'Mayo' },
+  { value: '6', label: 'Junio' },
+  { value: '7', label: 'Julio' },
+  { value: '8', label: 'Agosto' },
+  { value: '9', label: 'Septiembre' },
+  { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' },
+  { value: '12', label: 'Diciembre' },
 ]
 
+const SELECT_TRIGGER_CLASS =
+  'h-8 w-full border-slate-300 bg-white text-sm text-slate-900 focus-visible:border-blue-500 focus-visible:ring-blue-500/30'
+const SELECT_CONTENT_CLASS = 'border border-slate-200 bg-white shadow-lg'
+const SELECT_ITEM_CLASS = 'text-slate-700 focus:bg-blue-50 focus:text-blue-700'
+
 const statusStyles: Record<RemUploadStatus, string> = {
-  pending: 'bg-slate-100 text-slate-600 border border-slate-200',
-  processing: 'bg-blue-50 text-blue-700 border border-blue-200',
-  validating: 'bg-blue-50 text-blue-700 border border-blue-200',
-  success: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-  with_errors: 'bg-amber-50 text-amber-700 border border-amber-200',
-  rejected: 'bg-red-100 text-red-800 border border-red-300',
-  failed: 'bg-red-100 text-red-800 border border-red-300',
+  pending: 'bg-slate-100 text-slate-600 border-slate-200',
+  processing: 'bg-blue-50 text-blue-700 border-blue-200',
+  validating: 'bg-blue-50 text-blue-700 border-blue-200',
+  success: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  with_errors: 'bg-amber-50 text-amber-700 border-amber-200',
+  rejected: 'bg-red-50 text-red-700 border-red-200',
+  failed: 'bg-red-50 text-red-700 border-red-200',
 }
 
 const statusLabel: Record<RemUploadStatus, string> = {
@@ -79,10 +90,119 @@ export default function RemUploadsPage() {
     })
   }, [data, filterCenter, filterType, filterYear, filterMonth])
 
+  const columns = useMemo<ColumnDef<RemUpload>[]>(
+    () => [
+      {
+        header: 'ID',
+        accessorKey: 'id',
+        cell: ({ row }) => <span className="font-mono text-xs">{row.original.id}</span>,
+      },
+      {
+        header: 'Archivo',
+        accessorKey: 'original_filename',
+        cell: ({ row }) => (
+          <span className="block max-w-[200px] truncate font-medium text-slate-900">
+            {row.original.original_filename}
+          </span>
+        ),
+      },
+      {
+        header: 'Tipo',
+        accessorKey: 'rem_type',
+        cell: ({ row }) => (
+          <span className="text-xs font-medium text-slate-600">
+            {REM_TYPE_LABELS[row.original.rem_type as RemType] ?? row.original.rem_type}
+          </span>
+        ),
+      },
+      {
+        header: 'Periodo',
+        accessorKey: 'month',
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap">
+            {String(row.original.month).padStart(2, '0')}/{row.original.year}
+          </span>
+        ),
+      },
+      {
+        header: 'Estado',
+        accessorKey: 'status',
+        cell: ({ row }) => (
+          <Badge variant="outline" className={`font-medium ${statusStyles[row.original.status]}`}>
+            {statusLabel[row.original.status]}
+          </Badge>
+        ),
+      },
+      {
+        header: 'Cumplimiento',
+        id: 'cumplimiento',
+        cell: ({ row }) => {
+          const status = row.original.status
+          if (status === 'success') {
+            return (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+                <CheckCircle2 className="size-3.5" /> Ok
+              </span>
+            )
+          }
+          if (status === 'with_errors') {
+            return (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+                <AlertTriangle className="size-3.5" /> Observado
+              </span>
+            )
+          }
+          return <span className="text-xs text-slate-400">—</span>
+        },
+      },
+      {
+        header: 'Centro',
+        accessorKey: 'health_center',
+        cell: ({ row }) => (
+          <span className="whitespace-nowrap">{row.original.health_center?.name ?? '-'}</span>
+        ),
+      },
+      {
+        header: 'Fecha',
+        accessorKey: 'created_at',
+        cell: ({ row }) => (
+          <span className="text-xs whitespace-nowrap">
+            {new Date(row.original.created_at).toLocaleDateString('es-CL')}
+          </span>
+        ),
+      },
+      {
+        id: 'acciones',
+        header: 'Acciones',
+        cell: ({ row }) => {
+          const upload = row.original
+          if (upload.status === 'pending' || upload.status === 'processing') return null
+          return (
+            <Button
+              type="button"
+              variant="outline"
+              size="xs"
+              onClick={() => navigate(`/rule-engine/uploads/${upload.id}/validation-summary`)}
+              className="gap-1 border-slate-300 bg-white text-xs text-slate-700 hover:bg-slate-50"
+            >
+              <ExternalLink className="size-3" />
+              Ver resultado
+            </Button>
+          )
+        },
+      },
+    ],
+    [navigate]
+  )
+
   if (isError) {
     return (
-      <div>
-        <PageHeader title="Cargas REM" description="Archivos REM subidos al sistema" />
+      <div className="mx-auto max-w-6xl">
+        <PageHeader
+          title="Cargas REM"
+          description="Archivos REM subidos al sistema"
+          icon={UploadCloud}
+        />
         <EmptyState
           icon={<FileSpreadsheet className="h-12 w-12" />}
           title="Error al cargar"
@@ -93,15 +213,14 @@ export default function RemUploadsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Carga de Datos REM</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Sube y valida archivos REM antes del envío formal
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Carga de Datos REM"
+        description="Sube y valida archivos REM antes del envío formal"
+        icon={UploadCloud}
+      />
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm text-blue-800">
           Selecciona un archivo Excel REM. El sistema detectará automáticamente la serie, el período
           y el establecimiento desde el contenido del archivo.
@@ -111,201 +230,108 @@ export default function RemUploadsPage() {
       <RemUploadForm onClose={() => {}} alwaysVisible />
 
       {/* Historial de cargas */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">Historial de cargas</h2>
-        </div>
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <h2 className="mb-3 text-lg font-semibold text-slate-900">Historial de cargas</h2>
 
-        <div className="flex items-center gap-2 mb-3">
-          <select
-            value={filterType}
-            onChange={(e) => {
-              setFilterType(e.target.value)
-              setPage(1)
-            }}
-            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
-          >
-            <option value="">Tipo REM</option>
-            {Object.entries(REM_TYPE_LABELS).map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterYear}
-            onChange={(e) => {
-              setFilterYear(Number(e.target.value))
-              setPage(1)
-            }}
-            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
-          >
-            <option value={0}>Año</option>
-            {YEARS.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterMonth}
-            onChange={(e) => {
-              setFilterMonth(Number(e.target.value))
-              setPage(1)
-            }}
-            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
-          >
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filterCenter}
-            onChange={(e) => {
-              setFilterCenter(Number(e.target.value))
-              setPage(1)
-            }}
-            className="h-8 rounded-md border border-slate-200 bg-white px-2 text-sm"
-          >
-            <option value={0}>Todos los centros</option>
-            {healthCenters.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <span className="text-xs text-slate-400 italic ml-1">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="w-36">
+            <Select
+              value={filterType}
+              onValueChange={(v: string | null) => {
+                setFilterType(v ?? '')
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                <SelectValue placeholder="Tipo REM" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                {Object.entries(REM_TYPE_LABELS).map(([v, l]) => (
+                  <SelectItem key={v} value={v} className={SELECT_ITEM_CLASS}>
+                    {l}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-28">
+            <Select
+              value={filterYear ? String(filterYear) : ''}
+              onValueChange={(v: string | null) => {
+                setFilterYear(v ? Number(v) : 0)
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                <SelectValue placeholder="Año" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                {YEARS.map((y) => (
+                  <SelectItem key={y} value={String(y)} className={SELECT_ITEM_CLASS}>
+                    {y}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-32">
+            <Select
+              value={filterMonth ? String(filterMonth) : ''}
+              onValueChange={(v: string | null) => {
+                setFilterMonth(v ? Number(v) : 0)
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                <SelectValue placeholder="Mes" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                {MONTHS.map((m) => (
+                  <SelectItem key={m.value} value={m.value} className={SELECT_ITEM_CLASS}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="w-48">
+            <Select
+              value={filterCenter ? String(filterCenter) : ''}
+              onValueChange={(v: string | null) => {
+                setFilterCenter(v ? Number(v) : 0)
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                <SelectValue placeholder="Todos los centros" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                {healthCenters.map((c) => (
+                  <SelectItem key={c.id} value={String(c.id)} className={SELECT_ITEM_CLASS}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <span className="ml-1 text-xs text-slate-400 italic">
             Use estos filtros solo para buscar cargas anteriores. La carga nueva se detecta
             automáticamente desde el archivo.
           </span>
         </div>
 
-        <div className="rounded-md border overflow-x-auto">
-          <Table className="min-w-[900px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">ID</TableHead>
-                <TableHead>Archivo</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Periodo</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Cumplimiento</TableHead>
-                <TableHead>Centro</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 9 }).map((_, j) => (
-                      <TableCell key={j}>
-                        <Skeleton className="h-4 w-full" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : !filteredUploads.length ? (
-                <TableRow>
-                  <TableCell colSpan={9}>
-                    <EmptyState
-                      icon={<FileSpreadsheet className="h-12 w-12" />}
-                      title="No hay cargas REM"
-                      description="Sube un archivo REM para comenzar."
-                    />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredUploads.map((upload: RemUpload) => (
-                  <TableRow key={upload.id}>
-                    <TableCell className="font-mono text-xs">{upload.id}</TableCell>
-                    <TableCell className="max-w-[200px] truncate font-medium">
-                      {upload.original_filename}
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs font-medium text-slate-600">
-                        {REM_TYPE_LABELS[upload.rem_type as RemType] ?? upload.rem_type}
-                      </span>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {String(upload.month).padStart(2, '0')}/{upload.year}
-                    </TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusStyles[upload.status]}`}
-                      >
-                        {statusLabel[upload.status]}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {upload.status === 'success' ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Ok
-                        </span>
-                      ) : upload.status === 'with_errors' ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Observado
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {upload.health_center?.name ?? '-'}
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap text-xs">
-                      {new Date(upload.created_at).toLocaleDateString('es-CL')}
-                    </TableCell>
-                    <TableCell>
-                      {upload.status !== 'pending' && upload.status !== 'processing' && (
-                        <Button
-                          variant="outline"
-                          size="xs"
-                          onClick={() =>
-                            navigate(`/rule-engine/uploads/${upload.id}/validation-summary`)
-                          }
-                          className="text-xs gap-1"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Ver resultado
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {data?.meta && data.meta.last_page > 1 && (
-          <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-gray-500">
-              Página {data.meta.current_page} de {data.meta.last_page} ({data.meta.total} registros)
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.meta.current_page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={data.meta.current_page >= data.meta.last_page}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Siguiente
-              </Button>
-            </div>
-          </div>
-        )}
+        <DataTable
+          columns={columns}
+          data={filteredUploads}
+          loading={isLoading}
+          pagination={data?.meta}
+          onPageChange={setPage}
+          emptyMessage="No hay cargas REM. Sube un archivo REM para comenzar."
+        />
       </div>
     </div>
   )

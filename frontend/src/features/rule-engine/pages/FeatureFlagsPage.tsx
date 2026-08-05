@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react'
-import { AlertTriangle, Loader2, Save, ShieldAlert } from 'lucide-react'
+import { AlertTriangle, Loader2, Save, Settings, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { PageHeader } from '@/shared/components/PageHeader'
+import { Button } from '@/shared/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 import { usePermissions } from '@/shared/hooks/usePermissions'
 import { useFeatureFlagConfig } from '../hooks/useFeatureFlagConfig'
 import { useUpdateFeatureFlagConfig } from '../hooks/useUpdateFeatureFlagConfig'
@@ -9,6 +17,11 @@ import { HelpTooltip } from '../components/HelpTooltip'
 import { TechnicalInfo } from '../components/TechnicalInfo'
 import type { FeatureFlagConfig } from '../types/feature-flag'
 import { getHelpText, MODE_LABELS, LOG_MODE_LABELS } from '../utils/labels'
+
+const SELECT_TRIGGER_CLASS =
+  'h-9 w-full max-w-xs border-slate-300 bg-white text-sm text-slate-900 focus-visible:border-blue-500 focus-visible:ring-blue-500/30'
+const SELECT_CONTENT_CLASS = 'border border-slate-200 bg-white shadow-lg'
+const SELECT_ITEM_CLASS = 'text-slate-700 focus:bg-blue-50 focus:text-blue-700'
 
 export default function FeatureFlagsPage() {
   const { data: config, isLoading, isError } = useFeatureFlagConfig()
@@ -55,8 +68,8 @@ export default function FeatureFlagsPage() {
 
   if (isError || !config) {
     return (
-      <div>
-        <PageHeader title="Configuración del Motor de Reglas" />
+      <div className="mx-auto max-w-6xl">
+        <PageHeader title="Configuración del Motor de Reglas" icon={Settings} />
         <div className="flex items-center gap-3 mt-8 p-6 bg-rose-50 border border-rose-200 rounded-xl text-rose-700">
           <AlertTriangle className="w-6 h-6 shrink-0" />
           <div>
@@ -69,11 +82,12 @@ export default function FeatureFlagsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <PageHeader title="Configuración del Motor de Reglas" />
-        <HelpTooltip text={getHelpText('config') ?? ''} />
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Configuración del Motor de Reglas"
+        icon={Settings}
+        actions={<HelpTooltip text={getHelpText('config') ?? ''} />}
+      />
 
       {!isAdmin && (
         <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-500 text-sm">
@@ -82,7 +96,7 @@ export default function FeatureFlagsPage() {
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-6">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 space-y-6 shadow-sm">
         {/* Enabled */}
         <div className="flex items-center justify-between">
           <div className="flex items-start gap-1.5">
@@ -121,18 +135,24 @@ export default function FeatureFlagsPage() {
           <p className="text-xs text-slate-500 mb-2">
             Controla la interacción del motor con el proceso de validación existente
           </p>
-          <select
+          <Select
             value={form.mode}
-            onChange={(e) => handleChange('mode', e.target.value as FeatureFlagConfig['mode'])}
+            onValueChange={(v: string | null) =>
+              v && handleChange('mode', v as FeatureFlagConfig['mode'])
+            }
             disabled={!isAdmin}
-            className="block w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
           >
-            {Object.entries(MODE_LABELS).map(([value, opt]) => (
-              <option key={value} value={value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+              {Object.entries(MODE_LABELS).map(([value, opt]) => (
+                <SelectItem key={value} value={value} className={SELECT_ITEM_CLASS}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-slate-400 mt-1">{MODE_LABELS[form.mode]?.description ?? ''}</p>
         </div>
 
@@ -190,29 +210,33 @@ export default function FeatureFlagsPage() {
           <p className="text-xs text-slate-500 mb-2">
             Define qué información se registra durante la ejecución del motor
           </p>
-          <select
+          <Select
             value={form.log_mode}
-            onChange={(e) =>
-              handleChange('log_mode', e.target.value as FeatureFlagConfig['log_mode'])
+            onValueChange={(v: string | null) =>
+              v && handleChange('log_mode', v as FeatureFlagConfig['log_mode'])
             }
             disabled={!isAdmin}
-            className="block w-full max-w-xs rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
           >
-            {Object.entries(LOG_MODE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+              {Object.entries(LOG_MODE_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value} className={SELECT_ITEM_CLASS}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       {isAdmin && (
         <div className="flex justify-end">
-          <button
+          <Button
             onClick={handleSubmit}
             disabled={!dirty || updateConfig.isPending}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-blue-600 text-white hover:bg-blue-700"
           >
             {updateConfig.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -220,7 +244,7 @@ export default function FeatureFlagsPage() {
               <Save className="w-4 h-4" />
             )}
             Guardar cambios
-          </button>
+          </Button>
         </div>
       )}
 
@@ -248,7 +272,7 @@ export default function FeatureFlagsPage() {
               ] as const
             ).map(({ key, label, value }) => (
               <div key={key} className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">{label}:</span>
+                <span className="text-xs text-slate-500">{label}:</span>
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                     value === 'Sí'

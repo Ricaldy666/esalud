@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { toast } from 'sonner'
 import { functionalRuleService } from '../services/functional-rule'
 import {
@@ -78,13 +78,13 @@ export function FunctionalRuleForm({ ruleKey, initial, onSaved }: FunctionalRule
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-slate-500 mb-1">
             Comportamiento cuando no hay datos
           </label>
           <select
             value={emptyBehavior}
             onChange={(e) => setEmptyBehavior(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           >
             <option value="">Seleccionar...</option>
             {EMPTY_BEHAVIOR_OPTIONS.map((opt) => (
@@ -95,13 +95,13 @@ export function FunctionalRuleForm({ ruleKey, initial, onSaved }: FunctionalRule
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-slate-500 mb-1">
             Estado de validación
           </label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as FunctionalRule['status'])}
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           >
             {Object.entries(FUNCTIONAL_STATUS_LABELS).map(([value, label]) => (
               <option key={value} value={value}>
@@ -113,7 +113,7 @@ export function FunctionalRuleForm({ ruleKey, initial, onSaved }: FunctionalRule
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">
+        <label className="block text-xs font-medium text-slate-500 mb-1">
           Aplicabilidad por tipo de establecimiento
         </label>
         <div className="flex flex-wrap gap-2">
@@ -125,7 +125,7 @@ export function FunctionalRuleForm({ ruleKey, initial, onSaved }: FunctionalRule
               className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                 appliesToTypes.includes(opt.value)
                   ? 'bg-blue-100 text-blue-700 border-blue-300'
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                  : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'
               }`}
             >
               {opt.label}
@@ -136,62 +136,62 @@ export function FunctionalRuleForm({ ruleKey, initial, onSaved }: FunctionalRule
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-slate-500 mb-1">
             Establecimientos incluidos
           </label>
           <input
             value={includedCenters}
             onChange={(e) => setIncludedCenters(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="Separar por coma: CESFAM A, CESFAM B"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-slate-500 mb-1">
             Establecimientos excluidos
           </label>
           <input
             value={excludedCenters}
             onChange={(e) => setExcludedCenters(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="Ej: Chanavayita, Caleta Buena"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">
+        <label className="block text-xs font-medium text-slate-500 mb-1">
           Condición funcional (lenguaje natural)
         </label>
         <textarea
           value={functionalCondition}
           onChange={(e) => setFunctionalCondition(e.target.value)}
           rows={2}
-          className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+          className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           placeholder="Ej: En Chanavayita esta fila puede quedar vacía."
         />
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-500 mb-1">Justificación</label>
+        <label className="block text-xs font-medium text-slate-500 mb-1">Justificación</label>
         <textarea
           value={justification}
           onChange={(e) => setJustification(e.target.value)}
           rows={2}
-          className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+          className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
           placeholder="Motivo de esta restricción..."
         />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="block text-xs font-medium text-slate-500 mb-1">
             Responsable que informó
           </label>
           <input
             value={informedBy}
             onChange={(e) => setInformedBy(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
             placeholder="Nombre del informante"
           />
         </div>

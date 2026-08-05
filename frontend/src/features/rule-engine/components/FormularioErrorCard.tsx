@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 
 interface Props {
   form: string
@@ -21,13 +21,13 @@ export const FormularioErrorCard: React.FC<Props> = ({
 }) => {
   return (
     <div className="border rounded-lg p-4 bg-white hover:shadow-sm transition-shadow">
-      <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-        <span className="font-semibold text-gray-700">{form}</span>
+      <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+        <span className="font-semibold text-slate-700">{form}</span>
         <span>/</span>
         <span>{section}</span>
       </div>
-      <p className="text-sm font-medium text-gray-900 mb-1">{camp}</p>
-      <p className="text-sm text-gray-600 mb-1">{mensaje}</p>
+      <p className="text-sm font-medium text-slate-900 mb-1">{camp}</p>
+      <p className="text-sm text-slate-600 mb-1">{mensaje}</p>
       <p className="text-xs text-blue-700 mb-2">{recomendacion}</p>
       <div className="flex gap-4 text-xs">
         <span className="text-red-600">

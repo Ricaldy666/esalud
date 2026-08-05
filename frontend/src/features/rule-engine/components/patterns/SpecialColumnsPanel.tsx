@@ -1,4 +1,4 @@
-import type { CalibrationRow, ColumnGroup, PatternGroup } from '../../types/calibration'
+﻿import type { CalibrationRow, ColumnGroup, PatternGroup } from '../../types/calibration'
 
 interface Props {
   columns: string[]
@@ -112,16 +112,16 @@ export default function SpecialColumnsPanel({ columns, columnGroups, allRows, pa
       {groups.map((group) => (
         <div
           key={group.key}
-          className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
         >
-          <div className="border-b border-gray-200 px-6 py-4">
+          <div className="border-b border-slate-200 px-6 py-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="text-base font-semibold text-gray-900">{group.label}</h3>
-              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
+              <h3 className="text-base font-semibold text-slate-900">{group.label}</h3>
+              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
                 {group.start_column}:{group.end_column}
               </span>
             </div>
-            <p className="mt-1 text-sm text-gray-500">{group.description}</p>
+            <p className="mt-1 text-sm text-slate-500">{group.description}</p>
             {group.type === 'main_rule' && group.formula && (
               <p className="mt-2 text-sm font-medium text-indigo-700">
                 Regla principal: {group.formula}
@@ -132,12 +132,12 @@ export default function SpecialColumnsPanel({ columns, columnGroups, allRows, pa
                 {group.subgroups.map((subgroup) => (
                   <div
                     key={subgroup.key}
-                    className="rounded-lg border border-gray-100 bg-gray-50 p-3"
+                    className="rounded-lg border border-slate-100 bg-slate-50 p-3"
                   >
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       {subgroup.label}
                     </p>
-                    <p className="mt-1 font-mono text-xs text-gray-700">
+                    <p className="mt-1 font-mono text-xs text-slate-700">
                       {subgroup.columns.map((column) => column.letter).join(', ')}
                     </p>
                   </div>
@@ -149,7 +149,7 @@ export default function SpecialColumnsPanel({ columns, columnGroups, allRows, pa
           <div className="overflow-x-auto p-6">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-gray-50 text-gray-500 uppercase tracking-wider">
+                <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider">
                   <th className="px-3 py-2 text-left font-mono">Col</th>
                   <th className="px-3 py-2 text-left">Encabezado</th>
                   <th className="px-3 py-2 text-center">Filas editables</th>
@@ -157,20 +157,22 @@ export default function SpecialColumnsPanel({ columns, columnGroups, allRows, pa
                   <th className="px-3 py-2 text-left">Estado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {group.columns.map((column) => (
-                  <tr key={`${group.key}-${column.letter}`} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 font-mono font-bold text-gray-700">{column.letter}</td>
-                    <td className="max-w-[260px] px-3 py-2 text-gray-600">
+                  <tr key={`${group.key}-${column.letter}`} className="hover:bg-slate-50">
+                    <td className="px-3 py-2 font-mono font-bold text-slate-700">
+                      {column.letter}
+                    </td>
+                    <td className="max-w-[260px] px-3 py-2 text-slate-600">
                       {column.label || 'Sin encabezado informado'}
                     </td>
                     <td className="px-3 py-2 text-center font-mono text-green-600">
                       {column.editable_rows}
                     </td>
-                    <td className="px-3 py-2 text-center font-mono text-gray-500">
+                    <td className="px-3 py-2 text-center font-mono text-slate-500">
                       {column.blocked_rows}
                     </td>
-                    <td className="px-3 py-2 text-gray-500">
+                    <td className="px-3 py-2 text-slate-500">
                       {statusText(column.editable_rows, column.blocked_rows)}
                     </td>
                   </tr>

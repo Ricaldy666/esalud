@@ -3,7 +3,7 @@ import { Toaster } from 'sonner'
 import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  Activity,
+  BarChart3,
   LayoutDashboard,
   UploadCloud,
   Users,
@@ -128,12 +128,17 @@ function SidebarContent({
       <div className="p-4 flex items-center justify-between border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-3 overflow-hidden">
           <div className="p-2 bg-blue-600 rounded-lg text-white shrink-0">
-            <Activity className="w-5 h-5" />
+            <BarChart3 className="w-5 h-5" />
           </div>
           {!collapsed && (
-            <span className="font-bold text-lg tracking-wide whitespace-nowrap">
-              Estadística APS
-            </span>
+            <div className="overflow-hidden">
+              <span className="block font-bold text-lg tracking-wide whitespace-nowrap">
+                ATENEA
+              </span>
+              <span className="block text-xs text-slate-400 whitespace-nowrap">
+                Estadística APS
+              </span>
+            </div>
           )}
         </div>
         <button
@@ -292,9 +297,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
           </button>
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-blue-600 rounded-lg text-white">
-              <Activity className="w-4 h-4" />
+              <BarChart3 className="w-4 h-4" />
             </div>
-            <span className="font-bold text-slate-900">Estadística APS</span>
+            <span className="font-bold text-slate-900 whitespace-nowrap">ATENEA</span>
           </div>
         </div>
 

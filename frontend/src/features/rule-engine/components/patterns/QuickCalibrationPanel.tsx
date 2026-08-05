@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
@@ -689,13 +689,13 @@ export default function QuickCalibrationPanel({
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               Calibración rápida
             </p>
-            <h2 className="mt-1 text-xl font-bold text-gray-900">
+            <h2 className="mt-1 text-xl font-bold text-slate-900">
               Sección {section} — {sectionTitle || data.section.titulo}
             </h2>
           </div>
@@ -796,7 +796,7 @@ export default function QuickCalibrationPanel({
               <button
                 type="button"
                 onClick={() => setHideEquivalent(true)}
-                className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
               >
                 Calibrar manualmente
               </button>
@@ -812,8 +812,8 @@ export default function QuickCalibrationPanel({
         </div>
       )}
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
           <ClipboardCheck className="h-4 w-4 text-emerald-600" />
           Resumen automático
         </h3>
@@ -833,7 +833,7 @@ export default function QuickCalibrationPanel({
             )}
           </div>
         ) : confirmedEvidence ? (
-          <div className="mt-3 space-y-2 text-sm text-gray-700">
+          <div className="mt-3 space-y-2 text-sm text-slate-700">
             <p>
               Esta sección posee cálculos horizontales entre columnas. El sistema validará que los
               totales y componentes registrados mantengan esas relaciones.
@@ -858,25 +858,25 @@ export default function QuickCalibrationPanel({
         )}
       </div>
 
-      <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Decisiones funcionales</h3>
-            <p className="mt-1 text-xs text-gray-500">
+            <h3 className="text-sm font-semibold text-slate-900">Decisiones funcionales</h3>
+            <p className="mt-1 text-xs text-slate-500">
               {showDecisionControls
                 ? 'Complete solo lo que requiere criterio funcional.'
                 : 'No hay fórmulas técnicas que confirmar. Puede aceptar la recomendación o ajustar manualmente.'}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700">
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
               {answeredDecisions}/{totalDecisions}
             </span>
             {!showDecisionControls && (
               <button
                 type="button"
                 onClick={() => setShowDecisionDetails(true)}
-                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
               >
                 Ajustar decisiones
               </button>
@@ -885,13 +885,13 @@ export default function QuickCalibrationPanel({
         </div>
 
         {primaryPattern && primaryPattern.conceptos.length > 0 && (
-          <div className="mt-3 rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
-            <p className="text-sm text-gray-700">
+          <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
+            <p className="text-sm text-slate-700">
               Esta decisión se aplicará a {primaryPattern.conceptos.length} fila
               {primaryPattern.conceptos.length === 1 ? '' : 's'}:{' '}
               {joinWithY(primaryPattern.conceptos)}.
             </p>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-slate-500">
               Puedes cambiar una fila de forma individual en la tabla inferior.
             </p>
           </div>
@@ -995,7 +995,7 @@ export default function QuickCalibrationPanel({
                   key={center}
                   className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-xs"
                 >
-                  <span className="font-medium text-gray-700">{center}</span>
+                  <span className="font-medium text-slate-700">{center}</span>
                   <select
                     value={centerModes[center] ?? ''}
                     disabled={readOnly}
@@ -1005,7 +1005,7 @@ export default function QuickCalibrationPanel({
                         [center]: event.target.value as CenterMode,
                       }))
                     }
-                    className="rounded-md border border-gray-300 px-2 py-1 text-xs"
+                    className="rounded-md border border-slate-300 px-2 py-1 text-xs"
                   >
                     <option value="">Sin definir</option>
                     {CENTER_MODES.map(([value, label]) => (
@@ -1059,13 +1059,13 @@ export default function QuickCalibrationPanel({
           </div>
         )}
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
           <div className="flex flex-wrap gap-2">
             {previousSection && (
               <button
                 type="button"
                 onClick={() => onNavigateSection(previousSection)}
-                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
                 <ArrowLeft className="h-4 w-4" />
                 Sección anterior
@@ -1076,7 +1076,7 @@ export default function QuickCalibrationPanel({
             <button
               type="button"
               onClick={onOpenAdvanced}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               <Settings2 className="h-4 w-4" />
               Ver evidencia técnica
@@ -1122,9 +1122,9 @@ export default function QuickCalibrationPanel({
 
 function StatusMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-gray-900">{value}</p>
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-slate-900">{value}</p>
     </div>
   )
 }
@@ -1144,7 +1144,7 @@ function ChoiceGroup({
 }) {
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
       <div className="flex flex-wrap gap-2">
         {options.map(([optionValue, optionLabel]) => (
           <button
@@ -1155,7 +1155,7 @@ function ChoiceGroup({
             className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               value === optionValue
                 ? 'border-indigo-600 bg-indigo-600 text-white'
-                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
             }`}
           >
             {optionLabel}

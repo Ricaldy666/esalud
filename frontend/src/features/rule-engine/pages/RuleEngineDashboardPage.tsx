@@ -5,6 +5,7 @@ import {
   Database,
   FileWarning,
   FileText,
+  Gavel,
   Loader2,
   Server,
   Settings,
@@ -35,13 +36,12 @@ export default function RuleEngineDashboardPage() {
 
   if (healthError || statsError || !health || !stats) {
     return (
-      <div>
-        <div className="flex items-center gap-2">
-          <PageHeader
-            title="Motor de Reglas"
-            description="Componente encargado de validar automáticamente la información del REM"
-          />
-        </div>
+      <div className="mx-auto max-w-6xl">
+        <PageHeader
+          title="Motor de Reglas"
+          description="Componente encargado de validar automáticamente la información del REM"
+          icon={Gavel}
+        />
         <div className="flex items-center gap-3 mt-8 p-6 bg-rose-50 border border-rose-200 rounded-xl text-rose-700">
           <AlertTriangle className="w-6 h-6 shrink-0" />
           <div>
@@ -57,17 +57,16 @@ export default function RuleEngineDashboardPage() {
   const statusVariant = health.config_enabled ? 'success' : 'danger'
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <PageHeader
-          title="Motor de Reglas"
-          description="Componente encargado de validar automáticamente la información del REM"
-        />
-        <HelpTooltip text={getHelpText('rule-engine') ?? ''} />
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Motor de Reglas"
+        description="Componente encargado de validar automáticamente la información del REM"
+        icon={Gavel}
+        actions={<HelpTooltip text={getHelpText('rule-engine') ?? ''} />}
+      />
 
       {/* Config summary */}
-      <div className="rounded-xl border border-slate-200 bg-white p-5">
+      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5">
             <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
@@ -171,7 +170,7 @@ export default function RuleEngineDashboardPage() {
 
       {/* Stats by trigger & status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
             Ejecuciones por Origen
           </h2>
@@ -190,7 +189,7 @@ export default function RuleEngineDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
             Ejecuciones por Resultado
           </h2>
@@ -209,7 +208,7 @@ export default function RuleEngineDashboardPage() {
       </div>
 
       {/* Latest uploads table */}
-      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
             Últimos Archivos Procesados

@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowLeft,
   CheckCircle2,
   AlertTriangle,
@@ -93,7 +93,7 @@ export function RuleCertificationCard({
 
   const formulaBg = card.evidencia_xlsm?.encontrada
     ? 'bg-blue-50 border-blue-200'
-    : 'bg-gray-50 border-gray-200'
+    : 'bg-slate-50 border-slate-200'
 
   const sectionPath = `/rule-engine/catalog/${card.hoja}/sections/${card.seccion}`
 
@@ -107,7 +107,7 @@ export function RuleCertificationCard({
           <ArrowLeft className="w-4 h-4" />
           Catálogo
         </button>
-        <span className="text-gray-300 text-sm">/</span>
+        <span className="text-slate-300 text-sm">/</span>
         <button
           onClick={() => navigate(sectionPath)}
           className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
@@ -117,8 +117,8 @@ export function RuleCertificationCard({
       </div>
 
       <div className="space-y-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-blue-600" />
             Regla técnica
           </h2>
@@ -126,10 +126,10 @@ export function RuleCertificationCard({
           <div className="flex items-start justify-between mb-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-xl font-bold text-gray-900 font-mono">{card.rule_key}</h1>
+                <h1 className="text-xl font-bold text-slate-900 font-mono">{card.rule_key}</h1>
                 <CertificationStatusBadge estado={card.estado} />
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-4 text-sm text-slate-500">
                 <span className="font-mono font-semibold text-indigo-600">{card.hoja}</span>
                 <span>Sección {card.seccion}</span>
                 <span
@@ -143,7 +143,7 @@ export function RuleCertificationCard({
                 </span>
                 {card.severity && (
                   <span
-                    className={`text-xs uppercase tracking-wider ${card.severity === 'error' ? 'text-red-500' : 'text-gray-400'}`}
+                    className={`text-xs uppercase tracking-wider ${card.severity === 'error' ? 'text-red-500' : 'text-slate-400'}`}
                   >
                     {card.severity}
                   </span>
@@ -154,56 +154,58 @@ export function RuleCertificationCard({
 
           {card.description && (
             <div className="mb-4">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
                 Descripción
               </h3>
-              <p className="text-sm text-gray-700">{card.description}</p>
+              <p className="text-sm text-slate-700">{card.description}</p>
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-4">
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 Fórmula Interpretada
               </h3>
-              <div className={`rounded-lg border p-3 font-mono text-sm text-gray-800 ${formulaBg}`}>
+              <div
+                className={`rounded-lg border p-3 font-mono text-sm text-slate-800 ${formulaBg}`}
+              >
                 {card.formula_interpretada}
               </div>
             </div>
             <div>
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
                 Detalles
               </h3>
               <table className="w-full text-sm">
                 <tbody>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4 align-top">Columnas origen</td>
+                    <td className="py-1 text-slate-500 pr-4 align-top">Columnas origen</td>
                     <td className="py-1">
                       <div className="flex flex-wrap gap-1">
                         {card.columnas_origen.length > 0 ? (
                           card.columnas_origen.map((c) => (
                             <span
                               key={c}
-                              className="inline-block bg-gray-100 rounded px-1.5 py-0.5 text-xs font-mono"
+                              className="inline-block bg-slate-100 rounded px-1.5 py-0.5 text-xs font-mono"
                             >
                               {c}
                             </span>
                           ))
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-slate-300">—</span>
                         )}
                       </div>
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4">Columna destino</td>
-                    <td className="py-1 font-mono font-medium text-gray-800">
+                    <td className="py-1 text-slate-500 pr-4">Columna destino</td>
+                    <td className="py-1 font-mono font-medium text-slate-800">
                       {card.columna_destino ?? '—'}
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4">Rango filas</td>
-                    <td className="py-1 font-mono text-gray-800">{card.rango_filas ?? '—'}</td>
+                    <td className="py-1 text-slate-500 pr-4">Rango filas</td>
+                    <td className="py-1 font-mono text-slate-800">{card.rango_filas ?? '—'}</td>
                   </tr>
                 </tbody>
               </table>
@@ -211,8 +213,8 @@ export function RuleCertificationCard({
           </div>
 
           {card.evidencia_xlsm?.encontrada && (
-            <details className="border border-gray-200 rounded-lg mb-4 group">
-              <summary className="flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer text-sm font-semibold text-gray-700 list-none">
+            <details className="border border-slate-200 rounded-lg mb-4 group">
+              <summary className="flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 rounded-lg cursor-pointer text-sm font-semibold text-slate-700 list-none">
                 <span className="flex items-center gap-2">
                   <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
                   Evidencia XLSM
@@ -222,41 +224,41 @@ export function RuleCertificationCard({
                 <table className="w-full text-sm">
                   <tbody>
                     <tr>
-                      <td className="py-1 text-gray-500 pr-4">Sección XLSM</td>
-                      <td className="py-1 text-gray-800">
+                      <td className="py-1 text-slate-500 pr-4">Sección XLSM</td>
+                      <td className="py-1 text-slate-800">
                         {card.evidencia_xlsm.titulo_seccion ?? '—'}
                       </td>
                     </tr>
                     <tr>
-                      <td className="py-1 text-gray-500 pr-4">Columna XLSM</td>
-                      <td className="py-1 text-gray-800">
+                      <td className="py-1 text-slate-500 pr-4">Columna XLSM</td>
+                      <td className="py-1 text-slate-800">
                         {card.evidencia_xlsm.label_columna ?? '—'}
                       </td>
                     </tr>
                     <tr>
-                      <td className="py-1 text-gray-500 pr-4">Es Total</td>
+                      <td className="py-1 text-slate-500 pr-4">Es Total</td>
                       <td className="py-1">
                         {card.evidencia_xlsm.es_total ? (
                           <span className="inline-block w-2 h-2 rounded-full bg-emerald-400" />
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-slate-300">—</span>
                         )}
                       </td>
                     </tr>
                     <tr>
-                      <td className="py-1 text-gray-500 pr-4">Control oculto</td>
+                      <td className="py-1 text-slate-500 pr-4">Control oculto</td>
                       <td className="py-1">
                         {card.evidencia_xlsm.es_control_oculto ? (
                           <span className="inline-block w-2 h-2 rounded-full bg-teal-400" />
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-slate-300">—</span>
                         )}
                       </td>
                     </tr>
                     {card.evidencia_xlsm.regla_detectada && (
                       <tr>
-                        <td className="py-1 text-gray-500 pr-4">Regla detectada</td>
-                        <td className="py-1 font-mono text-xs text-gray-600">
+                        <td className="py-1 text-slate-500 pr-4">Regla detectada</td>
+                        <td className="py-1 font-mono text-xs text-slate-600">
                           {card.evidencia_xlsm.regla_detectada.tipo}
                         </td>
                       </tr>
@@ -268,8 +270,8 @@ export function RuleCertificationCard({
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-amber-600" />
             Restricción funcional
           </h2>
@@ -281,38 +283,38 @@ export function RuleCertificationCard({
         </div>
 
         {estructura && (
-          <details className="bg-white rounded-xl border border-gray-200 shadow-sm group">
-            <summary className="flex items-center justify-between px-6 py-4 cursor-pointer text-sm font-semibold text-gray-700 list-none hover:bg-gray-50 rounded-xl">
+          <details className="bg-white rounded-xl border border-slate-200 shadow-sm group">
+            <summary className="flex items-center justify-between px-6 py-4 cursor-pointer text-sm font-semibold text-slate-700 list-none hover:bg-slate-50 rounded-xl">
               <span className="flex items-center gap-2">
-                <Info className="w-4 h-4 text-gray-500" />
+                <Info className="w-4 h-4 text-slate-500" />
                 Impacto de cambio de plantilla
               </span>
             </summary>
-            <div className="px-6 pb-4 border-t border-gray-100 pt-3">
+            <div className="px-6 pb-4 border-t border-slate-100 pt-3">
               <table className="w-full text-sm">
                 <tbody>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4">Fórmula técnica actual</td>
-                    <td className="py-1 font-mono text-gray-800">{card.formula_interpretada}</td>
+                    <td className="py-1 text-slate-500 pr-4">Fórmula técnica actual</td>
+                    <td className="py-1 font-mono text-slate-800">{card.formula_interpretada}</td>
                   </tr>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4">Rango actual</td>
-                    <td className="py-1 font-mono text-gray-800">{card.rango_filas ?? '—'}</td>
+                    <td className="py-1 text-slate-500 pr-4">Rango actual</td>
+                    <td className="py-1 font-mono text-slate-800">{card.rango_filas ?? '—'}</td>
                   </tr>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4">Hash de estructura</td>
-                    <td className="py-1 font-mono text-xs text-gray-500">{estructura.hash}</td>
+                    <td className="py-1 text-slate-500 pr-4">Hash de estructura</td>
+                    <td className="py-1 font-mono text-xs text-slate-500">{estructura.hash}</td>
                   </tr>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4">Versión de plantilla</td>
-                    <td className="py-1 font-mono text-gray-800">
+                    <td className="py-1 text-slate-500 pr-4">Versión de plantilla</td>
+                    <td className="py-1 font-mono text-slate-800">
                       v{estructura.version} ({estructura.serie} {estructura.anio})
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-1 text-gray-500 pr-4">Estado</td>
+                    <td className="py-1 text-slate-500 pr-4">Estado</td>
                     <td className="py-1">
-                      <span className="inline-flex items-center rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
                         Sin comparación
                       </span>
                     </td>
@@ -323,8 +325,8 @@ export function RuleCertificationCard({
           </details>
         )}
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-gray-700 mb-4">Acciones</h2>
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-sm font-semibold text-slate-700 mb-4">Acciones</h2>
           <div className="flex flex-wrap gap-2 mb-4">
             {STATUS_ACTIONS.map(({ estado, icon: Icon, label, color }) => (
               <button
@@ -341,23 +343,23 @@ export function RuleCertificationCard({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Observaciones</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Observaciones</label>
               <textarea
                 value={observaciones}
                 onChange={(e) => setObservaciones(e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                 placeholder="Detalles sobre la certificación..."
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
+              <label className="block text-xs font-medium text-slate-500 mb-1">
                 Certificado por
               </label>
               <input
                 value={certificadoPor}
                 onChange={(e) => setCertificadoPor(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                className="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                 placeholder="Nombre del responsable"
               />
             </div>

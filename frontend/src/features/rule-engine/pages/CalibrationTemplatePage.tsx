@@ -25,16 +25,16 @@ export default function CalibrationTemplatePage() {
           <ArrowLeft className="h-4 w-4" />
           Calibración REM
         </button>
-        <span className="text-sm text-gray-300">/</span>
-        <h1 className="text-xl font-bold text-gray-900">
+        <span className="text-sm text-slate-300">/</span>
+        <h1 className="text-xl font-bold text-slate-900">
           {structure ? `Plantilla REM ${structure.anio}` : 'Plantilla REM'}
         </h1>
       </div>
 
       {isLoading ? (
-        <div className="h-32 rounded-lg border border-gray-200 bg-white p-5 animate-pulse" />
+        <div className="h-32 rounded-lg border border-slate-200 bg-white p-5 animate-pulse" />
       ) : !structure ? (
-        <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-500">
+        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
           No se encontró la plantilla solicitada.
         </div>
       ) : (
@@ -55,23 +55,23 @@ export default function CalibrationTemplatePage() {
                 `/calibracion/templates/${structure.id}/series/${encodeURIComponent(structure.serie)}`
               )
             }
-            className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50/30"
+            className="flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-indigo-200 hover:bg-indigo-50/30"
           >
             <div className="flex items-center gap-4">
               <div className="rounded-lg bg-indigo-50 p-3 text-indigo-600">
                 <Layers3 className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-400">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                   Serie disponible
                 </p>
-                <h2 className="mt-1 text-lg font-semibold text-gray-900">
+                <h2 className="mt-1 text-lg font-semibold text-slate-900">
                   Serie {structure.serie}
                 </h2>
-                <p className="mt-1 text-xs text-gray-500">Progreso: sin datos suficientes</p>
+                <p className="mt-1 text-xs text-slate-500">Progreso: sin datos suficientes</p>
               </div>
             </div>
-            <ChevronRight className="h-5 w-5 text-gray-400" />
+            <ChevronRight className="h-5 w-5 text-slate-400" />
           </button>
         </div>
       )}
@@ -81,9 +81,9 @@ export default function CalibrationTemplatePage() {
 
 function Summary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-gray-400">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-gray-900">{value}</p>
+    <div className="rounded-lg border border-slate-200 bg-white p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-slate-900">{value}</p>
     </div>
   )
 }

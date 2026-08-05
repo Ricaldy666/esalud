@@ -35,7 +35,7 @@ const WORKFLOW_MAP: Record<string, { label: string; color: string }> = {
 }
 
 const SYNC_STATUS_MAP: Record<string, { label: string; color: string }> = {
-  pendiente: { label: 'Pendiente', color: 'bg-gray-100 text-gray-500' },
+  pendiente: { label: 'Pendiente', color: 'bg-slate-100 text-slate-500' },
   sincronizado: { label: 'Sincronizado', color: 'bg-emerald-100 text-emerald-700' },
   error: { label: 'Error', color: 'bg-red-100 text-red-700' },
 }
@@ -111,8 +111,8 @@ export default function SeccionRevisionPage() {
   const getWorkflowInfo = (c: FuncionalCriterion) => {
     const code = c.workflow_instance?.current_state?.code
     return code
-      ? (WORKFLOW_MAP[code] ?? { label: code, color: 'bg-gray-100 text-gray-500' })
-      : { label: 'Pendiente', color: 'bg-gray-100 text-gray-400' }
+      ? (WORKFLOW_MAP[code] ?? { label: code, color: 'bg-slate-100 text-slate-500' })
+      : { label: 'Pendiente', color: 'bg-slate-100 text-slate-400' }
   }
 
   const findParentRow = (c: FuncionalCriterion) => {
@@ -157,11 +157,11 @@ export default function SeccionRevisionPage() {
             <ArrowLeft className="w-4 h-4" />
             Criterios funcionales
           </button>
-          <span className="text-gray-300 text-sm">/</span>
+          <span className="text-slate-300 text-sm">/</span>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">
+            <h1 className="text-xl font-bold text-slate-900">
               <span className="font-mono text-indigo-600">{sheet}</span>
-              <span className="text-gray-400 mx-1">/</span>
+              <span className="text-slate-400 mx-1">/</span>
               <span className="font-mono">Sección {section}</span>
             </h1>
           </div>
@@ -169,7 +169,7 @@ export default function SeccionRevisionPage() {
       </div>
 
       {/* Filter tabs */}
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-gray-200 pb-px">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 pb-px">
         {FILTERS.map((f) => (
           <button
             key={f.key}
@@ -177,7 +177,7 @@ export default function SeccionRevisionPage() {
             className={`px-3 py-2 text-xs font-medium border-b-2 transition-colors ${
               filter === f.key
                 ? 'border-indigo-600 text-indigo-700'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             }`}
           >
             {f.label}
@@ -188,17 +188,17 @@ export default function SeccionRevisionPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="flex items-center justify-center py-12 text-sm text-gray-400">
+        <div className="flex items-center justify-center py-12 text-sm text-slate-400">
           Cargando criterios funcionales...
         </div>
       )}
 
       {/* Table */}
       {!isLoading && (
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
           <table className="w-full">
             <thead>
-              <tr className="bg-gray-50 text-[11px] text-gray-500 uppercase tracking-wider">
+              <tr className="bg-slate-50 text-[11px] text-slate-500 uppercase tracking-wider">
                 <th className="px-3 py-3 text-left font-medium">#</th>
                 <th className="px-3 py-3 text-left font-medium">Concepto</th>
                 <th className="px-3 py-3 text-left font-medium">Profesional</th>
@@ -211,10 +211,10 @@ export default function SeccionRevisionPage() {
                 <th className="px-3 py-3 text-right font-medium">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 text-sm">
+            <tbody className="divide-y divide-slate-100 text-sm">
               {filteredRows.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-3 py-10 text-center text-gray-400 text-xs">
+                  <td colSpan={8} className="px-3 py-10 text-center text-slate-400 text-xs">
                     No hay filas para este filtro.
                   </td>
                 </tr>
@@ -223,19 +223,19 @@ export default function SeccionRevisionPage() {
                   const wf = getWorkflowInfo(c)
                   const parent = findParentRow(c)
                   return (
-                    <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-3 py-3 text-gray-500 font-mono text-xs">{c.row_number}</td>
-                      <td className="px-3 py-3 font-medium text-gray-900 max-w-xs truncate">
+                    <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-3 py-3 text-slate-500 font-mono text-xs">{c.row_number}</td>
+                      <td className="px-3 py-3 font-medium text-slate-900 max-w-xs truncate">
                         {c.concepto}
                       </td>
-                      <td className="px-3 py-3 text-gray-600">{c.profesional}</td>
+                      <td className="px-3 py-3 text-slate-600">{c.profesional}</td>
                       <td className="px-3 py-3">
-                        <span className="text-xs text-gray-700 whitespace-nowrap">
+                        <span className="text-xs text-slate-700 whitespace-nowrap">
                           {getPatternLabel(c)}
                         </span>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-xs text-gray-700">{c.empty_behavior ?? '—'}</span>
+                        <span className="text-xs text-slate-700">{c.empty_behavior ?? '—'}</span>
                       </td>
                       <td className="px-3 py-3">
                         <span
@@ -246,7 +246,7 @@ export default function SeccionRevisionPage() {
                       </td>
                       <td className="px-3 py-3">
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${SCOPE_COLORS[c.scope] ?? 'bg-gray-100 text-gray-500'}`}
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${SCOPE_COLORS[c.scope] ?? 'bg-slate-100 text-slate-500'}`}
                         >
                           {SCOPE_LABELS[c.scope] ?? c.scope}
                         </span>
@@ -268,13 +268,13 @@ export default function SeccionRevisionPage() {
                           }
                         </span>
                       </td>
-                      <td className="px-3 py-3 text-xs text-gray-500">
+                      <td className="px-3 py-3 text-xs text-slate-500">
                         {parent ? (
                           <span className="inline-flex items-center gap-1 text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded font-medium">
                             Hereda fila {parent.row_number}
                           </span>
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-slate-300">—</span>
                         )}
                       </td>
                       <td className="px-3 py-3 text-right">
@@ -300,7 +300,7 @@ export default function SeccionRevisionPage() {
 
       {/* Summary */}
       {!isLoading && allRows.length > 0 && (
-        <div className="flex items-center gap-4 text-xs text-gray-400">
+        <div className="flex items-center gap-4 text-xs text-slate-400">
           <span>{allRows.length} filas</span>
           <span>{statusCounts.aprobadas} aprobadas</span>
           <span>{statusCounts.revisadas} revisadas</span>

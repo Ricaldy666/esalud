@@ -13,7 +13,7 @@ interface CertificationStatusBadgeProps {
 export function CertificationStatusBadge({ estado }: CertificationStatusBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[estado] ?? 'bg-gray-100 text-gray-500 border-gray-200'}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[estado] ?? 'bg-slate-100 text-slate-500 border-slate-200'}`}
     >
       {estado}
     </span>

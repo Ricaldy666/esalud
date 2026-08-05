@@ -15,11 +15,11 @@ export const HelpTooltip: React.FC<Props> = ({ text, className }) => {
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
-      <HelpCircle className="h-3.5 w-3.5 text-gray-400 cursor-help" />
+      <HelpCircle className="h-3.5 w-3.5 text-slate-400 cursor-help" />
       {visible && (
-        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-800 text-white text-xs rounded-lg shadow-lg whitespace-nowrap z-50 pointer-events-none">
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-slate-800 text-white text-xs rounded-lg shadow-lg whitespace-nowrap z-50 pointer-events-none">
           {text}
-          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
         </span>
       )}
     </span>

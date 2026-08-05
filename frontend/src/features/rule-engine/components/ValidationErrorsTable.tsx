@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+﻿import React, { useMemo, useState } from 'react'
 import type { ValidationError } from '../types/validation'
 import { SeverityBadge } from './SeverityBadge'
 import { getErrorTypeShort, getRuleTypeLabel } from '../utils/labels'
@@ -54,7 +54,9 @@ function buildSectionGroups(errors: ValidationError[]): SectionGroup[] {
 export const ValidationErrorsTable: React.FC<Props> = ({ errors, groupFunctionalBySection }) => {
   if (errors.length === 0) {
     return (
-      <div className="py-8 text-center text-sm text-gray-400">No hay advertencias que mostrar.</div>
+      <div className="py-8 text-center text-sm text-slate-400">
+        No hay advertencias que mostrar.
+      </div>
     )
   }
 
@@ -81,21 +83,21 @@ const SectionGroupCard: React.FC<{ group: SectionGroup }> = ({ group }) => {
   const [open, setOpen] = useState(true)
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50"
       >
         <div className="flex min-w-0 items-center gap-2">
           {open ? (
-            <ChevronDown className="h-4 w-4 shrink-0 text-gray-400" />
+            <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
           ) : (
-            <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" />
+            <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />
           )}
-          <span className="shrink-0 font-mono text-xs font-semibold text-gray-500">
+          <span className="shrink-0 font-mono text-xs font-semibold text-slate-500">
             Sección {group.code}
           </span>
-          <span className="truncate text-sm font-medium text-gray-800">{group.name}</span>
+          <span className="truncate text-sm font-medium text-slate-800">{group.name}</span>
         </div>
         <span className="shrink-0 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-semibold text-indigo-700">
           {group.errors.length} advertencia{group.errors.length !== 1 ? 's' : ''}
@@ -103,7 +105,7 @@ const SectionGroupCard: React.FC<{ group: SectionGroup }> = ({ group }) => {
       </button>
 
       {open && (
-        <div className="divide-y divide-gray-100 border-t border-gray-100">
+        <div className="divide-y divide-slate-100 border-t border-slate-100">
           {group.errors.map((error) => (
             <FunctionalWarningCard key={error.id} error={error} />
           ))}
@@ -118,11 +120,13 @@ const FunctionalWarningCard: React.FC<{ error: ValidationError }> = ({ error }) 
     <div className="p-4">
       <div className="mb-1 flex flex-wrap items-center gap-2">
         <SeverityBadge severity={error.severidad} />
-        <span className="text-xs text-gray-400">Fila {error.row_number ?? '—'}</span>
+        <span className="text-xs text-slate-400">Fila {error.row_number ?? '—'}</span>
       </div>
 
-      <p className="text-sm text-gray-800">{error.mensaje}</p>
-      {error.recomendacion && <p className="mt-0.5 text-xs text-gray-500">{error.recomendacion}</p>}
+      <p className="text-sm text-slate-800">{error.mensaje}</p>
+      {error.recomendacion && (
+        <p className="mt-0.5 text-xs text-slate-500">{error.recomendacion}</p>
+      )}
 
       {error.criterio ? (
         <FunctionalErrorDetail error={error} />
@@ -134,16 +138,16 @@ const FunctionalWarningCard: React.FC<{ error: ValidationError }> = ({ error }) 
 
       <div className="mt-2">
         <TechnicalInfo title="Información técnica">
-          <div className="space-y-1 p-3 text-xs text-gray-600">
+          <div className="space-y-1 p-3 text-xs text-slate-600">
             <div>
               Tipo de regla:{' '}
-              <span className="font-medium text-gray-800">{getRuleTypeLabel(error.tipo)}</span>
+              <span className="font-medium text-slate-800">{getRuleTypeLabel(error.tipo)}</span>
             </div>
             <div>
-              Campo: <span className="font-medium text-gray-800">{error.campo}</span>
+              Campo: <span className="font-medium text-slate-800">{error.campo}</span>
             </div>
             <div>
-              Columna: <span className="font-medium text-gray-800">{error.columna}</span>
+              Columna: <span className="font-medium text-slate-800">{error.columna}</span>
             </div>
           </div>
         </TechnicalInfo>
@@ -154,7 +158,7 @@ const FunctionalWarningCard: React.FC<{ error: ValidationError }> = ({ error }) 
 
 const FlatErrorList: React.FC<{ errors: ValidationError[] }> = ({ errors }) => {
   return (
-    <div className="divide-y divide-gray-100">
+    <div className="divide-y divide-slate-100">
       {errors.map((error) => (
         <FlatErrorRow key={error.id} error={error} />
       ))}
@@ -171,12 +175,12 @@ const FlatErrorRow: React.FC<{ error: ValidationError }> = ({ error }) => {
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-gray-50"
+        className="flex w-full items-start gap-3 px-3 py-3 text-left transition-colors hover:bg-slate-50"
       >
         {open ? (
-          <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+          <ChevronDown className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
         ) : (
-          <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" />
+          <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
         )}
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
@@ -187,12 +191,12 @@ const FlatErrorRow: React.FC<{ error: ValidationError }> = ({ error }) => {
               <TypeIcon className="h-3 w-3" />
               {getErrorTypeShort(error.tipo_error)}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-slate-400">
               {error.form} · {error.section}
             </span>
           </div>
-          <p className="text-sm text-gray-800">{error.mensaje}</p>
-          <p className="mt-0.5 text-xs text-gray-500">
+          <p className="text-sm text-slate-800">{error.mensaje}</p>
+          <p className="mt-0.5 text-xs text-slate-500">
             {error.filas_afectadas}/{error.filas_totales} fila(s) afectada(s)
           </p>
         </div>
@@ -207,16 +211,16 @@ const FlatErrorRow: React.FC<{ error: ValidationError }> = ({ error }) => {
           )}
 
           <TechnicalInfo title="Información técnica">
-            <div className="space-y-1 p-3 text-xs text-gray-600">
+            <div className="space-y-1 p-3 text-xs text-slate-600">
               <div>
-                Campo: <span className="font-medium text-gray-800">{error.campo}</span>
+                Campo: <span className="font-medium text-slate-800">{error.campo}</span>
               </div>
               <div>
-                Columna: <span className="font-medium text-gray-800">{error.columna}</span>
+                Columna: <span className="font-medium text-slate-800">{error.columna}</span>
               </div>
               <div>
                 Tipo de regla:{' '}
-                <span className="font-medium text-gray-800">{getRuleTypeLabel(error.tipo)}</span>
+                <span className="font-medium text-slate-800">{getRuleTypeLabel(error.tipo)}</span>
               </div>
             </div>
           </TechnicalInfo>

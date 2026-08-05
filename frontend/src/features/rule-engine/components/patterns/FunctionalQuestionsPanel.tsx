@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useState } from 'react'
+﻿import { type ReactNode, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, CheckCircle2, Lock, Save } from 'lucide-react'
 import { toast } from 'sonner'
@@ -1011,13 +1011,13 @@ export default function FunctionalQuestionsPanel({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="px-6 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-gray-900">
+          <h3 className="text-base font-semibold text-slate-900">
             Preguntas funcionales por patrón
           </h3>
-          <p className="text-sm text-gray-500 mt-1">Definiciones pendientes para Estadística</p>
+          <p className="text-sm text-slate-500 mt-1">Definiciones pendientes para Estadística</p>
         </div>
         <div className="flex items-center gap-2">
           {readOnly && (
@@ -1039,7 +1039,7 @@ export default function FunctionalQuestionsPanel({
         </div>
       </div>
 
-      <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+      <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-7">
           <SummaryStat label="Estado" value={sectionReviewed ? 'Revisada' : sectionSummary.state} />
           <SummaryStat label="Patrones" value={String(sectionSummary.totalPatterns)} />
@@ -1077,8 +1077,8 @@ export default function FunctionalQuestionsPanel({
       </div>
 
       <div className="p-6 space-y-6">
-        <div className="border border-gray-200 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-gray-700 mb-3">Preguntas generales</h4>
+        <div className="border border-slate-200 rounded-lg p-4">
+          <h4 className="text-sm font-semibold text-slate-700 mb-3">Preguntas generales</h4>
           <div className="space-y-3">
             {generalQuestions.map((question) => {
               const value = responses[question.id] ?? initialByKey.get(question.id)?.response ?? ''
@@ -1141,19 +1141,19 @@ export default function FunctionalQuestionsPanel({
             ).length
 
             return (
-              <div key={pattern.id} className="border border-gray-200 rounded-lg p-4">
+              <div key={pattern.id} className="border border-slate-200 rounded-lg p-4">
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h4 className="text-sm font-semibold text-indigo-700">
                       {patternDisplayName(pattern)}
                     </h4>
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-slate-500">
                       {answered}/{total} preguntas respondidas · {pending} pendientes ·{' '}
                       {observationCount} observaciones
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
                       {percent}%
                     </span>
                     <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
@@ -1173,7 +1173,7 @@ export default function FunctionalQuestionsPanel({
                           disabled={
                             !eligible || equivalentCount === 0 || reviewed || saveMutation.isPending
                           }
-                          className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Aplicar a patrones equivalentes
                         </button>
@@ -1339,20 +1339,20 @@ function ConfirmedPatternActions({
           {rules.map((rule) => (
             <div
               key={`${pattern.id}-${rule.total_column}-technical`}
-              className="rounded-md bg-gray-50 p-2"
+              className="rounded-md bg-slate-50 p-2"
             >
               <div>
-                <span className="font-medium text-gray-600">Destino:</span>{' '}
+                <span className="font-medium text-slate-600">Destino:</span>{' '}
                 <span className="font-mono">{rule.destination || rule.total_column}</span>
               </div>
               <div>
-                <span className="font-medium text-gray-600">Origen:</span>{' '}
+                <span className="font-medium text-slate-600">Origen:</span>{' '}
                 <span className="font-mono">
                   {rule.origin_coordinates?.join(', ') || rule.origin_columns.join(', ')}
                 </span>
               </div>
               <div>
-                <span className="font-medium text-gray-600">Fórmula:</span>{' '}
+                <span className="font-medium text-slate-600">Fórmula:</span>{' '}
                 <span className="font-mono">{rule.formula_exacta || rule.formula_template}</span>
               </div>
             </div>
@@ -1392,7 +1392,7 @@ function ConfirmedPatternActions({
             value={observation}
             onChange={(event) => onObservationChange(event.target.value)}
             disabled={readOnly}
-            className="w-full rounded-lg border border-amber-300 px-3 py-2 text-xs focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:bg-gray-100 disabled:text-gray-500"
+            className="w-full rounded-lg border border-amber-300 px-3 py-2 text-xs focus:border-amber-500 focus:ring-1 focus:ring-amber-500 disabled:bg-slate-100 disabled:text-slate-500"
             placeholder="Describa el problema detectado en la estructura, fórmula u origen."
           />
           {observationMissing && (
@@ -1470,9 +1470,9 @@ function QuestionGroup({
   children: ReactNode
 }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-3">
+    <div className="rounded-lg border border-slate-200 bg-white p-3">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h5 className="text-xs font-semibold uppercase tracking-wide text-gray-600">{title}</h5>
+        <h5 className="text-xs font-semibold uppercase tracking-wide text-slate-600">{title}</h5>
         {hint && (
           <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-700">
             {hint}
@@ -1495,9 +1495,9 @@ function PatternFact({ label, value }: { label: string; value: string }) {
 
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
-      <div className="text-[11px] font-medium text-gray-500">{label}</div>
-      <div className="mt-0.5 text-sm font-semibold text-gray-900">{value}</div>
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+      <div className="text-[11px] font-medium text-slate-500">{label}</div>
+      <div className="mt-0.5 text-sm font-semibold text-slate-900">{value}</div>
     </div>
   )
 }
@@ -1526,9 +1526,9 @@ function QuestionRow({
   onObservationChange: (value: string) => void
 }) {
   return (
-    <div className="grid grid-cols-1 gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3 lg:grid-cols-3">
       <div>
-        <label className="text-xs font-medium text-gray-700">{label}</label>
+        <label className="text-xs font-medium text-slate-700">{label}</label>
         {legacy && value && (
           <div className="mt-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] text-amber-800">
             Respuesta anterior: {value}
@@ -1538,7 +1538,7 @@ function QuestionRow({
           <div className="mt-1 text-[11px] font-medium text-amber-700">{helperText}</div>
         )}
         {!observationMissing && helperText && (
-          <div className="mt-1 text-[11px] text-gray-500">{helperText}</div>
+          <div className="mt-1 text-[11px] text-slate-500">{helperText}</div>
         )}
       </div>
       <div>
@@ -1546,7 +1546,7 @@ function QuestionRow({
           value={legacy ? '' : value}
           onChange={(event) => onValueChange(event.target.value)}
           disabled={readOnly}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
         >
           <option value="">
             {legacy && value ? 'Mantener respuesta anterior' : 'Seleccione una respuesta'}
@@ -1564,7 +1564,7 @@ function QuestionRow({
           value={observation}
           onChange={(event) => onObservationChange(event.target.value)}
           disabled={readOnly}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-xs focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-100 disabled:text-gray-500"
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
           placeholder="Observación opcional"
         />
       </div>

@@ -1,3 +1,12 @@
+import { Label } from '@/shared/components/ui/label'
+import { Button } from '@/shared/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 import type { CatalogFilters } from '../types/certification'
 
 interface RuleCatalogFiltersProps {
@@ -9,8 +18,11 @@ interface RuleCatalogFiltersProps {
   onReset: () => void
 }
 
-const SELECT_CLASS =
-  'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full'
+const SELECT_TRIGGER_CLASS =
+  'h-9 w-full border-slate-300 bg-white text-sm text-slate-900 focus-visible:border-blue-500 focus-visible:ring-blue-500/30'
+const SELECT_CONTENT_CLASS = 'border border-slate-200 bg-white shadow-lg'
+const SELECT_ITEM_CLASS = 'text-slate-700 focus:bg-blue-50 focus:text-blue-700'
+const LABEL_CLASS = 'text-xs text-slate-500 mb-1 block'
 
 export function RuleCatalogFilters({
   filters,
@@ -22,59 +34,78 @@ export function RuleCatalogFilters({
 }: RuleCatalogFiltersProps) {
   return (
     <div className="flex flex-wrap gap-3 items-end">
-      <div>
-        <label className="text-xs font-medium text-gray-500 mb-1 block">Hoja</label>
-        <select
-          className={SELECT_CLASS}
-          value={filters.sheet}
-          onChange={(e) => onChange({ sheet: e.target.value })}
+      <div className="w-40">
+        <Label className={LABEL_CLASS}>Hoja</Label>
+        <Select
+          value={filters.sheet || 'all'}
+          onValueChange={(v: string | null) => onChange({ sheet: v && v !== 'all' ? v : '' })}
         >
-          <option value="">Todas las hojas</option>
-          {sheets.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+            <SelectValue placeholder="Todas las hojas" />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+            <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+              Todas las hojas
+            </SelectItem>
+            {sheets.map((s) => (
+              <SelectItem key={s} value={s} className={SELECT_ITEM_CLASS}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      <div>
-        <label className="text-xs font-medium text-gray-500 mb-1 block">Tipo</label>
-        <select
-          className={SELECT_CLASS}
-          value={filters.rule_type}
-          onChange={(e) => onChange({ rule_type: e.target.value })}
+      <div className="w-44">
+        <Label className={LABEL_CLASS}>Tipo</Label>
+        <Select
+          value={filters.rule_type || 'all'}
+          onValueChange={(v: string | null) => onChange({ rule_type: v && v !== 'all' ? v : '' })}
         >
-          <option value="">Todos los tipos</option>
-          {ruleTypes.map((t) => (
-            <option key={t} value={t}>
-              {t === 'sum_equals' ? 'Sum_Equals' : 'Required ≤ Parent'}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+            <SelectValue placeholder="Todos los tipos" />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+            <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+              Todos los tipos
+            </SelectItem>
+            {ruleTypes.map((t) => (
+              <SelectItem key={t} value={t} className={SELECT_ITEM_CLASS}>
+                {t === 'sum_equals' ? 'Sum_Equals' : 'Required ≤ Parent'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      <div>
-        <label className="text-xs font-medium text-gray-500 mb-1 block">Estado</label>
-        <select
-          className={SELECT_CLASS}
-          value={filters.status}
-          onChange={(e) => onChange({ status: e.target.value })}
+      <div className="w-44">
+        <Label className={LABEL_CLASS}>Estado</Label>
+        <Select
+          value={filters.status || 'all'}
+          onValueChange={(v: string | null) => onChange({ status: v && v !== 'all' ? v : '' })}
         >
-          <option value="">Todos los estados</option>
-          {statuses.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+            <SelectValue placeholder="Todos los estados" />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+            <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+              Todos los estados
+            </SelectItem>
+            {statuses.map((s) => (
+              <SelectItem key={s.key} value={s.key} className={SELECT_ITEM_CLASS}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       {Object.values(filters).some((v) => v !== '') && (
         <div className="self-end">
-          <button
+          <Button
+            variant="outline"
             onClick={onReset}
-            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            className="border-slate-300 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
           >
             Limpiar
-          </button>
+          </Button>
         </div>
       )}
     </div>

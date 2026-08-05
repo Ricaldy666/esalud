@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import type { ValidationError } from '../types/validation'
 
 interface FunctionalErrorDetailProps {
@@ -103,10 +103,10 @@ export const FunctionalErrorDetail: React.FC<FunctionalErrorDetailProps> = ({ er
                     Registrar 0
                   </span>
                 </div>
-                <div className="mt-1 text-xs font-medium text-gray-800">
+                <div className="mt-1 text-xs font-medium text-slate-800">
                   {cell.label || `Columna ${cell.column}`}
                 </div>
-                <div className="mt-1 text-[11px] text-gray-500">
+                <div className="mt-1 text-[11px] text-slate-500">
                   Editable: {cell.editable ? 'Si' : 'No'} | Bloqueada: {cell.blocked ? 'Si' : 'No'}
                   {cell.color ? ` | Color: ${cell.color}` : ''}
                 </div>
@@ -141,8 +141,8 @@ function Detail({
 }) {
   return (
     <div className={className}>
-      <span className="text-gray-500">{label}:</span>
-      <span className="ml-2 font-medium text-gray-800">{value}</span>
+      <span className="text-slate-500">{label}:</span>
+      <span className="ml-2 font-medium text-slate-800">{value}</span>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+﻿import { useQuery } from '@tanstack/react-query'
 import { Grid3X3, FileSpreadsheet, CheckCircle2, Clock } from 'lucide-react'
 import { calibrationService } from '../../services/calibration'
 import PatternCalibrationGroup from './PatternCalibrationGroup'
@@ -70,14 +70,14 @@ export default function PatternCalibrationSummary({ sheet, section, readOnly = f
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Grid3X3 className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-lg font-semibold text-gray-900">Calibración por patrones</h2>
-          <span className="text-sm text-gray-400">
+          <h2 className="text-lg font-semibold text-slate-900">Calibración por patrones</h2>
+          <span className="text-sm text-slate-400">
             ({totalPatternRows} filas calibrables · {patterns.length} patrones)
           </span>
         </div>
         <a
           href={calibrationService.getCalibrationExportUrl(sheet, section)}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <FileSpreadsheet className="w-4 h-4" />
           Exportar Excel
@@ -85,31 +85,31 @@ export default function PatternCalibrationSummary({ sheet, section, readOnly = f
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div className="flex items-center gap-2">
             <Grid3X3 className="w-4 h-4 text-indigo-500" />
-            <span className="text-xs text-gray-500">Patrones</span>
+            <span className="text-xs text-slate-500">Patrones</span>
           </div>
           <div className="text-2xl font-bold text-indigo-600 mt-1">{patterns.length}</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="w-4 h-4 text-blue-500" />
-            <span className="text-xs text-gray-500">Filas calibrables</span>
+            <span className="text-xs text-slate-500">Filas calibrables</span>
           </div>
           <div className="text-2xl font-bold text-blue-600 mt-1">{totalPatternRows}</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-500" />
-            <span className="text-xs text-gray-500">Evidencia directa</span>
+            <span className="text-xs text-slate-500">Evidencia directa</span>
           </div>
           <div className="text-2xl font-bold text-green-600 mt-1">{summary.cubiertas_directas}</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-yellow-500" />
-            <span className="text-xs text-gray-500">Pendientes funcionales</span>
+            <span className="text-xs text-slate-500">Pendientes funcionales</span>
           </div>
           <div className="text-2xl font-bold text-yellow-600 mt-1">
             {summary.pendientes_definicion_funcional}
@@ -117,12 +117,14 @@ export default function PatternCalibrationSummary({ sheet, section, readOnly = f
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 text-xs p-3 bg-gray-50 rounded-lg">
-        <span className="font-medium text-gray-700">Leyenda de colores (RGB reales del XLSM):</span>
+      <div className="flex flex-wrap gap-4 text-xs p-3 bg-slate-50 rounded-lg">
+        <span className="font-medium text-slate-700">
+          Leyenda de colores (RGB reales del XLSM):
+        </span>
         {COLOR_LEGEND.map((cl) => (
           <div key={cl.rgb} className="flex items-center gap-1.5">
             <span className="inline-block w-4 h-4 rounded" style={cl.style} />
-            <span className="text-gray-600">
+            <span className="text-slate-600">
               {cl.rgb} = {cl.label} ({cl.desc})
             </span>
           </div>

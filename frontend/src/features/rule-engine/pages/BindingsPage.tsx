@@ -1,17 +1,30 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Layers, Eye } from 'lucide-react'
 import { useBindings } from '../hooks/useBindings'
 import { DataTable } from '@/shared/components/DataTable'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { Input } from '@/shared/components/ui/input'
-import { Eye } from 'lucide-react'
+import { Label } from '@/shared/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/ui/select'
 import { HelpTooltip } from '../components/HelpTooltip'
 import { getHelpText, getBindableTypeLabel } from '../utils/labels'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { Binding, BindingFilters } from '../types/binding'
 
-const SELECT_CLASS =
-  'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none'
+const SELECT_TRIGGER_CLASS =
+  'h-9 w-full border-slate-300 bg-white text-sm text-slate-900 focus-visible:border-blue-500 focus-visible:ring-blue-500/30'
+const SELECT_CONTENT_CLASS = 'border border-slate-200 bg-white shadow-lg'
+const SELECT_ITEM_CLASS = 'text-slate-700 focus:bg-blue-50 focus:text-blue-700'
+const INPUT_CLASS =
+  'border-slate-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:border-blue-500 focus-visible:ring-blue-500/30'
+const LABEL_CLASS = 'text-xs text-slate-500 mb-1 block'
 
 export default function BindingsPage() {
   const navigate = useNavigate()
@@ -48,7 +61,7 @@ export default function BindingsPage() {
       header: 'Código de Regla',
       accessorKey: 'rule.rule_key',
       cell: ({ row }) => (
-        <span className="font-mono text-sm text-gray-900">
+        <span className="font-mono text-sm text-slate-900">
           {row.original.rule?.rule_key ?? '—'}
         </span>
       ),
@@ -57,7 +70,7 @@ export default function BindingsPage() {
       header: 'Nombre',
       accessorKey: 'rule.name',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-700 truncate max-w-[200px] block">
+        <span className="text-sm text-slate-700 truncate max-w-[200px] block">
           {row.original.rule?.name ?? '—'}
         </span>
       ),
@@ -66,7 +79,7 @@ export default function BindingsPage() {
       header: 'Tipo',
       accessorKey: 'bindable_type',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-600 capitalize">
+        <span className="text-sm text-slate-600 capitalize">
           {getBindableTypeLabel(row.original.bindable_type)}
         </span>
       ),
@@ -75,13 +88,13 @@ export default function BindingsPage() {
       header: 'Serie',
       accessorKey: 'serie',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-900 font-mono">{row.original.serie ?? '—'}</span>
+        <span className="text-sm text-slate-900 font-mono">{row.original.serie ?? '—'}</span>
       ),
     },
     {
       header: 'Año',
       accessorKey: 'anio',
-      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.anio ?? '—'}</span>,
+      cell: ({ row }) => <span className="text-sm text-slate-600">{row.original.anio ?? '—'}</span>,
     },
     {
       header: 'Estado',
@@ -117,7 +130,7 @@ export default function BindingsPage() {
       header: 'Fecha',
       accessorKey: 'created_at',
       cell: ({ row }) => (
-        <span className="text-sm text-gray-500 whitespace-nowrap">
+        <span className="text-sm text-slate-500 whitespace-nowrap">
           {new Date(row.original.created_at).toLocaleDateString('es-CL')}
         </span>
       ),
@@ -138,93 +151,139 @@ export default function BindingsPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <PageHeader
-          title="Relaciones de Reglas"
-          description="Indica en qué formularios REM se aplica cada regla de consistencia"
-        />
-        <HelpTooltip text={getHelpText('bindings') ?? ''} />
-      </div>
-
-      <div className="flex flex-wrap gap-3 items-end">
-        <div className="w-full max-w-sm">
-          <Input
-            placeholder="Buscar por código o nombre de regla..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(1)
-            }}
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Tipo</label>
-          <select
-            className={SELECT_CLASS}
-            value={filters.bindable_type ?? ''}
-            onChange={(e) => handleFilterChange('bindable_type', e.target.value)}
-          >
-            <option value="">Todos</option>
-            <option value="structure">Estructura</option>
-            <option value="serie">Serie</option>
-            <option value="global">Global</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Serie</label>
-          <select
-            className={SELECT_CLASS}
-            value={filters.serie ?? ''}
-            onChange={(e) => handleFilterChange('serie', e.target.value)}
-          >
-            <option value="">Todas</option>
-            <option value="A">A</option>
-            <option value="BM">BM</option>
-            <option value="BS">BS</option>
-            <option value="D">D</option>
-            <option value="P">P</option>
-          </select>
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Año</label>
-          <Input
-            type="number"
-            placeholder="2026"
-            className="w-24"
-            value={filters.anio ?? ''}
-            onChange={(e) =>
-              handleFilterChange('anio', e.target.value ? Number(e.target.value) : undefined)
-            }
-          />
-        </div>
-        <div>
-          <label className="text-xs font-medium text-gray-500 mb-1 block">Estado</label>
-          <select
-            className={SELECT_CLASS}
-            value={filters.active === undefined ? '' : String(filters.active)}
-            onChange={(e) => {
-              const val = e.target.value
-              setFilters((prev) => ({ ...prev, active: val === '' ? undefined : val === 'true' }))
-              setPage(1)
-            }}
-          >
-            <option value="">Todos</option>
-            <option value="true">Activo</option>
-            <option value="false">Inactivo</option>
-          </select>
-        </div>
-      </div>
-
-      <DataTable<Binding>
-        key={`${page}-${debouncedSearch}-${JSON.stringify(filters)}`}
-        columns={columns}
-        data={data?.data ?? []}
-        loading={isLoading}
-        pagination={data?.meta}
-        onPageChange={setPage}
-        emptyMessage="No se encontraron relaciones de reglas"
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Relaciones de Reglas"
+        description="Indica en qué formularios REM se aplica cada regla de consistencia"
+        icon={Layers}
+        actions={<HelpTooltip text={getHelpText('bindings') ?? ''} />}
       />
+
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="mb-4 flex flex-wrap items-end gap-3">
+          <div className="w-full max-w-sm">
+            <Input
+              placeholder="Buscar por código o nombre de regla..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value)
+                setPage(1)
+              }}
+              className={INPUT_CLASS}
+            />
+          </div>
+          <div className="w-36">
+            <Label className={LABEL_CLASS}>Tipo</Label>
+            <Select
+              value={filters.bindable_type ?? 'all'}
+              onValueChange={(v: string | null) =>
+                handleFilterChange('bindable_type', v && v !== 'all' ? v : undefined)
+              }
+            >
+              <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+                  Todos
+                </SelectItem>
+                <SelectItem value="structure" className={SELECT_ITEM_CLASS}>
+                  Estructura
+                </SelectItem>
+                <SelectItem value="serie" className={SELECT_ITEM_CLASS}>
+                  Serie
+                </SelectItem>
+                <SelectItem value="global" className={SELECT_ITEM_CLASS}>
+                  Global
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-28">
+            <Label className={LABEL_CLASS}>Serie</Label>
+            <Select
+              value={filters.serie ?? 'all'}
+              onValueChange={(v: string | null) =>
+                handleFilterChange('serie', v && v !== 'all' ? v : undefined)
+              }
+            >
+              <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+                  Todas
+                </SelectItem>
+                <SelectItem value="A" className={SELECT_ITEM_CLASS}>
+                  A
+                </SelectItem>
+                <SelectItem value="BM" className={SELECT_ITEM_CLASS}>
+                  BM
+                </SelectItem>
+                <SelectItem value="BS" className={SELECT_ITEM_CLASS}>
+                  BS
+                </SelectItem>
+                <SelectItem value="D" className={SELECT_ITEM_CLASS}>
+                  D
+                </SelectItem>
+                <SelectItem value="P" className={SELECT_ITEM_CLASS}>
+                  P
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className={LABEL_CLASS}>Año</Label>
+            <Input
+              type="number"
+              placeholder="2026"
+              className={`w-24 ${INPUT_CLASS}`}
+              value={filters.anio ?? ''}
+              onChange={(e) =>
+                handleFilterChange('anio', e.target.value ? Number(e.target.value) : undefined)
+              }
+            />
+          </div>
+          <div className="w-32">
+            <Label className={LABEL_CLASS}>Estado</Label>
+            <Select
+              value={filters.active === undefined ? 'all' : String(filters.active)}
+              onValueChange={(v: string | null) => {
+                setFilters((prev) => ({
+                  ...prev,
+                  active: !v || v === 'all' ? undefined : v === 'true',
+                }))
+                setPage(1)
+              }}
+            >
+              <SelectTrigger className={SELECT_TRIGGER_CLASS}>
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false} className={SELECT_CONTENT_CLASS}>
+                <SelectItem value="all" className={SELECT_ITEM_CLASS}>
+                  Todos
+                </SelectItem>
+                <SelectItem value="true" className={SELECT_ITEM_CLASS}>
+                  Activo
+                </SelectItem>
+                <SelectItem value="false" className={SELECT_ITEM_CLASS}>
+                  Inactivo
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DataTable<Binding>
+          key={`${page}-${debouncedSearch}-${JSON.stringify(filters)}`}
+          columns={columns}
+          data={data?.data ?? []}
+          loading={isLoading}
+          pagination={data?.meta}
+          onPageChange={setPage}
+          emptyMessage="No se encontraron relaciones de reglas"
+        />
+      </div>
     </div>
   )
 }
