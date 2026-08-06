@@ -1,10 +1,16 @@
 ﻿import { type ReactNode, useMemo, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, CheckCircle2, Lock, Save } from 'lucide-react'
+import { AlertCircle, AlertTriangle, CheckCircle2, History, Lock, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
 import { calibrationService } from '../../services/calibration'
-import type { CalibrationQuestion, ColumnGroup, PatternGroup } from '../../types/calibration'
+import type {
+  CalibrationQuestion,
+  ColumnGroup,
+  PatternGroup,
+  PatternMatrixReconciliation,
+  PatternReconciliationStatus,
+} from '../../types/calibration'
 
 interface Props {
   sheet: string
@@ -14,6 +20,25 @@ interface Props {
   initialQuestions: CalibrationQuestion[]
   warnings?: string[]
   readOnly?: boolean
+  reconciliation?: PatternMatrixReconciliation
+}
+
+const RECONCILIATION_LABELS: Record<PatternReconciliationStatus, string> = {
+  reviewed: 'Revisado',
+  pending: 'Pendiente',
+  requiere_revalidacion: 'Requiere revalidación',
+  unresolved: 'Sin resolver',
+}
+
+const RECONCILIATION_STYLES: Record<PatternReconciliationStatus, string> = {
+  reviewed: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  pending: 'border-slate-200 bg-slate-100 text-slate-600',
+  requiere_revalidacion: 'border-amber-300 bg-amber-50 text-amber-800',
+  unresolved: 'border-red-200 bg-red-50 text-red-700',
+}
+
+function needsRevalidation(status: PatternReconciliationStatus | undefined) {
+  return status === 'requiere_revalidacion' || status === 'unresolved'
 }
 
 type ReviewState = 'Sin iniciar' | 'En revisión' | 'Revisado' | 'Con observaciones'
@@ -559,6 +584,7 @@ export default function FunctionalQuestionsPanel({
   initialQuestions,
   warnings = [],
   readOnly = false,
+  reconciliation,
 }: Props) {
   const user = useAuthStore((state) => state.user)
   const queryClient = useQueryClient()
@@ -576,13 +602,42 @@ export default function FunctionalQuestionsPanel({
     sectionHasCompleteCellEvidence(patterns, warnings)
   )
 
+  const patternById = useMemo(
+    () => new Map(patterns.map((pattern) => [pattern.id, pattern])),
+    [patterns]
+  )
+
+  // Patrones cuya reconciliacion vigente (calculada por el backend, nunca
+  // por el frontend) indica que la respuesta guardada no puede aplicarse
+  // automaticamente: se excluyen de effectiveInitialQuestions para que la
+  // pantalla nunca precargue una respuesta historica como si fuera vigente
+  // -- el usuario debe revisarla y volver a guardarla explicitamente.
+  const blockedPatternIds = useMemo(
+    () =>
+      new Set(
+        patterns
+          .filter((pattern) => needsRevalidation(pattern.reconciliation_status))
+          .map((pattern) => pattern.id)
+      ),
+    [patterns]
+  )
+
+  const effectiveInitialQuestions = useMemo(
+    () =>
+      initialQuestions.filter((question) => {
+        if (question.pattern_id === undefined) return true
+        return !blockedPatternIds.has(question.pattern_id)
+      }),
+    [initialQuestions, blockedPatternIds]
+  )
+
   const initialByKey = useMemo(() => {
     const map = new Map<string, CalibrationQuestion>()
-    for (const question of initialQuestions) {
+    for (const question of effectiveInitialQuestions) {
       map.set(questionKey(question), question)
     }
     return map
-  }, [initialQuestions])
+  }, [effectiveInitialQuestions])
 
   const initialState = useMemo(() => {
     const responses: Record<string, string> = {}
@@ -590,7 +645,7 @@ export default function FunctionalQuestionsPanel({
     const reviewedPatterns: Record<number, boolean> = {}
     let sectionReviewed = false
 
-    for (const question of initialQuestions) {
+    for (const question of effectiveInitialQuestions) {
       const key = questionKey(question)
       if (question.response) responses[key] = question.response
       if (question.observation) observations[key] = question.observation
@@ -601,7 +656,7 @@ export default function FunctionalQuestionsPanel({
     }
 
     return { responses, observations, reviewedPatterns, sectionReviewed }
-  }, [initialQuestions])
+  }, [effectiveInitialQuestions])
 
   const [responseChanges, setResponseChanges] = useState<Record<string, string>>({})
   const [observationChanges, setObservationChanges] = useState<Record<string, string>>({})
@@ -621,6 +676,15 @@ export default function FunctionalQuestionsPanel({
     [initialState.reviewedPatterns, reviewedPatternChanges]
   )
   const sectionReviewed = initialState.sectionReviewed || sectionReviewedChange
+  // La marca historica (section_review guardado en el JSON) se preserva tal
+  // cual para mostrarla como antecedente. El estado EFECTIVO viene siempre
+  // del backend (PatternReconciliationService::computeEffectiveSectionReviewed()),
+  // nunca se recalcula en el frontend -- si aun no se marcó nunca como
+  // revisada, tampoco puede estar "efectivamente" revisada.
+  const historicalSectionReviewed = reconciliation?.historical_section_reviewed ?? sectionReviewed
+  const effectiveSectionReviewed =
+    sectionReviewed && (reconciliation?.effective_section_reviewed ?? true)
+  const blockedPatternCount = blockedPatternIds.size
 
   const buildQuestion = (
     key: string,
@@ -640,16 +704,27 @@ export default function FunctionalQuestionsPanel({
   }
 
   const buildAllQuestions = (extra: CalibrationQuestion[] = []) => {
+    // Se construye a partir de effectiveInitialQuestions (no de
+    // initialQuestions cruda): una respuesta historica bloqueada por
+    // requiere_revalidacion nunca debe reaparecer como "existente" al
+    // guardar otro cambio de la misma seccion -- de lo contrario quedaria
+    // re-certificada silenciosamente con datos obsoletos.
     const existingByKey = new Map<string, CalibrationQuestion>()
-    for (const question of initialQuestions) {
+    for (const question of effectiveInitialQuestions) {
       existingByKey.set(questionKey(question), question)
     }
 
     const next: CalibrationQuestion[] = []
 
     for (const pattern of patterns) {
-      const isReviewed = reviewedPatterns[pattern.id]
+      const blocked = needsRevalidation(pattern.reconciliation_status)
+      const isReviewed = !blocked && reviewedPatterns[pattern.id]
       const definitions = questionsForPattern(pattern, patternQuestions, warnings)
+      const identity = {
+        pattern_fingerprint: pattern.row_fingerprint,
+        pattern_rows: pattern.pattern_rows,
+        reconciliation_status: pattern.reconciliation_status,
+      }
 
       if (hasCompleteCellEvidence(pattern, warnings)) {
         const id = patternFormulaConfirmationId(pattern.id)
@@ -663,6 +738,7 @@ export default function FunctionalQuestionsPanel({
             type: 'pattern_confirmation',
             question: 'Confirmacion del patron detectado desde el XLSM',
             suggests_block: false,
+            ...identity,
           },
           {
             review_status: isReviewed
@@ -688,6 +764,7 @@ export default function FunctionalQuestionsPanel({
             type: 'pattern_question',
             question: patternQuestionText(pattern, definition),
             suggests_block: false,
+            ...identity,
           },
           {
             review_status: isReviewed
@@ -785,7 +862,10 @@ export default function FunctionalQuestionsPanel({
         reviewed,
         percent,
         canReview:
-          pattern.source !== 'structure_inferred' && answered === total && pendingObservation === 0,
+          pattern.source !== 'structure_inferred' &&
+          answered === total &&
+          pendingObservation === 0 &&
+          !needsRevalidation(pattern.reconciliation_status),
         state: stateLabel({ reviewed, answered, total, pendingObservation }),
       }
     })
@@ -837,6 +917,15 @@ export default function FunctionalQuestionsPanel({
     if (!isSuggestionEligible(pattern)) {
       toast.warning('Este patrón no tiene evidencia suficiente para sugerencias automáticas.')
       return
+    }
+    if (pattern.possible_business_exception) {
+      const confirmed = window.confirm(
+        'Este patrón fue detectado como posible excepción de negocio ' +
+          (pattern.exception_reason ? `(${pattern.exception_reason}) ` : '') +
+          'No debería heredar automáticamente la configuración estándar de la sección. ' +
+          '¿Aplicar de todas formas la sugerencia estándar a este patrón?'
+      )
+      if (!confirmed) return
     }
 
     let changed = 0
@@ -930,9 +1019,22 @@ export default function FunctionalQuestionsPanel({
     const detail = targets
       .map((pattern) => `Patrón ${pattern.id}: filas ${pattern.filas.join(', ')}`)
       .join('\n')
+    const exceptionTargets = targets.filter((pattern) => pattern.possible_business_exception)
+    const exceptionWarning =
+      sourcePattern.possible_business_exception || exceptionTargets.length > 0
+        ? '\n\n⚠ ' +
+          (sourcePattern.possible_business_exception
+            ? 'El patrón origen fue detectado como posible excepción de negocio. '
+            : '') +
+          (exceptionTargets.length > 0
+            ? `${exceptionTargets.length} patrón(es) destino también fueron detectados como posible excepción de negocio (patrón${exceptionTargets.length === 1 ? '' : 'es'} ${exceptionTargets.map((p) => p.id).join(', ')}). `
+            : '') +
+          'No debería asumirse herencia automática en estos casos: confirme el criterio funcional antes de continuar.'
+        : ''
+
     const confirmed = window.confirm(
       `Se aplicará a ${targets.length} patrón(es) equivalente(s).\n` +
-        `Hoja: ${sheet}\nSección: ${section}\nFórmula: ${formula}\nDestino: ${totals}\nOrigen: ${origins}\n${detail}\n\nNo se sobrescribirán respuestas existentes.`
+        `Hoja: ${sheet}\nSección: ${section}\nFórmula: ${formula}\nDestino: ${totals}\nOrigen: ${origins}\n${detail}\n\nNo se sobrescribirán respuestas existentes.${exceptionWarning}`
     )
 
     if (!confirmed) return
@@ -970,6 +1072,13 @@ export default function FunctionalQuestionsPanel({
   }
 
   const markPatternReviewed = (patternId: number) => {
+    if (needsRevalidation(patternById.get(patternId)?.reconciliation_status)) {
+      toast.warning(
+        'Este patrón requiere revalidación: responda de nuevo antes de marcarlo como revisado.'
+      )
+      return
+    }
+
     const reviewedAt = new Date().toISOString()
     setReviewedPatternChanges((prev) => ({ ...prev, [patternId]: true }))
 
@@ -1040,8 +1149,22 @@ export default function FunctionalQuestionsPanel({
       </div>
 
       <div className="border-b border-slate-200 bg-slate-50 px-6 py-4">
+        {historicalSectionReviewed && !effectiveSectionReviewed && (
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>
+              Esta sección fue certificada anteriormente, pero {blockedPatternCount} patrón
+              {blockedPatternCount === 1 ? '' : 'es'} cambiaron de filas y requieren revalidación.
+              La certificación histórica se conserva como antecedente, pero ya no cuenta como
+              vigente hasta que se revisen los patrones marcados.
+            </span>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-7">
-          <SummaryStat label="Estado" value={sectionReviewed ? 'Revisada' : sectionSummary.state} />
+          <SummaryStat
+            label="Estado"
+            value={effectiveSectionReviewed ? 'Revisada' : sectionSummary.state}
+          />
           <SummaryStat label="Patrones" value={String(sectionSummary.totalPatterns)} />
           <SummaryStat label="Revisados" value={String(sectionSummary.reviewedPatterns)} />
           <SummaryStat label="Pendientes" value={String(sectionSummary.pendingPatterns)} />
@@ -1066,11 +1189,16 @@ export default function FunctionalQuestionsPanel({
             </button>
             <button
               onClick={markSectionReviewed}
-              disabled={!sectionSummary.allReviewed || sectionReviewed || saveMutation.isPending}
+              disabled={
+                !sectionSummary.allReviewed ||
+                blockedPatternCount > 0 ||
+                effectiveSectionReviewed ||
+                saveMutation.isPending
+              }
               className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <CheckCircle2 className="h-4 w-4" />
-              {sectionReviewed ? 'Sección revisada' : 'Marcar sección como revisada'}
+              {effectiveSectionReviewed ? 'Sección revisada' : 'Marcar sección como revisada'}
             </button>
           </div>
         )}
@@ -1159,6 +1287,24 @@ export default function FunctionalQuestionsPanel({
                     <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
                       {state}
                     </span>
+                    <span
+                      className={`rounded-full border px-2.5 py-1 text-xs font-medium ${RECONCILIATION_STYLES[pattern.reconciliation_status]}`}
+                      title={
+                        pattern.backfill_status
+                          ? `backfill_status: ${pattern.backfill_status}`
+                          : undefined
+                      }
+                    >
+                      {RECONCILIATION_LABELS[pattern.reconciliation_status]}
+                    </span>
+                    {pattern.possible_business_exception && (
+                      <span
+                        className="rounded-full border border-purple-300 bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-800"
+                        title={pattern.exception_reason ?? undefined}
+                      >
+                        Posible excepción de negocio
+                      </span>
+                    )}
                     {!readOnly && (
                       <>
                         <button
@@ -1190,6 +1336,14 @@ export default function FunctionalQuestionsPanel({
                 </div>
 
                 <PatternExplanation pattern={pattern} section={section} />
+
+                {pattern.possible_business_exception && (
+                  <BusinessExceptionNotice pattern={pattern} />
+                )}
+
+                {needsRevalidation(pattern.reconciliation_status) && (
+                  <RevalidationNotice pattern={pattern} />
+                )}
 
                 {pendingObservation > 0 && (
                   <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
@@ -1456,6 +1610,88 @@ function PatternExplanation({ pattern, section }: { pattern: PatternGroup; secti
         />
         <PatternFact label="Fuente de evidencia" value={pattern.source ?? 'Sin fuente informada'} />
       </dl>
+    </div>
+  )
+}
+
+/**
+ * Se muestra cuando pattern.possible_business_exception es true -- una
+ * senal puramente estadistica calculada por el backend (patron de fila
+ * unica o grupo minoritario frente al patron dominante de la seccion,
+ * SectionCalibrationMatrixService::applyExceptionClassification()), nunca
+ * calculada aqui. Nace de la auditoria de A11 (2026-08-06): filas como
+ * "Mujeres en control ginecologico" o "Donantes de sangre" quedan solas
+ * porque su formula suma un rango de columnas distinto al patron dominante
+ * -- son excepciones de negocio genuinas que Estadistica debe confirmar
+ * explicitamente, nunca heredar por defecto de la configuracion general.
+ */
+function BusinessExceptionNotice({ pattern }: { pattern: PatternGroup }) {
+  return (
+    <div className="mb-4 rounded-lg border border-purple-300 bg-purple-50 px-4 py-3 text-xs text-purple-900">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div>
+          <p className="font-semibold">Posible excepción de negocio.</p>
+          <p className="mt-1">
+            {pattern.exception_reason ??
+              'Este patrón se detectó como minoritario frente al patrón dominante de la sección.'}{' '}
+            No asuma que este patrón hereda la configuración general de la sección: confirme el
+            criterio funcional específico de estas filas antes de aplicar sugerencias o copiar
+            respuestas desde otro patrón.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Se muestra cuando pattern.reconciliation_status es requiere_revalidacion o
+ * unresolved -- ambos calculados por el backend, nunca por este componente.
+ * La respuesta historica (si existe) solo se expone para consulta: nunca se
+ * precarga en el formulario ni se guarda de nuevo sin que el usuario la
+ * confirme explicitamente respondiendo el patron actual.
+ */
+function RevalidationNotice({ pattern }: { pattern: PatternGroup }) {
+  const historical = pattern.historical_reference
+
+  return (
+    <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+        <div>
+          <p className="font-semibold">Este patrón requiere revalidación.</p>
+          <p className="mt-1">
+            El conjunto de filas cambió respecto a la última vez que se respondió este patrón (u
+            otro que compartía filas con él). No se aplicó ninguna respuesta anterior
+            automáticamente. Responda nuevamente y guarde para certificar este patrón.
+          </p>
+        </div>
+      </div>
+      {historical && (
+        <details className="mt-3 rounded-md border border-amber-200 bg-white px-3 py-2">
+          <summary className="flex cursor-pointer items-center gap-1.5 font-medium text-amber-800">
+            <History className="h-3.5 w-3.5" />
+            Respuesta histórica disponible (solo consulta, no vigente)
+          </summary>
+          <div className="mt-2 space-y-1 text-amber-900">
+            <p>
+              <span className="font-medium">Respuesta anterior:</span>{' '}
+              {historical.response || 'Sin registro'}
+            </p>
+            {historical.reviewed_by && (
+              <p>
+                <span className="font-medium">Registrada por:</span> {historical.reviewed_by}
+                {historical.reviewed_at ? ` · ${historical.reviewed_at}` : ''}
+              </p>
+            )}
+            <p className="text-amber-700">
+              Esta respuesta pertenecía a un conjunto de filas distinto al vigente. Se muestra
+              únicamente como antecedente.
+            </p>
+          </div>
+        </details>
+      )}
     </div>
   )
 }

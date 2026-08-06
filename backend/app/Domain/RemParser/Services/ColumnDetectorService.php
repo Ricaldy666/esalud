@@ -23,6 +23,7 @@ class ColumnDetectorService
         string $highestCol,
         string $sheetName,
         ?string $codigoSeccion,
+        ?int $filaHeaderSuperior = null,
     ): array {
         $fields = [];
         $maxColIndex = Coordinate::columnIndexFromString($highestCol);
@@ -31,8 +32,19 @@ class ColumnDetectorService
         for ($col = 1; $col <= $maxColIndex; $col++) {
             $colLetter = Coordinate::stringFromColumnIndex($col);
             $headerValue = $this->getMergedCellValue($worksheet, $mergeMap, $colLetter, $filaHeader);
-
             $label = $this->cleanLabel($headerValue);
+
+            // Encabezado de dos filas fusionadas: si la columna esta vacia
+            // en la fila inferior (tipicamente donde viven las etiquetas
+            // especificas, ej. "10 - 14 años"), se usa como respaldo la
+            // fila superior (categoria general, ej. "TOTAL", que en un
+            // encabezado fusionado normalmente no se repite en la fila
+            // inferior).
+            if ($label === '' && $filaHeaderSuperior !== null) {
+                $superiorValue = $this->getMergedCellValue($worksheet, $mergeMap, $colLetter, $filaHeaderSuperior);
+                $label = $this->cleanLabel($superiorValue);
+            }
+
             if ($label === '') {
                 continue;
             }

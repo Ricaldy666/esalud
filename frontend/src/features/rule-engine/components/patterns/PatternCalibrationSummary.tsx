@@ -163,6 +163,7 @@ export default function PatternCalibrationSummary({ sheet, section, readOnly = f
         initialQuestions={data.questions}
         warnings={data.warnings}
         readOnly={readOnly}
+        reconciliation={data.reconciliation}
       />
     </div>
   )

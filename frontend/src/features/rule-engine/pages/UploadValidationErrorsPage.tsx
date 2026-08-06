@@ -14,7 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { Code, AlertTriangle, Info } from 'lucide-react'
+import { Code, AlertTriangle, Info, AlertCircle } from 'lucide-react'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { EmptyState } from '@/shared/components/EmptyState'
 
 const SEVERIDAD_OPTIONS = ['error', 'warning', 'info']
 
@@ -60,7 +62,11 @@ const UploadValidationErrorsPage: React.FC = () => {
     [form, severidad, errorTab]
   )
 
-  const { data: errors, loading, error } = useValidationErrors(id, filters)
+  const { data: errors, loading, error, refetch } = useValidationErrors(id, filters)
+  // "Sin datos disponibles" = todavia no llego ninguna respuesta exitosa
+  // (ni siquiera de una carga previa) -- distinto de "cargando de nuevo"
+  // tras cambiar un filtro, donde ya hay datos previos en pantalla.
+  const hasNoDataYet = loading && errors.length === 0
   const { data: summary } = useValidationSummary(id)
   const { groups, summary: execSummary } = useGroupedErrors(errors)
 
@@ -144,6 +150,7 @@ const UploadValidationErrorsPage: React.FC = () => {
             <Select
               value={form || 'all'}
               onValueChange={(v: string | null) => setForm(v && v !== 'all' ? v : '')}
+              disabled={hasNoDataYet}
             >
               <SelectTrigger className={SELECT_TRIGGER_CLASS}>
                 <SelectValue placeholder="Todos" />
@@ -165,6 +172,7 @@ const UploadValidationErrorsPage: React.FC = () => {
             <Select
               value={severidad || 'all'}
               onValueChange={(v: string | null) => setSeveridad(v && v !== 'all' ? v : '')}
+              disabled={hasNoDataYet}
             >
               <SelectTrigger className={SELECT_TRIGGER_CLASS}>
                 <SelectValue placeholder="Todas" />
@@ -183,6 +191,7 @@ const UploadValidationErrorsPage: React.FC = () => {
           </div>
           <Button
             variant="outline"
+            disabled={hasNoDataYet}
             onClick={() => {
               setForm('')
               setSeveridad('')
@@ -203,7 +212,8 @@ const UploadValidationErrorsPage: React.FC = () => {
           <button
             key={tab.key}
             onClick={() => setErrorTab(tab.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
+            disabled={hasNoDataYet}
+            className={`flex items-center gap-1.5 px-4 py-2 text-xs font-medium border-b-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               errorTab === tab.key
                 ? 'border-indigo-600 text-indigo-700'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
@@ -231,6 +241,7 @@ const UploadValidationErrorsPage: React.FC = () => {
             <Select
               value={sectionFilter || 'all'}
               onValueChange={(v: string | null) => setSectionFilter(v && v !== 'all' ? v : '')}
+              disabled={hasNoDataYet}
             >
               <SelectTrigger className={SELECT_TRIGGER_CLASS}>
                 <SelectValue placeholder="Todas las secciones" />
@@ -251,9 +262,32 @@ const UploadValidationErrorsPage: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="text-sm text-slate-500">Cargando errores...</div>
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <p className="text-sm font-semibold text-slate-700">Cargando resultados</p>
+          <p className="mt-1 text-xs text-slate-500">
+            El sistema está consultando y organizando las observaciones del formulario. Esto puede
+            tardar unos segundos.
+          </p>
+          <div className="mt-4 space-y-3">
+            <Skeleton className="h-5 w-2/3" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-5/6" />
+          </div>
+        </div>
       ) : error ? (
-        <div className="text-sm text-red-600">Error: {error}</div>
+        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <EmptyState
+            icon={<AlertCircle className="h-10 w-10 text-red-400" />}
+            title="No se pudieron cargar los resultados"
+            description={error}
+            action={
+              <Button variant="outline" onClick={refetch}>
+                Reintentar
+              </Button>
+            }
+          />
+        </div>
       ) : (
         <div className="space-y-4">
           {summary && (

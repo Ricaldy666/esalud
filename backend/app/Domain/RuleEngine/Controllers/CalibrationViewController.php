@@ -49,6 +49,13 @@ class CalibrationViewController extends Controller
             'questions.*.source_section' => 'nullable|string|max:50',
             'questions.*.technical_signature' => 'nullable|string',
             'questions.*.structure_version' => 'nullable|string|max:100',
+            'questions.*.pattern_rows' => 'nullable|array',
+            'questions.*.pattern_rows.*' => 'integer',
+            'questions.*.pattern_fingerprint' => 'nullable|string|max:100',
+            'questions.*.backfill_status' => 'nullable|string|max:50',
+            'questions.*.reconciliation_status' => 'nullable|in:reviewed,pending,requiere_revalidacion,unresolved',
+            'questions.*.derived_from_fingerprint' => 'nullable|array',
+            'questions.*.derived_from_fingerprint.*' => 'string',
         ]);
 
         $this->functionalRuleService->saveQuestions($sheet, $section, $validated['questions']);

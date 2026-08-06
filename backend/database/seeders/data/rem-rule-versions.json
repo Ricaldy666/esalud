@@ -1,0 +1,3216 @@
+[
+    {
+        "rule_key": "a01_c_11_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 22,
+            "rango_filas": "11:22",
+            "row_range": {
+                "from": 11,
+                "to": 22
+            },
+            "sheet": "A01",
+            "section": "A",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_b_117_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 117,
+            "row_to": 130,
+            "rango_filas": "117:130",
+            "row_range": {
+                "from": 117,
+                "to": 130
+            },
+            "sheet": "A01",
+            "section": "G.1",
+            "column": "B",
+            "target_column": "B",
+            "columna_destino": "B",
+            "source_columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "source_letters": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_b_136_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 136,
+            "row_to": 149,
+            "rango_filas": "136:149",
+            "row_range": {
+                "from": 136,
+                "to": 149
+            },
+            "sheet": "A01",
+            "section": "G.2",
+            "column": "B",
+            "target_column": "B",
+            "columna_destino": "B",
+            "source_columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "source_letters": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cv_14_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 14,
+            "row_to": 32,
+            "rango_filas": "14:32",
+            "row_range": {
+                "from": 14,
+                "to": 32
+            },
+            "sheet": "A01",
+            "section": "A",
+            "column": "CV",
+            "target_column": "CV",
+            "columna_destino": "CV",
+            "source_columns": [
+                "C"
+            ],
+            "source_letters": [
+                "C"
+            ],
+            "columns": [
+                "C"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_c_23_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 23,
+            "row_to": 26,
+            "rango_filas": "23:26",
+            "row_range": {
+                "from": 23,
+                "to": 26
+            },
+            "sheet": "A01",
+            "section": "A",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "D"
+            ],
+            "source_letters": [
+                "D"
+            ],
+            "columns": [
+                "D"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_c_27_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 27,
+            "row_to": 32,
+            "rango_filas": "27:32",
+            "row_range": {
+                "from": 27,
+                "to": 32
+            },
+            "sheet": "A01",
+            "section": "A",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_c_29_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 29,
+            "row_to": 30,
+            "rango_filas": "29:30",
+            "row_range": {
+                "from": 29,
+                "to": 30
+            },
+            "sheet": "A01",
+            "section": "A",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "L",
+                "M",
+                "N",
+                "O",
+                "P"
+            ],
+            "source_letters": [
+                "L",
+                "M",
+                "N",
+                "O",
+                "P"
+            ],
+            "columns": [
+                "L",
+                "M",
+                "N",
+                "O",
+                "P"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_c_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "D",
+                "E"
+            ],
+            "source_letters": [
+                "D",
+                "E"
+            ],
+            "columns": [
+                "D",
+                "E"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cb_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 38,
+            "rango_filas": "36:38",
+            "row_range": {
+                "from": 36,
+                "to": 38
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CB",
+            "target_column": "CB",
+            "columna_destino": "CB",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cc_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CC",
+            "target_column": "CC",
+            "columna_destino": "CC",
+            "source_columns": [
+                "N",
+                "O",
+                "P"
+            ],
+            "source_letters": [
+                "N",
+                "O",
+                "P"
+            ],
+            "columns": [
+                "N",
+                "O",
+                "P"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ch_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CH",
+            "target_column": "CH",
+            "columna_destino": "CH",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cu_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CU",
+            "target_column": "CU",
+            "columna_destino": "CU",
+            "source_columns": [
+                "D",
+                "E"
+            ],
+            "source_letters": [
+                "D",
+                "E"
+            ],
+            "columns": [
+                "D",
+                "E"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cv_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 37,
+            "rango_filas": "36:37",
+            "row_range": {
+                "from": 36,
+                "to": 37
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CV",
+            "target_column": "CV",
+            "columna_destino": "CV",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cw_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CW",
+            "target_column": "CW",
+            "columna_destino": "CW",
+            "source_columns": [
+                "N",
+                "O",
+                "P"
+            ],
+            "source_letters": [
+                "N",
+                "O",
+                "P"
+            ],
+            "columns": [
+                "N",
+                "O",
+                "P"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_db_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "DB",
+            "target_column": "DB",
+            "columna_destino": "DB",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cv_38_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "per_row",
+            "row_from": 38,
+            "row_to": 38,
+            "rango_filas": "38:38",
+            "row_range": {
+                "from": 38,
+                "to": 38
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CV",
+            "target_column": "CV",
+            "columna_destino": "CV",
+            "source_columns": [
+                "F"
+            ],
+            "source_letters": [
+                "F"
+            ],
+            "columns": [
+                "F"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_c_44_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 44,
+            "row_to": 66,
+            "rango_filas": "44:66",
+            "row_range": {
+                "from": 44,
+                "to": 66
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "D",
+                "E"
+            ],
+            "source_letters": [
+                "D",
+                "E"
+            ],
+            "columns": [
+                "D",
+                "E"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_d_44_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 44,
+            "row_to": 47,
+            "rango_filas": "44:47",
+            "row_range": {
+                "from": 44,
+                "to": 47
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "D",
+            "target_column": "D",
+            "columna_destino": "D",
+            "source_columns": [
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ],
+            "source_letters": [
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ],
+            "columns": [
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_e_44_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 44,
+            "row_to": 47,
+            "rango_filas": "44:47",
+            "row_range": {
+                "from": 44,
+                "to": 47
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "E",
+            "target_column": "E",
+            "columna_destino": "E",
+            "source_columns": [
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE",
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ],
+            "source_letters": [
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE",
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ],
+            "columns": [
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE",
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_d_48_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 48,
+            "row_to": 53,
+            "rango_filas": "48:53",
+            "row_range": {
+                "from": 48,
+                "to": 53
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "D",
+            "target_column": "D",
+            "columna_destino": "D",
+            "source_columns": [
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ],
+            "source_letters": [
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ],
+            "columns": [
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_e_48_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 48,
+            "row_to": 53,
+            "rango_filas": "48:53",
+            "row_range": {
+                "from": 48,
+                "to": 53
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "E",
+            "target_column": "E",
+            "columna_destino": "E",
+            "source_columns": [
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ],
+            "source_letters": [
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ],
+            "columns": [
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_d_54_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 54,
+            "row_to": 62,
+            "rango_filas": "54:62",
+            "row_range": {
+                "from": 54,
+                "to": 62
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "D",
+            "target_column": "D",
+            "columna_destino": "D",
+            "source_columns": [
+                "F",
+                "H",
+                "J",
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ],
+            "source_letters": [
+                "F",
+                "H",
+                "J",
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ],
+            "columns": [
+                "F",
+                "H",
+                "J",
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF",
+                "AH",
+                "AJ",
+                "AL"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_e_54_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 54,
+            "row_to": 62,
+            "rango_filas": "54:62",
+            "row_range": {
+                "from": 54,
+                "to": 62
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "E",
+            "target_column": "E",
+            "columna_destino": "E",
+            "source_columns": [
+                "G",
+                "I",
+                "K",
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE",
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ],
+            "source_letters": [
+                "G",
+                "I",
+                "K",
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE",
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ],
+            "columns": [
+                "G",
+                "I",
+                "K",
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE",
+                "AG",
+                "AI",
+                "AK",
+                "AM"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_d_63_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 63,
+            "row_to": 66,
+            "rango_filas": "63:66",
+            "row_range": {
+                "from": 63,
+                "to": 66
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "D",
+            "target_column": "D",
+            "columna_destino": "D",
+            "source_columns": [
+                "F",
+                "H",
+                "J",
+                "L"
+            ],
+            "source_letters": [
+                "F",
+                "H",
+                "J",
+                "L"
+            ],
+            "columns": [
+                "F",
+                "H",
+                "J",
+                "L"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_e_63_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 63,
+            "row_to": 66,
+            "rango_filas": "63:66",
+            "row_range": {
+                "from": 63,
+                "to": 66
+            },
+            "sheet": "A01",
+            "section": "C",
+            "column": "E",
+            "target_column": "E",
+            "columna_destino": "E",
+            "source_columns": [
+                "G",
+                "I",
+                "K",
+                "M"
+            ],
+            "source_letters": [
+                "G",
+                "I",
+                "K",
+                "M"
+            ],
+            "columns": [
+                "G",
+                "I",
+                "K",
+                "M"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_c_70_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 70,
+            "row_to": 73,
+            "rango_filas": "70:73",
+            "row_range": {
+                "from": 70,
+                "to": 73
+            },
+            "sheet": "A01",
+            "section": "D",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "D",
+                "E"
+            ],
+            "source_letters": [
+                "D",
+                "E"
+            ],
+            "columns": [
+                "D",
+                "E"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_f_70_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 70,
+            "row_to": 73,
+            "rango_filas": "70:73",
+            "row_range": {
+                "from": 70,
+                "to": 73
+            },
+            "sheet": "A01",
+            "section": "D",
+            "column": "F",
+            "target_column": "F",
+            "columna_destino": "F",
+            "source_columns": [
+                "G",
+                "H"
+            ],
+            "source_letters": [
+                "G",
+                "H"
+            ],
+            "columns": [
+                "G",
+                "H"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_b_78_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 78,
+            "row_to": 82,
+            "rango_filas": "78:82",
+            "row_range": {
+                "from": 78,
+                "to": 82
+            },
+            "sheet": "A01",
+            "section": "E",
+            "column": "B",
+            "target_column": "B",
+            "columna_destino": "B",
+            "source_columns": [
+                "C",
+                "D"
+            ],
+            "source_letters": [
+                "C",
+                "D"
+            ],
+            "columns": [
+                "C",
+                "D"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_b_88_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 88,
+            "row_to": 93,
+            "rango_filas": "88:93",
+            "row_range": {
+                "from": 88,
+                "to": 93
+            },
+            "sheet": "A01",
+            "section": "F",
+            "column": "B",
+            "target_column": "B",
+            "columna_destino": "B",
+            "source_columns": [
+                "C",
+                "D"
+            ],
+            "source_letters": [
+                "C",
+                "D"
+            ],
+            "columns": [
+                "C",
+                "D"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_c_88_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 88,
+            "row_to": 93,
+            "rango_filas": "88:93",
+            "row_range": {
+                "from": 88,
+                "to": 93
+            },
+            "sheet": "A01",
+            "section": "F",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "E",
+                "G",
+                "I",
+                "K",
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE"
+            ],
+            "source_letters": [
+                "E",
+                "G",
+                "I",
+                "K",
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE"
+            ],
+            "columns": [
+                "E",
+                "G",
+                "I",
+                "K",
+                "M",
+                "O",
+                "Q",
+                "S",
+                "U",
+                "W",
+                "Y",
+                "AA",
+                "AC",
+                "AE"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_d_88_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 88,
+            "row_to": 93,
+            "rango_filas": "88:93",
+            "row_range": {
+                "from": 88,
+                "to": 93
+            },
+            "sheet": "A01",
+            "section": "F",
+            "column": "D",
+            "target_column": "D",
+            "columna_destino": "D",
+            "source_columns": [
+                "F",
+                "H",
+                "J",
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF"
+            ],
+            "source_letters": [
+                "F",
+                "H",
+                "J",
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF"
+            ],
+            "columns": [
+                "F",
+                "H",
+                "J",
+                "L",
+                "N",
+                "P",
+                "R",
+                "T",
+                "V",
+                "X",
+                "Z",
+                "AB",
+                "AD",
+                "AF"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_b_98_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 98,
+            "row_to": 111,
+            "rango_filas": "98:111",
+            "row_range": {
+                "from": 98,
+                "to": 111
+            },
+            "sheet": "A01",
+            "section": "G.",
+            "column": "B",
+            "target_column": "B",
+            "columna_destino": "B",
+            "source_columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "source_letters": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_w_11_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "W",
+            "target_column": "W",
+            "columna_destino": "W",
+            "child_column": "W",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_z_11_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "Z",
+            "target_column": "Z",
+            "columna_destino": "Z",
+            "child_column": "Z",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_aa_11_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AA",
+            "target_column": "AA",
+            "columna_destino": "AA",
+            "child_column": "AA",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ab_11_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AB",
+            "target_column": "AB",
+            "columna_destino": "AB",
+            "child_column": "AB",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ac_11_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AC",
+            "target_column": "AC",
+            "columna_destino": "AC",
+            "child_column": "AC",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ad_11_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AD",
+            "target_column": "AD",
+            "columna_destino": "AD",
+            "child_column": "AD",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ae_11_required_le_v",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AE",
+            "target_column": "AE",
+            "columna_destino": "AE",
+            "child_column": "AE",
+            "parent_column": "V",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_af_11_required_le_u",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AF",
+            "target_column": "AF",
+            "columna_destino": "AF",
+            "child_column": "AF",
+            "parent_column": "U",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ag_11_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AG",
+            "target_column": "AG",
+            "columna_destino": "AG",
+            "child_column": "AG",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_l_117_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 117,
+            "row_to": 129,
+            "rango_filas": "117:129",
+            "row_range": {
+                "from": 117,
+                "to": 129
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "L",
+            "target_column": "L",
+            "columna_destino": "L",
+            "child_column": "L",
+            "parent_column": "B",
+            "section": "G.1"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_l_136_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 136,
+            "row_to": 148,
+            "rango_filas": "136:148",
+            "row_range": {
+                "from": 136,
+                "to": 148
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "L",
+            "target_column": "L",
+            "columna_destino": "L",
+            "child_column": "L",
+            "parent_column": "B",
+            "section": "G.2"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_m_155_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 155,
+            "row_to": 165,
+            "rango_filas": "155:165",
+            "row_range": {
+                "from": 155,
+                "to": 165
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "M",
+            "target_column": "M",
+            "columna_destino": "M",
+            "child_column": "M",
+            "parent_column": "B",
+            "section": "H."
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_g_172_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 172,
+            "row_to": 182,
+            "rango_filas": "172:182",
+            "row_range": {
+                "from": 172,
+                "to": 182
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "G",
+            "target_column": "G",
+            "columna_destino": "G",
+            "child_column": "G",
+            "parent_column": "B",
+            "section": "H.1"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_h_172_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 172,
+            "row_to": 182,
+            "rango_filas": "172:182",
+            "row_range": {
+                "from": 172,
+                "to": 182
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "H",
+            "target_column": "H",
+            "columna_destino": "H",
+            "child_column": "H",
+            "parent_column": "B",
+            "section": "H.1"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_g_189_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 189,
+            "row_to": 199,
+            "rango_filas": "189:199",
+            "row_range": {
+                "from": 189,
+                "to": 199
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "G",
+            "target_column": "G",
+            "columna_destino": "G",
+            "child_column": "G",
+            "parent_column": "B",
+            "section": "H.2"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_h_189_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 189,
+            "row_to": 199,
+            "rango_filas": "189:199",
+            "row_range": {
+                "from": 189,
+                "to": 199
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "H",
+            "target_column": "H",
+            "columna_destino": "H",
+            "child_column": "H",
+            "parent_column": "B",
+            "section": "H.2"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_x_19_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 19,
+            "row_to": 26,
+            "rango_filas": "19:26",
+            "row_range": {
+                "from": 19,
+                "to": 26
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "X",
+            "target_column": "X",
+            "columna_destino": "X",
+            "child_column": "X",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_w_31_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "per_row",
+            "row_from": 31,
+            "row_to": 31,
+            "rango_filas": "31:31",
+            "row_range": {
+                "from": 31,
+                "to": 31
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "W",
+            "target_column": "W",
+            "columna_destino": "W",
+            "child_column": "W",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ah_31_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 31,
+            "row_to": 32,
+            "rango_filas": "31:32",
+            "row_range": {
+                "from": 31,
+                "to": 32
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AH",
+            "target_column": "AH",
+            "columna_destino": "AH",
+            "child_column": "AH",
+            "parent_column": "total",
+            "section": "A"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ak_36_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AK",
+            "target_column": "AK",
+            "columna_destino": "AK",
+            "child_column": "AK",
+            "parent_column": "total",
+            "section": "B"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_al_36_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AL",
+            "target_column": "AL",
+            "columna_destino": "AL",
+            "child_column": "AL",
+            "parent_column": "total",
+            "section": "B"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_am_36_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AM",
+            "target_column": "AM",
+            "columna_destino": "AM",
+            "child_column": "AM",
+            "parent_column": "total",
+            "section": "B"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_an_36_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AN",
+            "target_column": "AN",
+            "columna_destino": "AN",
+            "child_column": "AN",
+            "parent_column": "total",
+            "section": "B"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_an_44_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 44,
+            "row_to": 66,
+            "rango_filas": "44:66",
+            "row_range": {
+                "from": 44,
+                "to": 66
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AN",
+            "target_column": "AN",
+            "columna_destino": "AN",
+            "child_column": "AN",
+            "parent_column": "total",
+            "section": "C"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ao_44_required_le_c",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 44,
+            "row_to": 66,
+            "rango_filas": "44:66",
+            "row_range": {
+                "from": 44,
+                "to": 66
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AO",
+            "target_column": "AO",
+            "columna_destino": "AO",
+            "child_column": "AO",
+            "parent_column": "total",
+            "section": "C"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_j_78_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 78,
+            "row_to": 82,
+            "rango_filas": "78:82",
+            "row_range": {
+                "from": 78,
+                "to": 82
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "J",
+            "target_column": "J",
+            "columna_destino": "J",
+            "child_column": "J",
+            "parent_column": "B",
+            "section": "E"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_k_78_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 78,
+            "row_to": 82,
+            "rango_filas": "78:82",
+            "row_range": {
+                "from": 78,
+                "to": 82
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "K",
+            "target_column": "K",
+            "columna_destino": "K",
+            "child_column": "K",
+            "parent_column": "B",
+            "section": "E"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_l_78_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 78,
+            "row_to": 82,
+            "rango_filas": "78:82",
+            "row_range": {
+                "from": 78,
+                "to": 82
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "L",
+            "target_column": "L",
+            "columna_destino": "L",
+            "child_column": "L",
+            "parent_column": "B",
+            "section": "E"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_m_78_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 78,
+            "row_to": 82,
+            "rango_filas": "78:82",
+            "row_range": {
+                "from": 78,
+                "to": 82
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "M",
+            "target_column": "M",
+            "columna_destino": "M",
+            "child_column": "M",
+            "parent_column": "B",
+            "section": "E"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ag_88_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 88,
+            "row_to": 93,
+            "rango_filas": "88:93",
+            "row_range": {
+                "from": 88,
+                "to": 93
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AG",
+            "target_column": "AG",
+            "columna_destino": "AG",
+            "child_column": "AG",
+            "parent_column": "B",
+            "section": "F"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ah_88_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 88,
+            "row_to": 93,
+            "rango_filas": "88:93",
+            "row_range": {
+                "from": 88,
+                "to": 93
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "AH",
+            "target_column": "AH",
+            "columna_destino": "AH",
+            "child_column": "AH",
+            "parent_column": "B",
+            "section": "F"
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_l_98_required_le_b",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "required_and_le_parent",
+            "scope": "row_range",
+            "row_from": 98,
+            "row_to": 110,
+            "rango_filas": "98:110",
+            "row_range": {
+                "from": 98,
+                "to": 110
+            },
+            "sheet": "A01",
+            "source_columns": [],
+            "source_letters": [],
+            "columns": [],
+            "column": "L",
+            "target_column": "L",
+            "columna_destino": "L",
+            "child_column": "L",
+            "parent_column": "B",
+            "section": "G."
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_uv_11_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 11,
+            "row_to": 32,
+            "rango_filas": "11:32",
+            "row_range": {
+                "from": 11,
+                "to": 32
+            },
+            "sheet": "A01",
+            "section": "A",
+            "column": "C",
+            "target_column": "C",
+            "columna_destino": "C",
+            "source_columns": [
+                "U",
+                "V"
+            ],
+            "source_letters": [
+                "U",
+                "V"
+            ],
+            "columns": [
+                "U",
+                "V"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_de_36_sum_equals",
+        "version": "2.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "E",
+            "target_column": "E",
+            "columna_destino": "E",
+            "source_columns": [
+                "D",
+                "E"
+            ],
+            "source_letters": [
+                "D",
+                "E"
+            ],
+            "columns": [
+                "D",
+                "E"
+            ]
+        },
+        "changelog": "Migrada desde catálogo curado A01",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cb_36_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 38,
+            "rango_filas": "36:38",
+            "row_range": {
+                "from": 36,
+                "to": 38
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CB",
+            "target_column": "CB",
+            "columna_destino": "CB",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CB, Tipo: mensaje de validación, Fórmula XLSM: =IF(AND(SUM(F..M)>0,AI=\"\"),\"* No olvide digitar...\",\"\")",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cc_36_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CC",
+            "target_column": "CC",
+            "columna_destino": "CC",
+            "source_columns": [
+                "N",
+                "O",
+                "P"
+            ],
+            "source_letters": [
+                "N",
+                "O",
+                "P"
+            ],
+            "columns": [
+                "N",
+                "O",
+                "P"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CC, Tipo: mensaje de validación, Fórmula XLSM: =IF(AND(SUM(N..P)>0,AJ=\"\"),\"* No olvide digitar...\",\"\")",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_ch_36_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CH",
+            "target_column": "CH",
+            "columna_destino": "CH",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CH, Tipo: mensaje de validación, Fórmula XLSM: =IF(SUM(F..AH)<>$C,\"* La suma total del rango etario...\",\"\")",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cu_36_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CU",
+            "target_column": "CU",
+            "columna_destino": "CU",
+            "source_columns": [
+                "D",
+                "E"
+            ],
+            "source_letters": [
+                "D",
+                "E"
+            ],
+            "columns": [
+                "D",
+                "E"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CU, Tipo: bandera de control 0/1, Fórmula XLSM: =IF(C<>SUM(D+E),1,0)",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cv_14_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 14,
+            "row_to": 32,
+            "rango_filas": "14:32",
+            "row_range": {
+                "from": 14,
+                "to": 32
+            },
+            "sheet": "A01",
+            "section": "A",
+            "column": "CV",
+            "target_column": "CV",
+            "columna_destino": "CV",
+            "source_columns": [
+                "C"
+            ],
+            "source_letters": [
+                "C"
+            ],
+            "columns": [
+                "C"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CV (Section A), Tipo: bandera de control 0/1, Fórmula XLSM: =IF(AND(C>0,W=\"\"),1,IF(W>SUM(C),1,0))",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cv_36_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 37,
+            "rango_filas": "36:37",
+            "row_range": {
+                "from": 36,
+                "to": 37
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CV",
+            "target_column": "CV",
+            "columna_destino": "CV",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CV (Section C.6), Tipo: bandera de control 0/1, Fórmula XLSM: =IF(AND(SUM(F..M)>0,AI=\"\"),1,IF(AI>SUM(F..M),1,0))",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cv_38_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "per_row",
+            "row_from": 38,
+            "row_to": 38,
+            "rango_filas": "38:38",
+            "row_range": {
+                "from": 38,
+                "to": 38
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CV",
+            "target_column": "CV",
+            "columna_destino": "CV",
+            "source_columns": [
+                "F"
+            ],
+            "source_letters": [
+                "F"
+            ],
+            "columns": [
+                "F"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CV (Section C.6 row 38), Tipo: bandera de control 0/1, Fórmula XLSM: =IF(AND(SUM(F38)>0,AI38=\"\"),1,IF(AI38>SUM(F38),1,0))",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_cw_36_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "CW",
+            "target_column": "CW",
+            "columna_destino": "CW",
+            "source_columns": [
+                "N",
+                "O",
+                "P"
+            ],
+            "source_letters": [
+                "N",
+                "O",
+                "P"
+            ],
+            "columns": [
+                "N",
+                "O",
+                "P"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: CW, Tipo: bandera de control 0/1, Fórmula XLSM: =IF(AND(SUM(N..P)>0,AJ=\"\"),1,IF(AJ>SUM(N..P),1,0))",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_db_36_sum_equals",
+        "version": "1.0.0",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 36,
+            "row_to": 39,
+            "rango_filas": "36:39",
+            "row_range": {
+                "from": 36,
+                "to": 39
+            },
+            "sheet": "A01",
+            "section": "B",
+            "column": "DB",
+            "target_column": "DB",
+            "columna_destino": "DB",
+            "source_columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "source_letters": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ],
+            "columns": [
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K",
+                "L",
+                "M",
+                "N",
+                "O",
+                "P",
+                "Q",
+                "R",
+                "S",
+                "T",
+                "U",
+                "V",
+                "W",
+                "X",
+                "Y",
+                "Z",
+                "AA",
+                "AB",
+                "AC",
+                "AD",
+                "AE",
+                "AF",
+                "AG",
+                "AH"
+            ]
+        },
+        "changelog": "[Desactivación por configuración inválida] La columna objetivo contiene fórmula IF de control/validación y no representa una agregación. Columna: DB, Tipo: bandera de control 0/1, Fórmula XLSM: =IF(C<>SUM(F..AH),1,0)",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_a_c_sum_equals",
+        "version": "1.0.1",
+        "config": {
+            "sheet": "A01",
+            "section": "A",
+            "column": "C",
+            "row_range": {
+                "from": 11,
+                "to": 11
+            },
+            "rule_logic": "Suma(F + G + H + I + J + K + L + M + N) = Columna C"
+        },
+        "changelog": "La regla apunta a una columna descriptiva/no numérica (concepto o profesional) y no corresponde a una validación sum_equals.",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_b_88_sum_equals",
+        "version": "2.0.1",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 88,
+            "row_to": 93,
+            "rango_filas": "88:93",
+            "row_range": {
+                "from": 88,
+                "to": 93
+            },
+            "sheet": "A01",
+            "section": "F",
+            "column": "B",
+            "target_column": "B",
+            "columna_destino": "B",
+            "source_columns": [
+                "C",
+                "D"
+            ],
+            "source_letters": [
+                "C",
+                "D"
+            ],
+            "columns": [
+                "C",
+                "D"
+            ]
+        },
+        "changelog": "La regla apunta a una columna descriptiva/no numérica (concepto o profesional) y no corresponde a una validación sum_equals.",
+        "created_by_email": null
+    },
+    {
+        "rule_key": "a01_b_98_sum_equals",
+        "version": "2.0.1",
+        "config": {
+            "tipo": "sum_equals",
+            "scope": "row_range",
+            "row_from": 98,
+            "row_to": 111,
+            "rango_filas": "98:111",
+            "row_range": {
+                "from": 98,
+                "to": 111
+            },
+            "sheet": "A01",
+            "section": "G.",
+            "column": "B",
+            "target_column": "B",
+            "columna_destino": "B",
+            "source_columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "source_letters": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ],
+            "columns": [
+                "C",
+                "D",
+                "E",
+                "F",
+                "G",
+                "H",
+                "I",
+                "J",
+                "K"
+            ]
+        },
+        "changelog": "La regla apunta a una columna descriptiva/no numérica (concepto o profesional) y no corresponde a una validación sum_equals.",
+        "created_by_email": null
+    }
+]

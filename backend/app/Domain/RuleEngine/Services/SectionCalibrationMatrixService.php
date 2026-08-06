@@ -80,13 +80,17 @@ class SectionCalibrationMatrixService
         ],
     ];
 
+    private PatternReconciliationService $patternReconciliation;
+
     public function __construct(
         private CertificationService $certificationService,
         private FunctionalRuleService $functionalRuleService,
         private CellDataStorageService $cellDataStorage,
         private ?ColumnRoleResolverService $columnRoleResolver = null,
+        ?PatternReconciliationService $patternReconciliation = null,
     ) {
         $this->columnRoleResolver = $columnRoleResolver ?? new ColumnRoleResolverService();
+        $this->patternReconciliation = $patternReconciliation ?? new PatternReconciliationService();
     }
 
     /**
@@ -360,6 +364,46 @@ class SectionCalibrationMatrixService
         );
     }
 
+    /**
+     * Huella estable de un patron, basada en su conjunto ordenado de filas
+     * -- no en pattern_id (secuencial, depende del orden de deteccion y
+     * puede reasignarse cuando cambia el cell_data, ver hallazgo de
+     * incompatibilidad A09/F-G del 2026-08-06). Dos patrones con exactamente
+     * las mismas filas producen siempre la misma huella, sin importar en
+     * que orden fueron detectados ni que id numerico les toco.
+     *
+     * Canonicalizacion: cast a int, se descartan valores <= 0 (filas
+     * invalidas/vacias nunca aportan a la huella), se deduplican (una fila
+     * repetida no deberia ocurrir dado como agrupa buildDynamicPatternDefinitions(),
+     * pero se tolera sin duplicar su peso en el hash) y se ordenan
+     * ascendente. Un patron sin ninguna fila valida tras filtrar recibe la
+     * huella reservada 'fp_empty', que nunca debe tratarse como coincidencia
+     * entre dos patrones distintos (dos patrones vacios no son "el mismo
+     * patron").
+     *
+     * SHA-256 (truncado a 16 hex = 64 bits) en vez del hash de 32 bits que
+     * ya usa el frontend para technical_signature -- a la escala de toda la
+     * Serie A (miles de combinaciones posibles de filas por patron), un
+     * hash de 32 bits tiene probabilidad de colision no despreciable.
+     */
+    public function computeRowFingerprint(array $filas): string
+    {
+        $normalizadas = array_values(array_unique(array_filter(
+            array_map(fn ($f) => (int) $f, $filas),
+            fn (int $f) => $f > 0
+        )));
+
+        if (empty($normalizadas)) {
+            return 'fp_empty';
+        }
+
+        sort($normalizadas, SORT_NUMERIC);
+
+        $canonico = implode(',', $normalizadas);
+
+        return 'rowset_' . substr(hash('sha256', $canonico), 0, 16);
+    }
+
     public function buildPatternMatrix(string $sheet, string $section): array
     {
         $matrix = $this->buildMatrix($sheet, $section);
@@ -376,6 +420,10 @@ class SectionCalibrationMatrixService
                 'header_labels' => $matrix['header_labels'] ?? [],
                 'aggregated_rules' => $matrix['aggregated_rules'] ?? [],
                 'warnings' => $matrix['warnings'] ?? [],
+                'reconciliation' => [
+                    'effective_section_reviewed' => false,
+                    'historical_section_reviewed' => false,
+                ],
             ];
         }
 
@@ -518,6 +566,7 @@ class SectionCalibrationMatrixService
 
             $enriched[] = [
                 'id' => $patron['id'],
+                'row_fingerprint' => $this->computeRowFingerprint($patron['filas']),
                 'nombre' => $patron['nombre'],
                 'descripcion' => $patron['descripcion'],
                 'regla_funcional_label' => self::REGLA_FUNCIONAL_LABELS[$patron['id']] ?? 'Suma de columnas = TOTAL',
@@ -541,6 +590,11 @@ class SectionCalibrationMatrixService
 
         $questions = $this->functionalRuleService->getQuestions($sheet, $section);
 
+        $enriched = $this->applyExceptionClassification($enriched);
+        [$enriched, $reconciliation] = $this->applyPatternReconciliation($enriched, $questions);
+        $effectiveSectionReviewed = $this->patternReconciliation->computeEffectiveSectionReviewed($reconciliation);
+        $historicalSectionReviewed = $this->hasHistoricalSectionReviewed($questions);
+
         return [
             'section' => $matrix['section'],
             'rows' => $allRows,
@@ -553,7 +607,125 @@ class SectionCalibrationMatrixService
             'header_labels' => $matrix['header_labels'] ?? [],
             'aggregated_rules' => $matrix['aggregated_rules'] ?? [],
             'warnings' => $warnings,
+            'reconciliation' => [
+                'effective_section_reviewed' => $effectiveSectionReviewed,
+                'historical_section_reviewed' => $historicalSectionReviewed,
+            ],
         ];
+    }
+
+    /**
+     * Umbral usado por applyExceptionClassification(): un patron con menos
+     * filas que este porcentaje del patron mas grande de la seccion se
+     * considera "grupo minoritario". Nace de la auditoria de A11
+     * (2026-08-06): en las subsecciones A.1-A.6, filas como "Mujeres en
+     * control ginecologico" o "Donantes de sangre" quedan solas o en pares
+     * porque su formula suma un rango de columnas distinto al patron
+     * dominante de 7 filas -- son excepciones de negocio genuinas, no ruido
+     * de deteccion, y deben marcarse para que Estadistica nunca les aplique
+     * por defecto la configuracion general de la seccion.
+     */
+    private const EXCEPTION_MINORITY_RATIO = 0.3;
+
+    /**
+     * Clasifica cada patron como parte del grupo mayoritario o como posible
+     * excepcion de negocio -- puramente estadistico sobre la cantidad de
+     * filas de cada patron dentro de la MISMA seccion, sin tocar reglas ni
+     * respuestas guardadas. Es una senal para que la interfaz de
+     * calibracion nunca asuma herencia automatica de la regla general en
+     * patrones de fila unica o grupos claramente minoritarios: la persona
+     * que calibra debe confirmar el criterio funcional de cada uno de forma
+     * explicita.
+     *
+     * No marca nada como excepcion si la seccion tiene un unico patron (no
+     * hay "mayoria" contra la cual comparar).
+     */
+    private function applyExceptionClassification(array $enriched): array
+    {
+        if (count($enriched) <= 1) {
+            foreach ($enriched as &$p) {
+                $p['pattern_size_class'] = 'majority';
+                $p['possible_business_exception'] = false;
+                $p['exception_reason'] = null;
+            }
+            unset($p);
+
+            return $enriched;
+        }
+
+        $maxRowCount = max(array_map(fn ($p) => count($p['filas']), $enriched));
+
+        foreach ($enriched as &$p) {
+            $count = count($p['filas']);
+            $isSingleRow = $count === 1;
+            $isMinority = $count < $maxRowCount && $count <= max(1, (int) floor($maxRowCount * self::EXCEPTION_MINORITY_RATIO));
+            $isException = $isSingleRow || $isMinority;
+
+            $p['pattern_size_class'] = $isException ? 'minority' : 'majority';
+            $p['possible_business_exception'] = $isException;
+            $p['exception_reason'] = match (true) {
+                $isSingleRow => 'Fila única: no comparte agrupación técnica con ninguna otra fila de la sección.',
+                $isMinority => "Grupo minoritario: {$count} de {$maxRowCount} filas del patrón principal de la sección.",
+                default => null,
+            };
+        }
+        unset($p);
+
+        return $enriched;
+    }
+
+    /**
+     * Adjunta a cada patron enriquecido el resultado de PatternReconciliationService::reconcileLive():
+     * pattern_rows (alias explicito de filas, para el vocabulario de
+     * reconciliacion), reconciliation_status, backfill_status y
+     * derived_from_fingerprint/historical_reference cuando corresponda. No
+     * modifica filas/id/row_fingerprint ya calculados -- solo agrega campos.
+     *
+     * @return array{0: array, 1: array} [$enrichedConReconciliacion, $reconciliationResultsPorId]
+     */
+    private function applyPatternReconciliation(array $enriched, array $questions): array
+    {
+        $questionsByPatternId = [];
+        foreach ($questions as $q) {
+            if (in_array($q['type'] ?? '', ['pattern_question', 'pattern_confirmation'], true) && isset($q['pattern_id'])) {
+                $questionsByPatternId[$q['pattern_id']][] = $q;
+            }
+        }
+
+        $currentPatterns = array_map(
+            fn ($p) => ['id' => $p['id'], 'row_fingerprint' => $p['row_fingerprint'], 'filas' => $p['filas']],
+            $enriched
+        );
+
+        $reconciliation = $this->patternReconciliation->reconcileLive($currentPatterns, $questionsByPatternId);
+
+        foreach ($enriched as &$p) {
+            $r = $reconciliation[$p['id']] ?? [
+                'reconciliation_status' => 'pending',
+                'backfill_status' => null,
+                'derived_from_fingerprint' => null,
+                'historical_reference' => null,
+            ];
+            $p['pattern_rows'] = $p['filas'];
+            $p['reconciliation_status'] = $r['reconciliation_status'];
+            $p['backfill_status'] = $r['backfill_status'];
+            $p['derived_from_fingerprint'] = $r['derived_from_fingerprint'];
+            $p['historical_reference'] = $r['historical_reference'];
+        }
+        unset($p);
+
+        return [$enriched, $reconciliation];
+    }
+
+    private function hasHistoricalSectionReviewed(array $questions): bool
+    {
+        foreach ($questions as $q) {
+            if (($q['type'] ?? '') === 'section_review' && ($q['review_status'] ?? '') === 'section_reviewed') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function buildDynamicPatternDefinitions(array $rows, array $sectionData, array $cellDataRows): array

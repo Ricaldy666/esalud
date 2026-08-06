@@ -33,12 +33,12 @@ class SectionDetectorService
                 $codigo = $m[1];
                 $titulo = trim($m[2]);
 
-                $filaHeader = $this->findHeaderRow($worksheet, $row + 1, $highestRow);
+                [$filaHeader, $filaHeaderSuperior] = $this->findHeaderRow($worksheet, $row + 1, $highestRow, $highestCol);
                 $filaInicioDatos = $filaHeader + 1;
                 $filaFinDatos = $this->findDataEndRow($worksheet, $filaInicioDatos, $highestRow);
 
                 $fields = $this->columnDetector->detect(
-                    $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, $codigo
+                    $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, $codigo, $filaHeaderSuperior
                 );
 
                 $secciones[] = new ParsedSectionDTO(
@@ -57,12 +57,12 @@ class SectionDetectorService
         $secciones = $this->filterAggregators($secciones);
 
         if (empty($secciones)) {
-            $filaHeader = $this->findHeaderRow($worksheet, 1, $highestRow);
+            [$filaHeader, $filaHeaderSuperior] = $this->findHeaderRow($worksheet, 1, $highestRow, $highestCol);
             $filaInicioDatos = $filaHeader + 1;
             $filaFinDatos = $this->findImplicitDataEndRow($worksheet, $filaInicioDatos, $highestRow);
 
             $fields = $this->columnDetector->detect(
-                $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, null
+                $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, null, $filaHeaderSuperior
             );
 
             $secciones[] = new ParsedSectionDTO(
@@ -78,13 +78,60 @@ class SectionDetectorService
         return $secciones;
     }
 
-    private function findHeaderRow(Worksheet $ws, int $startRow, int $maxRow): int
+    /**
+     * Encuentra la fila de encabezado de una seccion, y opcionalmente una
+     * segunda fila "superior" cuando el encabezado real ocupa dos filas
+     * fusionadas (categoria general arriba -- ej. "TOTAL"/"RANGO ETARIO" --
+     * y etiqueta especifica abajo -- ej. "10 - 14 años", "Migrantes").
+     *
+     * El criterio historico (primera fila con texto "normal" en columna A)
+     * falla cuando el encabezado real tiene la columna A vacia -- esto
+     * ocurre en formularios donde las etiquetas de columna viven solo en
+     * B en adelante (ej. A11a: fila con B="TOTAL", C="RANGO ETARIO", con A
+     * vacia). En ese caso el criterio historico salta el encabezado real
+     * completo y aterriza en la primera fila que si tiene texto en A, que
+     * puede ser un subtitulo de grupo sin ninguna otra columna poblada (ej.
+     * "TRATAMIENTO DE SIFILIS EN GESTANTES EN ATENCION PRIMARIA") o
+     * directamente la primera fila de datos reales -- en ambos casos
+     * ColumnDetectorService termina leyendo las etiquetas de columna desde
+     * una fila que no es el encabezado, perdiendo las columnas reales o
+     * tomando formulas auxiliares de validacion (ej. CA/CB/CG/CH) como si
+     * fueran campos.
+     *
+     * Nuevo criterio, general y sin hardcodear ninguna hoja/seccion
+     * especifica: mientras columna A este vacia, cualquier fila con
+     * contenido en alguna OTRA columna es candidata a formar parte del
+     * encabezado real (se recuerdan las dos ultimas candidatas vistas, para
+     * soportar el caso de dos filas fusionadas). En cuanto aparece la
+     * primera fila con texto "normal" en columna A (ni marcador de seccion,
+     * ni formula, ni "REM-"), se detiene: si ya habia candidatas previas
+     * (columna A estuvo vacia justo antes), esa fila con texto en A es un
+     * subtitulo o el inicio de los datos, no el encabezado -- se devuelve
+     * la ultima candidata en su lugar. Si nunca hubo candidatas (columna A
+     * ya tenia texto desde la primera fila, como en A01/A09/A11), el
+     * comportamiento es identico al criterio historico: se devuelve esa
+     * misma fila de inmediato.
+     *
+     * @return array{0: int, 1: ?int} [$filaHeader, $filaHeaderSuperior]
+     */
+    private function findHeaderRow(Worksheet $ws, int $startRow, int $maxRow, string $highestCol): array
     {
+        $ultimaCandidata = null;
+        $candidataAnterior = null;
+
         for ($row = $startRow; $row <= $maxRow; $row++) {
             $val = $ws->getCell('A' . $row)->getValue();
-            if ($val === null || trim((string) $val) === '') {
+            $aEstaVacia = $val === null || trim((string) $val) === '';
+
+            if ($aEstaVacia) {
+                if ($this->rowHasContentOutsideColumnA($ws, $row, $highestCol)) {
+                    $candidataAnterior = $ultimaCandidata;
+                    $ultimaCandidata = $row;
+                }
+
                 continue;
             }
+
             $strVal = trim((string) $val);
             if (preg_match(self::PATRON_SECCION, $strVal)) {
                 continue;
@@ -95,9 +142,32 @@ class SectionDetectorService
             if (str_starts_with($strVal, 'REM-')) {
                 continue;
             }
-            return $row;
+
+            if ($ultimaCandidata !== null) {
+                // Texto "normal" en A, pero la(s) fila(s) anteriores con A
+                // vacia ya tenian columnas reales pobladas -- esta fila es
+                // un subtitulo o el inicio de los datos, no el encabezado.
+                return [$ultimaCandidata, $candidataAnterior];
+            }
+
+            return [$row, null];
         }
-        return $startRow;
+
+        return [$ultimaCandidata ?? $startRow, $candidataAnterior];
+    }
+
+    private function rowHasContentOutsideColumnA(Worksheet $ws, int $row, string $highestCol): bool
+    {
+        $maxColIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestCol);
+        for ($col = 2; $col <= $maxColIndex; $col++) {
+            $letra = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col);
+            $val = $ws->getCell($letra . $row)->getValue();
+            if ($val !== null && trim((string) $val) !== '') {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function findDataEndRow(Worksheet $ws, int $startRow, int $maxRow): ?int

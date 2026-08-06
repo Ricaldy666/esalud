@@ -122,6 +122,12 @@ export interface CalibrationMatrixSummary {
   pendientes_definicion_funcional: number
 }
 
+export type PatternReconciliationStatus =
+  | 'reviewed'
+  | 'pending'
+  | 'requiere_revalidacion'
+  | 'unresolved'
+
 export interface CalibrationQuestion {
   id?: string
   row: number | null
@@ -144,6 +150,15 @@ export interface CalibrationQuestion {
   source_section?: string
   technical_signature?: string
   structure_version?: string
+  // Identidad de patron basada en huella de filas (no en pattern_id, que es
+  // secuencial y se reasigna al cambiar la estructura). Siempre se envian
+  // como eco de lo que el backend ya devolvio en PatternGroup -- el frontend
+  // nunca calcula pattern_fingerprint.
+  pattern_rows?: number[]
+  pattern_fingerprint?: string
+  backfill_status?: string | null
+  reconciliation_status?: PatternReconciliationStatus
+  derived_from_fingerprint?: string[] | null
 }
 
 export interface CalibrationQuestionResponse {
@@ -224,6 +239,14 @@ export interface PatternRow {
   objetivo: string
 }
 
+export interface PatternHistoricalReference {
+  response: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  pattern_fingerprint: string | null
+  pattern_rows: number[] | null
+}
+
 export interface PatternGroup {
   id: number
   nombre: string
@@ -242,6 +265,22 @@ export interface PatternGroup {
   conceptos: string[]
   profesionales: string[]
   rows: PatternRow[]
+  // Identidad y reconciliacion -- siempre provistos por el backend
+  // (SectionCalibrationMatrixService::buildPatternMatrix()). pattern_rows es
+  // un alias explicito de filas, en el vocabulario de reconciliacion.
+  row_fingerprint: string
+  pattern_rows: number[]
+  reconciliation_status: PatternReconciliationStatus
+  backfill_status: string | null
+  derived_from_fingerprint: string[] | null
+  historical_reference: PatternHistoricalReference | null
+  // Senal estadistica (no funcional): patron de fila unica o grupo
+  // claramente minoritario frente al patron dominante de la MISMA seccion.
+  // Nunca implica que la respuesta general no aplique -- solo marca que debe
+  // confirmarse explicitamente, no heredarse por defecto.
+  pattern_size_class: 'majority' | 'minority'
+  possible_business_exception: boolean
+  exception_reason: string | null
 }
 
 export interface ColumnGroupColumn {
@@ -287,6 +326,11 @@ export interface PatternMatrixSection {
   total_campos: number
 }
 
+export interface PatternMatrixReconciliation {
+  effective_section_reviewed: boolean
+  historical_section_reviewed: boolean
+}
+
 export interface PatternMatrixResponse {
   section: PatternMatrixSection
   patterns: PatternGroup[]
@@ -297,6 +341,7 @@ export interface PatternMatrixResponse {
   all_rows: CalibrationRow[]
   header_labels: Record<string, string>
   warnings?: string[]
+  reconciliation: PatternMatrixReconciliation
 }
 
 export type RowFunctionalDecisionValue =

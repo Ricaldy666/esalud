@@ -76,7 +76,11 @@ export default function CalibrationSectionPage() {
     const pendingAfterCurrent = sections.slice(currentIndex + 1).find((_item, offset) => {
       const queryIndex = currentIndex + 1 + offset
       const summary = sectionSummaries[queryIndex]?.data
-      return summary ? !isSectionReviewed(summary.questions ?? []) : true
+      if (!summary) return true
+      const effectivelyReviewed =
+        isSectionReviewed(summary.questions ?? []) &&
+        (summary.reconciliation?.effective_section_reviewed ?? true)
+      return !effectivelyReviewed
     })
     return pendingAfterCurrent?.codigo ?? sections[currentIndex + 1]?.codigo
   }, [currentIndex, sectionSummaries, sections])

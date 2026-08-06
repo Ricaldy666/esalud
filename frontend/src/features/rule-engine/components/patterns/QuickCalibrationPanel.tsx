@@ -16,7 +16,12 @@ import type {
   ColumnGroup,
   PatternGroup,
   PatternMatrixResponse,
+  PatternReconciliationStatus,
 } from '../../types/calibration'
+
+function needsRevalidation(status: PatternReconciliationStatus | undefined) {
+  return status === 'requiere_revalidacion' || status === 'unresolved'
+}
 
 const HEALTH_CENTERS = [
   'CESFAM Cirujano Aguirre',
@@ -418,7 +423,27 @@ export default function QuickCalibrationPanel({
     [complementaryGroup]
   )
   const labelsByColumn = useMemo(() => columnLabelMap(data.column_groups), [data.column_groups])
-  const sectionReviewed = hasSectionReview(questions)
+  // Estado efectivo: la marca historica de section_review se conserva para
+  // mostrar "Lista para certificar", pero si el backend indica que algun
+  // patron quedo requiere_revalidacion/unresolved, deja de contar como
+  // vigente -- nunca se recalcula aqui, solo se consume lo que ya calculo
+  // PatternReconciliationService::computeEffectiveSectionReviewed().
+  const historicalSectionReviewed = hasSectionReview(questions)
+  const sectionReviewed =
+    historicalSectionReviewed && (data.reconciliation?.effective_section_reviewed ?? true)
+  const blockedPatterns = useMemo(
+    () => quickPatterns.filter((pattern) => needsRevalidation(pattern.reconciliation_status)),
+    [quickPatterns]
+  )
+  // Patrones de fila unica o grupo minoritario frente al patron dominante de
+  // la seccion (calculado por el backend, nunca aqui). La calibracion
+  // rapida aplica UNA sola decision a todos los patrones de la seccion por
+  // diseno -- por eso, si existen excepciones detectadas, se advierte para
+  // que no se asuma que heredan la misma configuracion sin revisarlas.
+  const exceptionPatterns = useMemo(
+    () => quickPatterns.filter((pattern) => pattern.possible_business_exception),
+    [quickPatterns]
+  )
   const [showProblem, setShowProblem] = useState(false)
   const [problemType, setProblemType] = useState<ProblemType>('regla incorrecta')
   const [problemObservation, setProblemObservation] = useState('')
@@ -471,7 +496,8 @@ export default function QuickCalibrationPanel({
     responses.exceptions === 'si' ||
     confidence !== 'Alta'
   const showDecisionControls = showDecisionDetails || needsManualDecisionView
-  const canFastSave = answeredDecisions === totalDecisions && !showProblem
+  const canFastSave =
+    answeredDecisions === totalDecisions && !showProblem && blockedPatterns.length === 0
 
   const saveMutation = useMutation({
     mutationFn: (payload: CalibrationQuestion[]) =>
@@ -563,6 +589,10 @@ export default function QuickCalibrationPanel({
         pattern_key: `pattern_${pattern.id}`,
         type: 'pattern_question',
         suggests_block: false,
+        // Eco de la identidad que el backend ya calculo y devolvio en este
+        // mismo patron -- nunca se calcula aqui.
+        pattern_fingerprint: pattern.row_fingerprint,
+        pattern_rows: pattern.pattern_rows,
       }
 
       const entries: Array<[DecisionKey, string, string]> = [
@@ -627,6 +657,8 @@ export default function QuickCalibrationPanel({
           row: null,
           pattern_id: pattern.id,
           pattern_key: `pattern_${pattern.id}`,
+          pattern_fingerprint: pattern.row_fingerprint,
+          pattern_rows: pattern.pattern_rows,
           type: 'pattern_confirmation',
           id,
           question: 'Confirmación de lectura técnica desde el XLSM',
@@ -683,12 +715,54 @@ export default function QuickCalibrationPanel({
       toast.warning('Complete las decisiones funcionales pendientes antes de guardar.')
       return
     }
+    if (!showProblem && blockedPatterns.length > 0) {
+      toast.warning(
+        'Uno o más patrones de esta sección requieren revalidación y no pueden certificarse desde la calibración rápida. Abra "Ver evidencia técnica" para revisarlos patrón por patrón.'
+      )
+      return
+    }
 
     saveMutation.mutate(buildPayload(!showProblem))
   }
 
   return (
     <div className="space-y-5">
+      {blockedPatterns.length > 0 && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-semibold">
+              {blockedPatterns.length} patrón{blockedPatterns.length === 1 ? '' : 'es'} de esta
+              sección requiere{blockedPatterns.length === 1 ? '' : 'n'} revalidación.
+            </p>
+            <p className="mt-1">
+              El conjunto de filas de este patrón cambió respecto a la última calibración. No se
+              aplicó ninguna respuesta anterior automáticamente. Use{' '}
+              <span className="font-medium">Ver evidencia técnica</span> para revisar cada patrón y
+              su respuesta histórica antes de certificar la sección.
+            </p>
+          </div>
+        </div>
+      )}
+      {exceptionPatterns.length > 0 && (
+        <div className="flex items-start gap-2 rounded-xl border border-purple-300 bg-purple-50 p-4 text-sm text-purple-900">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div>
+            <p className="font-semibold">
+              {exceptionPatterns.length} patrón{exceptionPatterns.length === 1 ? '' : 'es'} de esta
+              sección {exceptionPatterns.length === 1 ? 'se detectó' : 'se detectaron'} como posible
+              {exceptionPatterns.length === 1 ? '' : 's'} excepción de negocio (patrón
+              {exceptionPatterns.length === 1 ? '' : 'es'}{' '}
+              {exceptionPatterns.map((pattern) => pattern.id).join(', ')}).
+            </p>
+            <p className="mt-1">
+              La calibración rápida aplica la misma decisión a todos los patrones de la sección. No
+              asuma que estas filas heredan la configuración general: revíselas de forma individual
+              en <span className="font-medium">Ver evidencia técnica</span> antes de certificar.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -724,7 +798,13 @@ export default function QuickCalibrationPanel({
           <StatusMetric label="Problemas reportados" value={String(reportedProblems)} />
           <StatusMetric
             label="Estado"
-            value={sectionReviewed ? 'Lista para certificar' : 'Pendiente'}
+            value={
+              blockedPatterns.length > 0
+                ? 'Requiere revalidación'
+                : sectionReviewed
+                  ? 'Lista para certificar'
+                  : 'Pendiente'
+            }
           />
         </div>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
