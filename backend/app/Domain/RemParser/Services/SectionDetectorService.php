@@ -123,16 +123,33 @@ class SectionDetectorService
         return null;
     }
 
+    /**
+     * Descarta una seccion "padre" (ej. F) solo cuando es un encabezado puro
+     * sin contenido propio antes de su primera subseccion (ej. F.1) -- nunca
+     * por el solo hecho de que existan subsecciones con su mismo prefijo.
+     *
+     * Senal usada: filaHeader. findHeaderRow() avanza fila por fila saltando
+     * marcadores "SECCION ..." y filas vacias hasta encontrar la primera fila
+     * con contenido real. Si el padre no tiene ninguna fila propia entre su
+     * marcador y el de su subseccion, ese avance termina aterrizando en el
+     * MISMO encabezado que la subseccion ya calculo para si misma -- ambas
+     * quedan con filaHeader identico. Si el padre si tiene datos propios,
+     * findHeaderRow encuentra ese contenido antes de llegar al marcador de la
+     * subseccion, y los filaHeader resultan distintos.
+     */
     private function filterAggregators(array $secciones): array
     {
         $codigos = array_map(fn(ParsedSectionDTO $s) => $s->codigo, $secciones);
+        $headers = array_map(fn(ParsedSectionDTO $s) => $s->filaHeader, $secciones);
         $esAgregador = [];
 
         foreach ($codigos as $i => $codigo) {
             if ($codigo === null) continue;
             foreach ($codigos as $j => $otro) {
                 if ($i === $j || $otro === null) continue;
-                if (str_starts_with($otro, $codigo . '.')) {
+                if (!str_starts_with($otro, $codigo . '.')) continue;
+
+                if ($headers[$i] === $headers[$j]) {
                     $esAgregador[$i] = true;
                     break;
                 }
