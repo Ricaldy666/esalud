@@ -11,6 +11,7 @@ import {
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
 import { calibrationService } from '../../services/calibration'
+import { NotCalibratableSectionPanel } from './NotCalibratableSectionPanel'
 import type {
   CalibrationQuestion,
   ColumnGroup,
@@ -723,6 +724,23 @@ export default function QuickCalibrationPanel({
     }
 
     saveMutation.mutate(buildPayload(!showProblem))
+  }
+
+  if (data.calibration_applicability?.status === 'not_calibratable') {
+    return (
+      <NotCalibratableSectionPanel
+        sheet={sheet}
+        section={section}
+        sectionTitle={sectionTitle}
+        data={data}
+        structureVersion={structureVersion}
+        readOnly={readOnly}
+        previousSection={previousSection}
+        nextSection={nextSection}
+        onOpenAdvanced={onOpenAdvanced}
+        onNavigateSection={onNavigateSection}
+      />
+    )
   }
 
   return (

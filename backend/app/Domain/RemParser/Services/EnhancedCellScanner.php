@@ -65,9 +65,11 @@ class EnhancedCellScanner
         $fields = $sectionData['fields'] ?? [];
         $maxCol = $this->resolveMaxColumn($worksheet, $fields);
 
+        $filaFinEscaneo = $this->extendScanForTrailingTotalRows($worksheet, $filaFin, $filaInicio, $maxCol);
+
         $cells = [];
 
-        for ($row = $filaHeader; $row <= $filaFin; $row++) {
+        for ($row = $filaHeader; $row <= $filaFinEscaneo; $row++) {
             for ($col = 1; $col <= $maxCol; $col++) {
                 $colLetter = Coordinate::stringFromColumnIndex($col);
                 $coordenada = $colLetter . $row;
@@ -476,5 +478,111 @@ class EnhancedCellScanner
             }
         }
         return Coordinate::columnIndexFromString($ws->getHighestColumn());
+    }
+
+    /**
+     * Extiende el rango de escaneo mas alla de filaFinDatos cuando la(s)
+     * fila(s) inmediatamente siguientes son filas TOTAL finales excluidas
+     * de los datos por SectionDetectorService::excludeTrailingTotalRows()
+     * (hallazgo real de A31, 2026-08-10) -- esas filas quedan fuera de
+     * filaFinDatos para no persistirse en rem_data ni entrar en patrones,
+     * pero deben seguir siendo visibles como referencia tecnica en
+     * cell_data (bloqueadas/formula), igual que cualquier otra celda de
+     * control. Misma logica de deteccion que SectionDetectorService,
+     * duplicada aqui de forma independiente (no comparten estado ni
+     * dependencia entre si).
+     */
+    private function extendScanForTrailingTotalRows(Worksheet $ws, int $filaFin, int $filaInicio, int $maxColIndex): int
+    {
+        $row = $filaFin + 1;
+        while ($this->isTrailingTotalRowForScan($ws, $row, $filaInicio, $maxColIndex)) {
+            $filaFin = $row;
+            $row++;
+        }
+
+        return $filaFin;
+    }
+
+    private function isTrailingTotalRowForScan(Worksheet $ws, int $row, int $startRow, int $maxColIndex): bool
+    {
+        $columnaConcepto = $this->findConceptColumnForTotalRowScan($ws, $row, $maxColIndex);
+        if ($columnaConcepto === null) {
+            return false;
+        }
+
+        $tieneFormulaHaciaAtras = false;
+        for ($col = 1; $col <= $maxColIndex; $col++) {
+            if ($col === $columnaConcepto) {
+                continue;
+            }
+
+            $letra = Coordinate::stringFromColumnIndex($col);
+            $val = $ws->getCell($letra . $row)->getValue();
+            if ($val === null || trim((string) $val) === '') {
+                continue;
+            }
+            if (!is_string($val) || !str_starts_with($val, '=')) {
+                return false;
+            }
+            if (!preg_match_all('/[A-Z]{1,3}(\d+)/', $val, $matches)) {
+                return false;
+            }
+            $tieneReferenciaPosterior = false;
+            $tieneReferenciaAnterior = false;
+            foreach ($matches[1] as $filaReferenciada) {
+                $fr = (int) $filaReferenciada;
+                if ($fr > $row) {
+                    $tieneReferenciaPosterior = true;
+                }
+                if ($fr < $row && $fr >= $startRow) {
+                    $tieneReferenciaAnterior = true;
+                }
+            }
+            if ($tieneReferenciaPosterior) {
+                return false;
+            }
+            if ($tieneReferenciaAnterior) {
+                $tieneFormulaHaciaAtras = true;
+            }
+        }
+
+        return $tieneFormulaHaciaAtras;
+    }
+
+    /**
+     * Misma logica que SectionDetectorService::findConceptColumnForTotalRow()
+     * -- la columna de concepto de la fila TOTAL final no esta fija en 'A'
+     * (hallazgo real de A32/F2 fila 151: concepto de grupo solo en A de la
+     * primera fila del bloque, "TOTAL" vive en B en las filas siguientes).
+     */
+    private function findConceptColumnForTotalRowScan(Worksheet $ws, int $row, int $maxColIndex): ?int
+    {
+        for ($col = 1; $col <= $maxColIndex; $col++) {
+            $letra = Coordinate::stringFromColumnIndex($col);
+            $val = $ws->getCell($letra . $row)->getValue();
+            if ($val === null || trim((string) $val) === '') {
+                continue;
+            }
+            if (is_string($val) && str_starts_with($val, '=')) {
+                continue;
+            }
+
+            return $this->pareceEtiquetaTotalScan($val) ? $col : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Misma logica que SectionDetectorService::pareceEtiquetaTotal() --
+     * hallazgo real de A09/I fila 336: sin este requisito, cualquier fila
+     * de dato real con texto propio fuera de columna A y formulas hacia
+     * atras se confundia con una fila TOTAL genuina.
+     */
+    private function pareceEtiquetaTotalScan(mixed $valor): bool
+    {
+        $texto = mb_strtoupper(trim((string) $valor), 'UTF-8');
+
+        return str_contains($texto, 'TOTAL') || str_contains($texto, 'AMBOS SEXOS');
     }
 }

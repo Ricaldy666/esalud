@@ -4,9 +4,33 @@ namespace App\Domain\RuleEngine\Services;
 
 use App\Domain\RemParser\Models\RemTemplateStructure;
 use App\Domain\REM\Services\ColumnRoleResolverService;
+use App\Domain\RuleEngine\Models\RemSheetUsageStatus;
+use Illuminate\Support\Facades\Cache;
 
 class SectionCalibrationMatrixService
 {
+    /**
+     * Clave de cache del agregado de progreso -- ver
+     * buildStructureCalibrationSummary(). Se invalida explicitamente en
+     * FunctionalRuleService::saveQuestions() (cada vez que se guarda una
+     * respuesta de calibracion) y en StructureApprovalService::activate()
+     * (cada vez que cambia cual estructura es la activa). El TTL es solo
+     * una red de seguridad para cualquier otro camino de escritura no
+     * cubierto por esas dos invalidaciones explicitas.
+     */
+    public const CALIBRATION_SUMMARY_CACHE_KEY = 'rem:calibration_summary';
+
+    /**
+     * TTL alto (1h) a proposito: la frescura real depende de las dos
+     * invalidaciones explicitas (saveQuestions/activate), no de este TTL --
+     * es solo la red de seguridad. Calculo en frio confirmado en ~60s
+     * contra la estructura activa (378 secciones, campaña Serie A completa)
+     * -- un TTL corto haria que esa demora se repitiera cada pocos minutos
+     * sin necesidad, ya que las dos invalidaciones explicitas ya cubren los
+     * unicos dos caminos que realmente cambian el resultado.
+     */
+    private const CALIBRATION_SUMMARY_CACHE_TTL_SECONDS = 3600;
+
     private ?array $structureData = null;
     private string $currentSheet = '';
 
@@ -82,15 +106,19 @@ class SectionCalibrationMatrixService
 
     private PatternReconciliationService $patternReconciliation;
 
+    private RemSheetUsageStatusService $sheetUsageStatus;
+
     public function __construct(
         private CertificationService $certificationService,
         private FunctionalRuleService $functionalRuleService,
         private CellDataStorageService $cellDataStorage,
         private ?ColumnRoleResolverService $columnRoleResolver = null,
         ?PatternReconciliationService $patternReconciliation = null,
+        ?RemSheetUsageStatusService $sheetUsageStatus = null,
     ) {
         $this->columnRoleResolver = $columnRoleResolver ?? new ColumnRoleResolverService();
         $this->patternReconciliation = $patternReconciliation ?? new PatternReconciliationService();
+        $this->sheetUsageStatus = $sheetUsageStatus ?? new RemSheetUsageStatusService();
     }
 
     /**
@@ -424,6 +452,18 @@ class SectionCalibrationMatrixService
                     'effective_section_reviewed' => false,
                     'historical_section_reviewed' => false,
                 ],
+                'calibration_applicability' => [
+                    'status' => 'requires_calibration',
+                    'reason' => 'La estructura no está disponible o es inconsistente para esta sección.',
+                    'criteria' => [
+                        'structure_available_and_consistent' => false,
+                        'cell_data_available' => false,
+                        'no_pending_warnings' => false,
+                        'no_editable_cells' => false,
+                        'no_functional_formulas' => false,
+                        'no_calibratable_patterns' => false,
+                    ],
+                ],
             ];
         }
 
@@ -590,9 +630,20 @@ class SectionCalibrationMatrixService
 
         $questions = $this->functionalRuleService->getQuestions($sheet, $section);
 
+        $applicability = $this->sectionHasNoCalibratableContent(
+            $sectionData ?? [],
+            $cellDataRows,
+            $hasCellData,
+            $patterns,
+            $warnings,
+        );
+        $noCalibratableClosure = $this->findNoCalibratableClosureQuestion($questions);
+
         $enriched = $this->applyExceptionClassification($enriched);
         [$enriched, $reconciliation] = $this->applyPatternReconciliation($enriched, $questions);
-        $effectiveSectionReviewed = $this->patternReconciliation->computeEffectiveSectionReviewed($reconciliation);
+        $effectiveSectionReviewed = ($applicability['status'] === 'not_calibratable' && $noCalibratableClosure !== null)
+            ? true
+            : $this->patternReconciliation->computeEffectiveSectionReviewed($reconciliation);
         $historicalSectionReviewed = $this->hasHistoricalSectionReviewed($questions);
 
         return [
@@ -611,7 +662,329 @@ class SectionCalibrationMatrixService
                 'effective_section_reviewed' => $effectiveSectionReviewed,
                 'historical_section_reviewed' => $historicalSectionReviewed,
             ],
+            'calibration_applicability' => $applicability,
         ];
+    }
+
+    /**
+     * Agregado de progreso de calibracion de TODA la estructura activa,
+     * agrupado por hoja -- hallazgo de revision UX (2026-08-11): el
+     * Dashboard/Plantilla/Serie no mostraban ningun progreso real ("sin
+     * datos suficientes" fijo en las 3 pantallas), obligando al funcionario
+     * a entrar seccion por seccion para saber que falta.
+     *
+     * Reutiliza buildPatternMatrix() por seccion (misma fuente de verdad ya
+     * validada durante toda la campaña para 'effective_section_reviewed' y
+     * 'calibration_applicability') en vez de duplicar la logica de
+     * reconciliacion -- evita divergencia entre lo que muestra la seccion
+     * individual y lo que muestra este agregado. El costo (una lectura de
+     * cell-data + reconciliacion por seccion) ocurre en un solo request
+     * HTTP hacia el backend, no como N requests desde el navegador.
+     *
+     * Criterio de "completada" (igual al usado en cada seccion individual):
+     * `effective_section_reviewed === true`, sin importar si el cierre fue
+     * `response='revisada'` (calibrada) o `response='no_calibrable'` -- se
+     * cuentan por separado solo para presentacion, nunca se resta una de
+     * la otra del total de completadas.
+     */
+    public function buildStructureCalibrationSummary(): array
+    {
+        return Cache::remember(
+            self::CALIBRATION_SUMMARY_CACHE_KEY,
+            self::CALIBRATION_SUMMARY_CACHE_TTL_SECONDS,
+            fn () => $this->computeStructureCalibrationSummary(),
+        );
+    }
+
+    private function computeStructureCalibrationSummary(): array
+    {
+        $structure = $this->getActiveStructure();
+        if (!$structure) {
+            return [
+                'structure_id' => null,
+                'sheets' => [],
+                'no_utilizadas' => [],
+                'totals' => $this->emptyStructureTotals(),
+            ];
+        }
+
+        $est = $this->parseEstructura($structure);
+        $sheets = [];
+        $noUtilizadas = [];
+        $totals = $this->emptySheetCounters();
+        $totals['sections_no_utilizadas'] = 0;
+        $sheetsCompleted = 0;
+
+        foreach ($est['forms'] ?? [] as $form) {
+            $sheetName = $form['sheetName'] ?? $form['sheet'] ?? null;
+            if ($sheetName === null || $sheetName === '') {
+                continue;
+            }
+
+            $sectionsInSheet = array_values(array_filter(
+                $form['sections'] ?? [],
+                fn ($sec) => ($sec['codigo'] ?? '') !== ''
+            ));
+
+            // Hoja marcada 'no_utilizada' por Estadistica APS: no se llama
+            // a buildPatternMatrix() para ninguna de sus secciones -- no
+            // requieren section_review, patrones ni decisiones funcionales
+            // (instruccion explicita del usuario, 2026-08-11). Se reporta
+            // aparte, nunca como pendiente/calibrada/no_calibrable.
+            $usageStatus = $this->sheetUsageStatus->getStatusFor((int) $structure->anio, $structure->serie, $sheetName);
+            if ($usageStatus === RemSheetUsageStatusService::STATUS_NO_UTILIZADA) {
+                $usageRow = RemSheetUsageStatus::where('anio', $structure->anio)
+                    ->where('serie', $structure->serie)
+                    ->where('sheet_name', $sheetName)
+                    ->first();
+
+                $noUtilizadas[] = [
+                    'sheet_name' => $sheetName,
+                    'sections_total' => count($sectionsInSheet),
+                    'reason' => $usageRow->reason ?? null,
+                    'decided_by' => $usageRow->decided_by ?? null,
+                    'decided_at' => $usageRow->decided_at?->toIso8601String(),
+                    'structure_id' => $usageRow->structure_id ?? null,
+                ];
+                $totals['sections_no_utilizadas'] += count($sectionsInSheet);
+
+                continue;
+            }
+
+            $counters = $this->emptySheetCounters();
+            $anyProgress = false;
+
+            foreach ($sectionsInSheet as $sec) {
+                $codigo = $sec['codigo'];
+
+                $matrix = $this->buildPatternMatrix($sheetName, $codigo);
+                $counters['sections_total']++;
+
+                $completed = $matrix['reconciliation']['effective_section_reviewed'] ?? false;
+                if ($completed) {
+                    $counters['sections_completed']++;
+                    if ($this->findNoCalibratableClosureQuestion($matrix['questions'] ?? []) !== null) {
+                        $counters['sections_not_calibratable']++;
+                    } else {
+                        $counters['sections_calibrated']++;
+                    }
+                } else {
+                    $counters['sections_pending']++;
+                    foreach ($matrix['questions'] ?? [] as $q) {
+                        if (trim((string) ($q['response'] ?? '')) !== '') {
+                            $anyProgress = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            $progressPct = $counters['sections_total'] > 0
+                ? (int) round(($counters['sections_completed'] / $counters['sections_total']) * 100)
+                : 0;
+
+            $status = match (true) {
+                $counters['sections_total'] > 0 && $counters['sections_completed'] === $counters['sections_total'] => 'completada',
+                $counters['sections_completed'] > 0 || $anyProgress => 'en_revision',
+                default => 'pendiente',
+            };
+
+            $sheets[] = array_merge(
+                ['sheet_name' => $sheetName],
+                $counters,
+                ['progress_pct' => $progressPct, 'status' => $status]
+            );
+
+            if ($status === 'completada') {
+                $sheetsCompleted++;
+            }
+            foreach ($counters as $key => $value) {
+                $totals[$key] += $value;
+            }
+        }
+
+        // sections_aplicables = todo lo que NO es 'no_utilizada'. progress_pct
+        // se calcula EXCLUSIVAMENTE sobre aplicables -- una hoja no utilizada
+        // nunca infla ni desinfla el porcentaje mostrado al funcionario.
+        $totals['sections_aplicables'] = $totals['sections_total'];
+        $totals['sections_total_estructura'] = $totals['sections_total'] + $totals['sections_no_utilizadas'];
+        unset($totals['sections_total']);
+
+        $totals['progress_pct'] = $totals['sections_aplicables'] > 0
+            ? (int) round(($totals['sections_completed'] / $totals['sections_aplicables']) * 100)
+            : 0;
+        $totals['sheets_total'] = count($sheets);
+        $totals['sheets_completed'] = $sheetsCompleted;
+        $totals['sheets_no_utilizadas'] = count($noUtilizadas);
+
+        return [
+            'structure_id' => $structure->id,
+            'sheets' => $sheets,
+            'no_utilizadas' => $noUtilizadas,
+            'totals' => $totals,
+        ];
+    }
+
+    /** @return array<string,int> */
+    private function emptyStructureTotals(): array
+    {
+        return [
+            'sections_total_estructura' => 0,
+            'sections_no_utilizadas' => 0,
+            'sections_aplicables' => 0,
+            'sections_completed' => 0,
+            'sections_calibrated' => 0,
+            'sections_not_calibratable' => 0,
+            'sections_pending' => 0,
+            'progress_pct' => 0,
+            'sheets_total' => 0,
+            'sheets_completed' => 0,
+            'sheets_no_utilizadas' => 0,
+        ];
+    }
+
+    /** @return array<string,int> */
+    private function emptySheetCounters(): array
+    {
+        return [
+            'sections_total' => 0,
+            'sections_completed' => 0,
+            'sections_calibrated' => 0,
+            'sections_not_calibratable' => 0,
+            'sections_pending' => 0,
+        ];
+    }
+
+    /**
+     * Determina si una seccion NO tiene ningun contenido calibrable --
+     * hallazgo A32/E1 (2026-08-11): seccion estructuralmente valida (filas
+     * reales, encabezados correctos) pero con TODAS sus celdas funcionales
+     * bloqueadas y sin formulas, por lo que nunca puede generar un patron
+     * (ver buildDynamicPatternDefinitions()/isNonCalibrableCellHeaderRow()).
+     * Antes de este mecanismo, la UI de calibracion forzaba 6 decisiones
+     * funcionales genericas sin evidencia real sobre la cual basarlas.
+     *
+     * Generico: no nombra ninguna hoja/seccion, se recalcula siempre en vivo
+     * a partir del cell-data vigente -- si una estructura futura le agrega
+     * celdas editables o formulas a esta seccion, este metodo vuelve a dar
+     * 'requires_calibration' automaticamente en la proxima carga.
+     *
+     * Cualquier duda tecnica bloquea 'not_calibratable' (nunca lo habilita
+     * por omision/ausencia de evidencia): sin cell-data, con escaneo
+     * incompleto (discrepancia estructura vs cell-data: una celda funcional
+     * esperada que no aparece en cell-data), o con warnings pendientes, la
+     * seccion se queda en 'requires_calibration' aunque parezca vacia.
+     *
+     * Nota importante: escanea el rango FISICO completo [filaInicioDatos,
+     * filaFinDatos] directamente, sin filtrar por row_type==='data'. Motivo:
+     * buildMatrix() ya reclasifica a 'header' cualquier fila sin formula ni
+     * celda editable (isNonCalibrableCellHeaderRow(), linea ~184) -- que es
+     * EXACTAMENTE el tipo de fila que este metodo busca. Filtrar por
+     * row_type==='data' dejaria la lista de filas vacia y el metodo nunca
+     * podria detectar el caso real que motiva este mecanismo (A32/E1).
+     */
+    private function sectionHasNoCalibratableContent(
+        array $sectionData,
+        array $cellDataRows,
+        bool $hasCellData,
+        array $patterns,
+        array $warnings,
+    ): array {
+        $filaInicio = (int) ($sectionData['filaInicioDatos'] ?? 0);
+        $filaFin = (int) ($sectionData['filaFinDatos'] ?? 0);
+
+        $validRange = !empty($sectionData) && $filaInicio > 0 && $filaFin >= $filaInicio;
+        $functionalColumns = $validRange ? $this->getFunctionalColumns($sectionData, $cellDataRows) : [];
+
+        $scanComplete = $validRange && $hasCellData && !empty($functionalColumns);
+        $missingScanDetail = null;
+        if ($scanComplete) {
+            for ($row = $filaInicio; $row <= $filaFin; $row++) {
+                $rowCells = $cellDataRows[$row] ?? [];
+                foreach ($functionalColumns as $col) {
+                    if (!array_key_exists($col, $rowCells)) {
+                        $scanComplete = false;
+                        $missingScanDetail = "{$col}{$row}";
+                        break 2;
+                    }
+                }
+            }
+        }
+
+        $hasEditableCell = false;
+        $editableDetail = null;
+        $hasFunctionalFormula = false;
+        $formulaDetail = null;
+        if ($scanComplete) {
+            for ($row = $filaInicio; $row <= $filaFin; $row++) {
+                $rowCells = $cellDataRows[$row] ?? [];
+                foreach ($functionalColumns as $col) {
+                    $cell = $rowCells[$col] ?? [];
+                    if (!$hasEditableCell && !($cell['esta_bloqueada'] ?? true)) {
+                        $hasEditableCell = true;
+                        $editableDetail = "{$col}{$row}";
+                    }
+                    if (!$hasFunctionalFormula && ($cell['es_formula'] ?? false)) {
+                        $hasFunctionalFormula = true;
+                        $formulaDetail = "{$col}{$row}";
+                    }
+                }
+            }
+        }
+
+        $criteria = [
+            'structure_available_and_consistent' => $validRange && $scanComplete,
+            'cell_data_available' => $hasCellData,
+            'no_pending_warnings' => empty($warnings),
+            'no_editable_cells' => $scanComplete && !$hasEditableCell,
+            'no_functional_formulas' => $scanComplete && !$hasFunctionalFormula,
+            'no_calibratable_patterns' => empty($patterns),
+        ];
+
+        $eligible = !in_array(false, $criteria, true);
+
+        $reason = match (true) {
+            $eligible => 'La sección no contiene celdas capturables ni fórmulas que requieran criterio funcional.',
+            !$validRange => 'La sección no tiene un rango de datos válido o no tiene filas de datos.',
+            !$hasCellData => 'La sección no tiene cell-data escaneado todavía.',
+            !$scanComplete => $missingScanDetail
+                ? "Escaneo incompleto o discrepancia entre estructura y cell-data en {$missingScanDetail}."
+                : 'Escaneo incompleto o discrepancia entre estructura y cell-data.',
+            !empty($warnings) => 'Existen advertencias técnicas pendientes sobre esta sección.',
+            $hasEditableCell => "Existen celdas editables (ej. {$editableDetail}) que requieren calibración funcional.",
+            $hasFunctionalFormula => "Existen fórmulas (ej. {$formulaDetail}) que requieren criterio funcional.",
+            !empty($patterns) => 'La sección tiene patrones calibrables detectados.',
+            default => 'La sección requiere calibración.',
+        };
+
+        return [
+            'status' => $eligible ? 'not_calibratable' : 'requires_calibration',
+            'reason' => $reason,
+            'criteria' => $criteria,
+        ];
+    }
+
+    /**
+     * Busca la pregunta de cierre "no requiere calibracion" -- distinta de
+     * un cierre de calibracion normal (response='revisada') por su
+     * response='no_calibrable' explicito. type/review_status se mantienen
+     * identicos a un cierre normal a proposito, para que
+     * hasHistoricalSectionReviewed() y el resto de la infraestructura ya
+     * existente (frontend incluido) sigan contando la seccion como
+     * "revisada" sin tocar esos metodos.
+     */
+    private function findNoCalibratableClosureQuestion(array $questions): ?array
+    {
+        foreach ($questions as $q) {
+            if (($q['type'] ?? '') === 'section_review'
+                && ($q['review_status'] ?? '') === 'section_reviewed'
+                && ($q['response'] ?? '') === 'no_calibrable'
+            ) {
+                return $q;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -1872,7 +2245,7 @@ class SectionCalibrationMatrixService
         }
 
         $lastRow = $sectionData['filaFinDatos'] ?? 32;
-            if ($this->isExplicitTotalRow($sheet, $section, $row)) return 'total';
+            if ($this->isEmbeddedBackwardSubtotalRow($sheet, $section, $row, $sectionData)) return 'total';
 
         return 'data';
     }
@@ -1895,12 +2268,131 @@ class SectionCalibrationMatrixService
         return [];
     }
 
-    private function isExplicitTotalRow(string $sheet, string $section, int $row): bool
+    /**
+     * Fila subtotal EMBEBIDA que agrega hacia atras -- hallazgo A32/F2 fila
+     * 140 (2026-08-10), tambien confirmado en A26/A.1 fila 41 y A26/B fila
+     * 59. Misma logica generica que RemParserService::isEmbeddedBackwardSubtotalRow(),
+     * duplicada aqui de forma independiente: busca la primera columna (en
+     * orden de indice, entre los campos reales de la seccion, excluyendo
+     * columnas de control oculto) con texto plano que parezca una etiqueta
+     * de TOTAL -- no cualquier texto (hallazgo real de A09/I fila 336: un
+     * dato derivado/calculado legitimo con formulas hacia atras, no un
+     * subtotal de control, NUNCA debe clasificarse como 'total'). El resto
+     * de columnas debe ser formula que agregue exclusivamente filas
+     * anteriores dentro de la seccion (una referencia a la propia fila es
+     * neutral). Al clasificarse como 'total' en vez de 'data', la fila
+     * queda automaticamente fuera de la construccion de patrones (ver
+     * usos de row_type === 'data' en este archivo) sin necesidad de un
+     * mecanismo adicional.
+     */
+    private function isEmbeddedBackwardSubtotalRow(string $sheet, string $section, int $row, array $sectionData): bool
     {
-        $totals = [
-            'A01' => ['A' => []],
-        ];
-        return in_array($row, $totals[$sheet][$section] ?? []);
+        if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
+            return false;
+        }
+
+        $sectionStartRow = (int) ($sectionData['filaInicioDatos'] ?? 0);
+        if ($sectionStartRow <= 0) {
+            return false;
+        }
+
+        // IMPORTANTE: NO se excluyen columnas esControlOculto aqui -- a
+        // diferencia de otros usos de esa bandera en este archivo, "control
+        // oculto" en este codebase significa "formula en TODAS las filas de
+        // la seccion" (ver ColumnDetectorService::isControlOculto()), que es
+        // EXACTAMENTE el tipo de columna donde vive la evidencia de
+        // agregacion hacia atras que este metodo busca. Hallazgo real de
+        // A32/F2 (2026-08-10): casi todas sus columnas de dato (C..AS, 43 de
+        // 45 campos) estan marcadas esControlOculto=true porque son
+        // subtotales por-fila calculados (ej. "Ambos Sexos" = Hombres +
+        // Mujeres), no valores crudos capturados -- excluirlas dejaba sin
+        // ninguna columna con la que confirmar la fila 140 como subtotal,
+        // haciendo que volviera a aparecer en un patron tras el scan-cells
+        // real (las pruebas sinteticas nunca marcaron esControlOculto=true,
+        // por lo que esto no se detecto hasta aplicar el patch real).
+        $columnas = [];
+        foreach ($sectionData['fields'] ?? [] as $f) {
+            $letra = $f['letra'] ?? '';
+            if ($letra === '') {
+                continue;
+            }
+            $columnas[] = $letra;
+        }
+        $columnas = array_values(array_unique($columnas));
+        usort($columnas, fn(string $a, string $b) => \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($a) <=> \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($b));
+
+        $columnaConcepto = null;
+        foreach ($columnas as $columna) {
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+            $valorBruto = $cell['valor_bruto'] ?? null;
+            if ($valorBruto === null || trim((string) $valorBruto) === '') {
+                continue;
+            }
+            if (($cell['es_formula'] ?? false) === true) {
+                continue;
+            }
+
+            $columnaConcepto = $this->pareceEtiquetaTotalMatrix((string) $valorBruto) ? $columna : null;
+            break;
+        }
+
+        if ($columnaConcepto === null) {
+            return false;
+        }
+
+        $tieneFormulaHaciaAtras = false;
+        foreach ($columnas as $columna) {
+            if ($columna === $columnaConcepto) {
+                continue;
+            }
+
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+
+            $esFormula = ($cell['es_formula'] ?? false) === true;
+            if (!$esFormula) {
+                $esCapturableReal = ($cell['es_editable'] ?? false) === true
+                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                if ($esCapturableReal) {
+                    return false;
+                }
+                continue;
+            }
+
+            $formulaTexto = (string) ($cell['formula'] ?? '');
+            if ($formulaTexto === '' || !preg_match_all('/[A-Z]{1,3}(\d+)/', $formulaTexto, $matches)) {
+                return false;
+            }
+
+            $tieneReferenciaPosterior = false;
+            foreach ($matches[1] as $filaReferenciada) {
+                $fr = (int) $filaReferenciada;
+                if ($fr > $row) {
+                    $tieneReferenciaPosterior = true;
+                }
+                if ($fr < $row && $fr >= $sectionStartRow) {
+                    $tieneFormulaHaciaAtras = true;
+                }
+            }
+
+            if ($tieneReferenciaPosterior) {
+                return false;
+            }
+        }
+
+        return $tieneFormulaHaciaAtras;
+    }
+
+    private function pareceEtiquetaTotalMatrix(string $valor): bool
+    {
+        $texto = mb_strtoupper(trim($valor), 'UTF-8');
+
+        return str_contains($texto, 'TOTAL') || str_contains($texto, 'AMBOS SEXOS');
     }
 
     // ─── Evidence ──────────────────────────────────────────────────

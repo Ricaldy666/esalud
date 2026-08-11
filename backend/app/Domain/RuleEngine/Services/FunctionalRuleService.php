@@ -2,6 +2,7 @@
 
 namespace App\Domain\RuleEngine\Services;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class FunctionalRuleService
@@ -203,6 +204,11 @@ class FunctionalRuleService
         $all['_questions'][$key] = $existing;
         $all['_questions_history'][$key] = $history;
         $this->persistAll($all);
+
+        // Invalida el agregado de progreso cacheado (ver
+        // SectionCalibrationMatrixService::buildStructureCalibrationSummary())
+        // -- cualquier respuesta guardada puede cambiar effective_section_reviewed.
+        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
 
         return $existing;
     }

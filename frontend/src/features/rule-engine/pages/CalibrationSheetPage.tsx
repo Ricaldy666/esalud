@@ -136,7 +136,12 @@ export default function CalibrationSheetPage() {
 }
 
 interface FunctionalSectionSummary {
-  status: 'Sin iniciar' | 'En revision' | 'Revisada' | 'Con observaciones'
+  status:
+    | 'Sin iniciar'
+    | 'En revision'
+    | 'Revisada'
+    | 'Con observaciones'
+    | 'No requiere calibración'
   progressPct: number
   patternsTotal: number
   patternsReviewed: number
@@ -176,7 +181,9 @@ function buildFunctionalSummary(data: PatternMatrixResponse): FunctionalSectionS
     questionsTotal > 0 ? Math.round((questionsAnswered / questionsTotal) * 100) : 0
   const status =
     sectionReview?.review_status === 'section_reviewed'
-      ? 'Revisada'
+      ? sectionReview.response === 'no_calibrable'
+        ? 'No requiere calibración'
+        : 'Revisada'
       : hasClarifications
         ? 'Con observaciones'
         : questionsAnswered > 0
@@ -219,6 +226,7 @@ function formatReviewDate(value?: string) {
 
 function statusClass(status: FunctionalSectionSummary['status'] | 'Pendiente') {
   if (status === 'Revisada') return 'border-emerald-200 bg-emerald-50 text-emerald-700'
+  if (status === 'No requiere calibración') return 'border-sky-200 bg-sky-50 text-sky-700'
   if (status === 'Con observaciones') return 'border-amber-200 bg-amber-50 text-amber-700'
   if (status === 'En revision') return 'border-indigo-200 bg-indigo-50 text-indigo-700'
   return 'border-slate-200 bg-slate-100 text-slate-600'
@@ -264,7 +272,7 @@ function SectionCard({
         <span
           className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${statusClass(status)}`}
         >
-          {status === 'Revisada' ? (
+          {status === 'Revisada' || status === 'No requiere calibración' ? (
             <CheckCircle2 className="h-3 w-3" />
           ) : (
             <Clock className="h-3 w-3" />

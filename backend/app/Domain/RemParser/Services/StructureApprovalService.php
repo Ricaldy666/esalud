@@ -3,6 +3,8 @@
 namespace App\Domain\RemParser\Services;
 
 use App\Domain\RemParser\Models\RemTemplateStructure;
+use App\Domain\RuleEngine\Services\SectionCalibrationMatrixService;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 class StructureApprovalService
@@ -44,6 +46,11 @@ class StructureApprovalService
 
         $structure->status = 'active';
         $structure->save();
+
+        // Invalida el agregado de progreso cacheado (ver
+        // SectionCalibrationMatrixService::buildStructureCalibrationSummary())
+        // -- cambio de estructura activa invalida cualquier resumen previo.
+        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
 
         return $structure;
     }

@@ -130,6 +130,7 @@ Route::prefix('v1')->group(function () {
             Route::prefix('catalog')->name('catalog.')->group(function () {
                 Route::get('/', [CatalogController::class, 'index'])->name('index');
                 Route::get('/export', [CatalogController::class, 'export'])->name('export');
+                Route::get('/calibration-summary', [CalibrationViewController::class, 'calibrationSummary'])->name('calibration-summary');
                 Route::get('/{sheet}/sections/{section}', [CatalogController::class, 'section'])->name('section');
                 Route::get('/{sheet}/sections/{section}/export', [CatalogController::class, 'sectionExport'])->name('section-export');
                 Route::get('/{sheet}/sections/{section}/matrix', [CatalogController::class, 'matrix'])->name('matrix');

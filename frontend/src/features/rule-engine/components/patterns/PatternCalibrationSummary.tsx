@@ -4,6 +4,7 @@ import { calibrationService } from '../../services/calibration'
 import PatternCalibrationGroup from './PatternCalibrationGroup'
 import SpecialColumnsPanel from './SpecialColumnsPanel'
 import FunctionalQuestionsPanel from './FunctionalQuestionsPanel'
+import { NotCalibratableSectionPanel } from './NotCalibratableSectionPanel'
 import type { PatternMatrixResponse } from '../../types/calibration'
 
 const COLOR_LEGEND = [
@@ -37,9 +38,15 @@ interface Props {
   sheet: string
   section: string
   readOnly?: boolean
+  structureVersion?: string
 }
 
-export default function PatternCalibrationSummary({ sheet, section, readOnly = false }: Props) {
+export default function PatternCalibrationSummary({
+  sheet,
+  section,
+  readOnly = false,
+  structureVersion = '',
+}: Props) {
   const { data, isLoading, error } = useQuery<PatternMatrixResponse>({
     queryKey: ['pattern-matrix', sheet, section],
     queryFn: () => calibrationService.getPatterns(sheet, section),
@@ -155,16 +162,26 @@ export default function PatternCalibrationSummary({ sheet, section, readOnly = f
         patterns={patterns}
       />
 
-      <FunctionalQuestionsPanel
-        sheet={sheet}
-        section={section}
-        patterns={patterns}
-        columnGroups={data.column_groups}
-        initialQuestions={data.questions}
-        warnings={data.warnings}
-        readOnly={readOnly}
-        reconciliation={data.reconciliation}
-      />
+      {data.calibration_applicability?.status === 'not_calibratable' ? (
+        <NotCalibratableSectionPanel
+          sheet={sheet}
+          section={section}
+          data={data}
+          structureVersion={structureVersion}
+          readOnly={readOnly}
+        />
+      ) : (
+        <FunctionalQuestionsPanel
+          sheet={sheet}
+          section={section}
+          patterns={patterns}
+          columnGroups={data.column_groups}
+          initialQuestions={data.questions}
+          warnings={data.warnings}
+          readOnly={readOnly}
+          reconciliation={data.reconciliation}
+        />
+      )}
     </div>
   )
 }

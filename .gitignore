@@ -38,5 +38,8 @@ recursos-rem/
 # OpenCode session/config (no versionar)
 .opencode/
 
-# OpenCode session/config (no versionar)
-.opencode/
+# Backups y dumps de base de datos (nunca versionar - contienen datos reales)
+backups/
+*.sql
+*.sql.gz
+*.dump

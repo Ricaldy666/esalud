@@ -24,6 +24,8 @@ class ColumnDetectorService
         string $sheetName,
         ?string $codigoSeccion,
         ?int $filaHeaderSuperior = null,
+        array $filasHeaderAdicionales = [],
+        array $bloquesSecundarios = [],
     ): array {
         $fields = [];
         $maxColIndex = Coordinate::columnIndexFromString($highestCol);
@@ -43,6 +45,68 @@ class ColumnDetectorService
             if ($label === '' && $filaHeaderSuperior !== null) {
                 $superiorValue = $this->getMergedCellValue($worksheet, $mergeMap, $colLetter, $filaHeaderSuperior);
                 $label = $this->cleanLabel($superiorValue);
+            }
+
+            // Encabezado de 2 o 3 niveles donde la fila superior YA tiene
+            // texto en columna A (ver SectionDetectorService::
+            // findTrailingHeaderRows()): se combinan las etiquetas de cada
+            // nivel adicional encontrado, en orden, con " / " -- ej.
+            // "RANGO ETARIO Y SEXO" + "0-4 años" + "Hombres" en vez de
+            // perder los niveles inferiores y repetir solo la categoria
+            // general en 30+ columnas.
+            //
+            // Deduplicacion contra el ULTIMO nivel agregado (no contra la
+            // etiqueta combinada completa): una celda fusionada
+            // VERTICALMENTE (ej. "Ambos sexos" en B116:B117) resuelve al
+            // mismo valor en cada fila que cubre, y sin esto se repetiria
+            // como "TOTAL / Ambos sexos / Ambos sexos".
+            $ultimoNivelAgregado = $label;
+            foreach ($filasHeaderAdicionales as $filaAdicional) {
+                $valorAdicional = $this->cleanLabel(
+                    $this->getMergedCellValue($worksheet, $mergeMap, $colLetter, $filaAdicional)
+                );
+                if ($valorAdicional === '' || $valorAdicional === $ultimoNivelAgregado) {
+                    continue;
+                }
+                $label = $label === '' ? $valorAdicional : $label . ' / ' . $valorAdicional;
+                $ultimoNivelAgregado = $valorAdicional;
+            }
+
+            // Bloque de encabezado SECUNDARIO (hallazgo A30/C fila 95, ver
+            // SectionDetectorService::findSecondaryHeaderBlocks()): solo se
+            // consulta cuando el encabezado primario (arriba) no dejo
+            // ninguna etiqueta para esta columna -- una columna que YA tiene
+            // etiqueta del bloque primario la conserva sin cambios (el
+            // bloque secundario puede redefinir semanticamente columnas
+            // reutilizadas, ej. B:Y en A30/C, pero resolver esa doble
+            // semantica queda fuera de alcance de esta correccion minima;
+            // solo se etiquetan aqui las columnas genuinamente NUEVAS que el
+            // bloque primario nunca cubrio).
+            if ($label === '' && !empty($bloquesSecundarios)) {
+                $bloque = null;
+                foreach ($bloquesSecundarios as $candidato) {
+                    if ($candidato['columnaInicioNueva'] <= $col) {
+                        $bloque = $candidato;
+                    }
+                }
+
+                if ($bloque !== null) {
+                    $valorSecundario = $this->cleanLabel(
+                        $this->getMergedCellValue($worksheet, $mergeMap, $colLetter, $bloque['filaHeader'])
+                    );
+                    $ultimoNivelSecundario = $valorSecundario;
+                    foreach ($bloque['filasAdicionales'] as $filaAdicional) {
+                        $valorAdicional = $this->cleanLabel(
+                            $this->getMergedCellValue($worksheet, $mergeMap, $colLetter, $filaAdicional)
+                        );
+                        if ($valorAdicional === '' || $valorAdicional === $ultimoNivelSecundario) {
+                            continue;
+                        }
+                        $valorSecundario = $valorSecundario === '' ? $valorAdicional : $valorSecundario . ' / ' . $valorAdicional;
+                        $ultimoNivelSecundario = $valorAdicional;
+                    }
+                    $label = $valorSecundario;
+                }
             }
 
             if ($label === '') {
@@ -75,12 +139,24 @@ class ColumnDetectorService
         return $fields;
     }
 
+    /**
+     * Nunca trata el texto crudo de una formula como etiqueta -- hallazgo
+     * real de A28/A.2 (2026-08-07): la fila de encabezado 28 tenia una
+     * formula de control aislada en la columna CM sin ninguna etiqueta de
+     * texto real en ninguna fila de encabezado para esa columna; sin este
+     * filtro, la propia cadena de la formula ("=IF(B29<>SUM(B30:B52),1,0)")
+     * se colaba como si fuera la etiqueta de un campo nuevo (CM), inventando
+     * una columna capturable que en realidad no existe.
+     */
     private function cleanLabel(mixed $value): string
     {
         if ($value === null) {
             return '';
         }
         $texto = trim((string) $value);
+        if (str_starts_with($texto, '=')) {
+            return '';
+        }
         return $texto;
     }
 

@@ -7,6 +7,7 @@ import type {
   CalibrationQuestion,
   CalibrationQuestionResponse,
   CalibrationRow,
+  CalibrationSummaryResponse,
   PatternMatrixResponse,
   RowFunctionalDecisionResponse,
   RowFunctionalRulePayload,
@@ -14,6 +15,13 @@ import type {
 } from '../types/calibration'
 
 export const calibrationService = {
+  getCalibrationSummary: async (): Promise<CalibrationSummaryResponse> => {
+    const { data } = await api.get<ApiResponse<CalibrationSummaryResponse>>(
+      '/rule-engine/catalog/calibration-summary'
+    )
+    return data.data
+  },
+
   getMatrix: async (sheet: string, section: string): Promise<CalibrationMatrixResponse> => {
     const { data } = await api.get<ApiResponse<CalibrationMatrixResponse>>(
       `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/matrix`

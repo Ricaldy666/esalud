@@ -74,6 +74,7 @@ export function getSourceLabel(source: string | null | undefined): string {
 }
 
 export const STRUCTURE_STATUS_LABELS: Record<string, string> = {
+  active: 'Activa',
   approved: 'Aprobada',
   draft: 'Borrador',
   superseded: 'Reemplazada',
@@ -81,6 +82,49 @@ export const STRUCTURE_STATUS_LABELS: Record<string, string> = {
 
 export function getStructureStatusLabel(status: string | null | undefined): string {
   return STRUCTURE_STATUS_LABELS[status ?? ''] ?? status ?? '—'
+}
+
+export const STRUCTURE_STATUS_STYLES: Record<string, string> = {
+  active: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  approved: 'bg-blue-100 text-blue-700 border-blue-200',
+  draft: 'bg-slate-100 text-slate-600 border-slate-200',
+  superseded: 'bg-amber-100 text-amber-700 border-amber-200',
+}
+
+export function getStructureStatusStyle(status: string | null | undefined): string {
+  return STRUCTURE_STATUS_STYLES[status ?? ''] ?? 'bg-slate-100 text-slate-600 border-slate-200'
+}
+
+/**
+ * Estado agregado de progreso de calibracion (hoja o total) -- ver
+ * CalibrationApplicabilityStatus/backend SectionCalibrationMatrixService::buildStructureCalibrationSummary().
+ * Union deliberadamente distinta de STRUCTURE_STATUS_LABELS: son dos
+ * dominios distintos (estado de publicacion de una estructura vs. estado
+ * de avance de calibracion de una hoja/seccion), no deben compartir mapa.
+ */
+export type CalibrationProgressStatus = 'completada' | 'en_revision' | 'pendiente'
+
+export const CALIBRATION_PROGRESS_LABELS: Record<CalibrationProgressStatus, string> = {
+  completada: 'Completada',
+  en_revision: 'En revisión',
+  pendiente: 'Pendiente',
+}
+
+export function getCalibrationProgressLabel(status: string | null | undefined): string {
+  return CALIBRATION_PROGRESS_LABELS[status as CalibrationProgressStatus] ?? status ?? '—'
+}
+
+export const CALIBRATION_PROGRESS_STYLES: Record<CalibrationProgressStatus, string> = {
+  completada: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  en_revision: 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  pendiente: 'bg-slate-100 text-slate-600 border-slate-200',
+}
+
+export function getCalibrationProgressStyle(status: string | null | undefined): string {
+  return (
+    CALIBRATION_PROGRESS_STYLES[status as CalibrationProgressStatus] ??
+    'bg-slate-100 text-slate-600 border-slate-200'
+  )
 }
 
 export const COMPARISON_STATUS_LABELS: Record<string, string> = {
@@ -91,6 +135,18 @@ export const COMPARISON_STATUS_LABELS: Record<string, string> = {
 export function getComparisonStatusLabel(status: string | null | undefined): string {
   return COMPARISON_STATUS_LABELS[status ?? ''] ?? status ?? '—'
 }
+
+/**
+ * Etiqueta/estilo de "hoja no utilizada" (ver RemSheetUsageStatusService,
+ * CalibrationNoUtilizadaSheet). Deliberadamente FUERA de
+ * CalibrationProgressStatus/CALIBRATION_PROGRESS_LABELS: no es un estado de
+ * avance de calibración (nunca Pendiente/En revisión/Completada), es una
+ * determinación de negocio de Estadística APS de que la hoja no se usa. No
+ * debe mezclarse visualmente con esos estados.
+ */
+export const NO_UTILIZADA_LABEL = 'No utilizada'
+
+export const NO_UTILIZADA_STYLE = 'bg-slate-100 text-slate-500 border-slate-200 border-dashed'
 
 export const MODE_LABELS: Record<string, { label: string; description: string }> = {
   disabled: { label: 'Deshabilitado', description: 'El motor no ejecuta validaciones' },

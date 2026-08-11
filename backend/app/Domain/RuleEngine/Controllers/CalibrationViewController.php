@@ -27,6 +27,23 @@ class CalibrationViewController extends Controller
         ]);
     }
 
+    /**
+     * Agregado de progreso de calibracion de toda la estructura activa,
+     * agrupado por hoja -- consumido por Dashboard/Plantilla/Serie para
+     * mostrar avance real sin requerir N requests por seccion desde el
+     * navegador (ver SectionCalibrationMatrixService::buildStructureCalibrationSummary()).
+     */
+    public function calibrationSummary(): JsonResponse
+    {
+        $summary = $this->matrixService->buildStructureCalibrationSummary();
+
+        return response()->json([
+            'data' => $summary,
+            'message' => 'Resumen de calibración obtenido',
+            'errors' => null,
+        ]);
+    }
+
     public function saveQuestions(Request $request, string $sheet, string $section): JsonResponse
     {
         $validated = $request->validate([
@@ -39,6 +56,7 @@ class CalibrationViewController extends Controller
             'questions.*.pattern_id' => 'nullable|integer',
             'questions.*.pattern_key' => 'nullable|string',
             'questions.*.review_status' => 'nullable|in:pending,reviewed,section_reviewed',
+            'questions.*.closure_reason' => 'nullable|string|max:100',
             'questions.*.reviewed_at' => 'nullable|string',
             'questions.*.reviewed_by' => 'nullable|string|max:255',
             'questions.*.status' => 'nullable|in:pending,answered,clarification',

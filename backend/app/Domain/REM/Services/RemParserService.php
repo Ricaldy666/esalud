@@ -494,6 +494,99 @@ class RemParserService
                 continue;
             }
 
+            // Fila TOTAL lider embebida (hallazgo A19b/A fila52, A28/B.1
+            // fila178, A30/C fila98): una fila dentro del rango activo de la
+            // seccion cuya columna de concepto tiene texto propio (no
+            // heredado de una fila anterior por fusion vertical) pero cuyas
+            // demas celdas relevantes son EXCLUSIVAMENTE formulas de
+            // agregacion que referencian solo filas posteriores a esta (ej.
+            // =SUM(B99:B108) en la fila 98) -- nunca una celda con valor
+            // capturado real. rowHasContent ya se calculo arriba a partir de
+            // getCalculatedValue(), que para estas filas SIEMPRE da un
+            // numero valido (el resultado de la suma), por lo que sin este
+            // chequeo la fila se persistiria como si fuera un registro de
+            // negocio real (concept="TOTAL", con el valor sumado). $worksheet
+            // se carga con setReadDataOnly(true) (ver loadSpreadsheet()), por
+            // lo que el texto de la formula no esta disponible ahi -- se usa
+            // en cambio el cell_data ya escaneado de la estructura
+            // (es_formula/formula), misma fuente que rowHasApplicableEditableCells()
+            // usa mas abajo. Patron estructural generico, no depende de
+            // hoja/seccion.
+            $columnasValorParaFilaTotal = array_values(array_unique(array_filter(array_merge(
+                $effectiveNumericColumns,
+                [$effectiveTotalCol, $effectiveProfessionalCol, $effectiveSubcategoryCol, $effectiveDetailCol],
+                $effectiveOverflowColumns,
+            ))));
+            $esFilaTotalLiderEmbebida = $sectionContext !== null && $this->isEmbeddedLeadingTotalRow(
+                $sheetConfig['sheet_name'],
+                $sectionContext['code'],
+                $row,
+                $hasConcept,
+                $columnasValorParaFilaTotal,
+            );
+
+            // Fila TOTAL FINAL embebida (hallazgo A31, 2026-08-10, filas
+            // 28/46/66/85 -- patron OPUESTO al anterior: en vez de agregar
+            // filas posteriores, agrega EXCLUSIVAMENTE filas anteriores de
+            // la misma seccion, ej. =SUM(B32:B45)). Confirmado tambien
+            // vigente en las estructuras activas (sin retocar) de A01, A23,
+            // A26, A28 y A29 -- 25 filas ya persistidas como fantasma en
+            // rem_data historico. Esta proteccion es independiente del fix
+            // estructural de SectionDetectorService::excludeTrailingTotalRows()
+            // (que ajusta filaFinDatos solo para hojas cuya estructura SI se
+            // vuelve a parchear, ej. A31): aqui protege el pipeline de
+            // parseo real incluso cuando la estructura activa de la seccion
+            // TODAVIA incluye la fila TOTAL dentro de su rango declarado
+            // (A01/A23/A26/A28/A29 no fueron reabiertas). Una referencia a
+            // la PROPIA fila (subtotal horizontal por fila, presente
+            // tambien en filas de dato real) es neutral -- se exige
+            // evidencia de al menos una referencia hacia una fila anterior
+            // dentro de la misma seccion para confirmar el patron.
+            $esFilaTotalFinalEmbebida = $sectionContext !== null && !$esFilaTotalLiderEmbebida && $this->isTrailingTotalRow(
+                $sheetConfig['sheet_name'],
+                $sectionContext['code'],
+                $row,
+                $hasConcept && $this->pareceEtiquetaTotal((string) $conceptValue),
+                $columnasValorParaFilaTotal,
+                (int) ($sectionContext['data_start_row'] ?? $row),
+            );
+
+            // Subtotal EMBEBIDO hacia atras (Hallazgo 4, A32/F2 fila 140,
+            // 2026-08-10): a diferencia de $esFilaTotalFinalEmbebida (que
+            // requiere el concepto en $effectiveConceptCol, la columna fija
+            // de concepto de la seccion), esta fila puede tener A vacia
+            // (por fusion vertical heredando el concepto de un BLOQUE
+            // anterior, ej. A130:A140 fusionada) y su propia etiqueta
+            // "TOTAL" vive en otra columna del rango de valores (ej. B140).
+            // Agrega EXCLUSIVAMENTE filas anteriores DENTRO de la seccion
+            // (nunca su propia fila) y esta seguida de MAS conceptos reales
+            // (ej. fila 141 abre un segundo bloque) -- no esta en el borde
+            // de la seccion, por lo que $esFilaTotalFinalEmbebida nunca la
+            // alcanza (esa solo camina hacia atras desde el cierre real).
+            // Confirmado tambien vigente, sin reabrir su estructura, en
+            // A26/A.1 fila 41 y A26/B fila 59 (70 ocurrencias fantasma cada
+            // una en rem_data historico). Requiere evidencia de etiqueta
+            // tipo TOTAL (no cualquier texto plano) para no confundir un
+            // dato real derivado con formulas hacia atras legitimas (ej.
+            // A09/I fila 336 "Altas administrativas") con un subtotal de
+            // control -- mismo criterio ya validado en
+            // SectionDetectorService::pareceEtiquetaTotal().
+            $esFilaSubtotalEmbebidoHaciaAtras = $sectionContext !== null
+                && !$esFilaTotalLiderEmbebida
+                && !$esFilaTotalFinalEmbebida
+                && $this->isEmbeddedBackwardSubtotalRow(
+                    $sheetConfig['sheet_name'],
+                    $sectionContext['code'],
+                    $row,
+                    $effectiveConceptCol,
+                    $columnasValorParaFilaTotal,
+                    (int) ($sectionContext['data_start_row'] ?? $row),
+                );
+
+            if ($esFilaTotalLiderEmbebida || $esFilaTotalFinalEmbebida || $esFilaSubtotalEmbebidoHaciaAtras) {
+                continue;
+            }
+
             $shouldPersist = $rowHasContent || $total !== null || $professional !== '' || $subcategory !== '' || $detail !== '';
 
             if (!$shouldPersist && $sectionContext !== null) {
@@ -773,6 +866,283 @@ class RemParserService
         }
 
         return false;
+    }
+
+    /**
+     * Determina si $row es una fila TOTAL lider embebida dentro del rango
+     * activo de una seccion: la columna de concepto tiene texto propio en
+     * esta fila ($conceptoTienePropio), y toda celda con evidencia de
+     * cell_data entre $columnasValor es una formula (segun el escaneo de
+     * estructura, es_formula/formula) que referencia EXCLUSIVAMENTE filas
+     * posteriores a $row. Si alguna celda tiene evidencia de ser
+     * capturable de verdad (editable, no bloqueada, no formula), la fila
+     * se trata como dato real, no como total -- no se excluye. Sin
+     * cell_data escaneado para la seccion no hay evidencia suficiente y no
+     * se excluye nada (comportamiento sin cambios). Misma logica
+     * estructural que SectionDetectorService::isLeadingTotalRow(), pero
+     * basada en cell_data en vez de leer la formula cruda de $worksheet:
+     * este archivo carga el Excel con setReadDataOnly(true) (ver
+     * loadSpreadsheet()), por lo que ahi solo esta disponible el resultado
+     * calculado de la formula, nunca su texto.
+     */
+    private function isEmbeddedLeadingTotalRow(string $sheet, string $section, int $row, bool $conceptoTienePropio, array $columnasValor): bool
+    {
+        if (!$conceptoTienePropio) {
+            return false;
+        }
+
+        if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
+            return false;
+        }
+
+        $tieneAlgunaFormula = false;
+        foreach ($columnasValor as $columna) {
+            if ($columna === null || $columna === '') {
+                continue;
+            }
+
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+
+            $esFormula = ($cell['es_formula'] ?? false) === true;
+            if (!$esFormula) {
+                $esCapturableReal = ($cell['es_editable'] ?? false) === true
+                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                if ($esCapturableReal) {
+                    return false;
+                }
+                continue;
+            }
+
+            $formulaTexto = (string) ($cell['formula'] ?? '');
+            if ($formulaTexto === '' || !$this->formulaReferencesOnlyRowsAfter($formulaTexto, $row)) {
+                return false;
+            }
+
+            $tieneAlgunaFormula = true;
+        }
+
+        return $tieneAlgunaFormula;
+    }
+
+    private function formulaReferencesOnlyRowsAfter(string $formula, int $row): bool
+    {
+        if (!preg_match_all('/[A-Z]{1,3}(\d+)/', $formula, $matches)) {
+            return false;
+        }
+
+        foreach ($matches[1] as $filaReferenciada) {
+            if ((int) $filaReferenciada <= $row) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Determina si $row es una fila TOTAL FINAL embebida dentro del rango
+     * activo de una seccion: patron OPUESTO a isEmbeddedLeadingTotalRow()
+     * -- la columna de concepto tiene texto propio, y toda celda con
+     * evidencia de cell_data es una formula que NUNCA referencia una fila
+     * POSTERIOR a $row (puede referenciar su propia fila o filas
+     * anteriores). Una referencia a la propia fila es NEUTRAL (el subtotal
+     * horizontal por fila, ej. "=+C28+D28", tambien existe en cualquier
+     * fila de dato real de la seccion) -- se exige ademas al menos una
+     * referencia a una fila estrictamente anterior DENTRO de la misma
+     * seccion ($sectionStartRow) como evidencia de que es un TOTAL
+     * genuino, no solo un dato real con su propio subtotal de fila. Sin
+     * esa evidencia hacia atras, no se excluye. Misma logica estructural
+     * que SectionDetectorService::isTrailingTotalRow(), basada en
+     * cell_data por la misma razon que isEmbeddedLeadingTotalRow() (ver
+     * comentario arriba).
+     *
+     * IMPORTANTE ($conceptoTienePropio, 2026-08-10): el llamador ahora
+     * exige ademas que el texto encontrado parezca una etiqueta de TOTAL
+     * (pareceEtiquetaTotal()) antes de pasar true aqui -- hallazgo real de
+     * A09/I fila 336 ("Altas administrativas"): un dato real derivado con
+     * formulas hacia atras legitimas, sin ninguna palabra "TOTAL", que
+     * este metodo por si solo NO distinguia de un TOTAL genuino (ese fix
+     * si se habia aplicado a SectionDetectorService/EnhancedCellScanner
+     * pero se paso por alto aqui hasta descubrirse durante las pruebas del
+     * Hallazgo 4).
+     */
+    private function isTrailingTotalRow(
+        string $sheet,
+        string $section,
+        int $row,
+        bool $conceptoTienePropio,
+        array $columnasValor,
+        int $sectionStartRow,
+    ): bool {
+        if (!$conceptoTienePropio) {
+            return false;
+        }
+
+        if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
+            return false;
+        }
+
+        $tieneFormulaHaciaAtras = false;
+        foreach ($columnasValor as $columna) {
+            if ($columna === null || $columna === '') {
+                continue;
+            }
+
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+
+            $esFormula = ($cell['es_formula'] ?? false) === true;
+            if (!$esFormula) {
+                $esCapturableReal = ($cell['es_editable'] ?? false) === true
+                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                if ($esCapturableReal) {
+                    return false;
+                }
+                continue;
+            }
+
+            $formulaTexto = (string) ($cell['formula'] ?? '');
+            if ($formulaTexto === '' || !preg_match_all('/[A-Z]{1,3}(\d+)/', $formulaTexto, $matches)) {
+                return false;
+            }
+
+            $tieneReferenciaPosterior = false;
+            foreach ($matches[1] as $filaReferenciada) {
+                $fr = (int) $filaReferenciada;
+                if ($fr > $row) {
+                    $tieneReferenciaPosterior = true;
+                }
+                if ($fr < $row && $fr >= $sectionStartRow) {
+                    $tieneFormulaHaciaAtras = true;
+                }
+            }
+
+            if ($tieneReferenciaPosterior) {
+                return false;
+            }
+        }
+
+        return $tieneFormulaHaciaAtras;
+    }
+
+    /**
+     * Fila subtotal EMBEBIDA que agrega hacia atras, en cualquier posicion
+     * dentro del rango activo de la seccion -- no solo al cierre (a
+     * diferencia de isTrailingTotalRow(), que requiere el concepto en
+     * $effectiveConceptCol, la columna FIJA de concepto de toda la
+     * seccion). Aqui la columna de concepto se busca dinamicamente para
+     * ESTA fila especifica, en orden de columna (concepto primero, luego
+     * el resto de columnas de valor) -- necesario porque una fusion
+     * vertical de columna A (ej. A130:A140 en A32/F2) deja A vacia para
+     * esta fila puntual, con su propia etiqueta "TOTAL" viviendo en otra
+     * columna (ej. B). Solo se acepta como concepto si el texto encontrado
+     * parece una etiqueta de TOTAL (mismo criterio que
+     * SectionDetectorService::pareceEtiquetaTotal()) -- de lo contrario la
+     * fila se descarta de inmediato, incluso si tiene formulas hacia atras
+     * (hallazgo real de A09/I fila 336: un dato derivado/calculado
+     * legitimo, no un subtotal de control).
+     */
+    private function isEmbeddedBackwardSubtotalRow(
+        string $sheet,
+        string $section,
+        int $row,
+        ?string $effectiveConceptCol,
+        array $columnasValor,
+        int $sectionStartRow,
+    ): bool {
+        if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
+            return false;
+        }
+
+        $columnasOrdenadas = $this->ordenarColumnasPorIndice(array_values(array_unique(array_filter(array_merge(
+            [$effectiveConceptCol],
+            $columnasValor,
+        )))));
+
+        $columnaConcepto = null;
+        foreach ($columnasOrdenadas as $columna) {
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+            $valorBruto = $cell['valor_bruto'] ?? null;
+            if ($valorBruto === null || trim((string) $valorBruto) === '') {
+                continue;
+            }
+            if (($cell['es_formula'] ?? false) === true) {
+                continue;
+            }
+
+            $columnaConcepto = $this->pareceEtiquetaTotal((string) $valorBruto) ? $columna : null;
+            break;
+        }
+
+        if ($columnaConcepto === null) {
+            return false;
+        }
+
+        $tieneFormulaHaciaAtras = false;
+        foreach ($columnasOrdenadas as $columna) {
+            if ($columna === $columnaConcepto) {
+                continue;
+            }
+
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+
+            $esFormula = ($cell['es_formula'] ?? false) === true;
+            if (!$esFormula) {
+                $esCapturableReal = ($cell['es_editable'] ?? false) === true
+                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                if ($esCapturableReal) {
+                    return false;
+                }
+                continue;
+            }
+
+            $formulaTexto = (string) ($cell['formula'] ?? '');
+            if ($formulaTexto === '' || !preg_match_all('/[A-Z]{1,3}(\d+)/', $formulaTexto, $matches)) {
+                return false;
+            }
+
+            $tieneReferenciaPosterior = false;
+            foreach ($matches[1] as $filaReferenciada) {
+                $fr = (int) $filaReferenciada;
+                if ($fr > $row) {
+                    $tieneReferenciaPosterior = true;
+                }
+                if ($fr < $row && $fr >= $sectionStartRow) {
+                    $tieneFormulaHaciaAtras = true;
+                }
+            }
+
+            if ($tieneReferenciaPosterior) {
+                return false;
+            }
+        }
+
+        return $tieneFormulaHaciaAtras;
+    }
+
+    private function ordenarColumnasPorIndice(array $columnas): array
+    {
+        usort($columnas, fn(string $a, string $b) => \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($a) <=> \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($b));
+
+        return $columnas;
+    }
+
+    private function pareceEtiquetaTotal(string $valor): bool
+    {
+        $texto = mb_strtoupper(trim($valor), 'UTF-8');
+
+        return str_contains($texto, 'TOTAL') || str_contains($texto, 'AMBOS SEXOS');
     }
 
     private function loadSectionCellRows(string $sheet, string $section): array

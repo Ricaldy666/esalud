@@ -150,6 +150,10 @@ export interface CalibrationQuestion {
   source_section?: string
   technical_signature?: string
   structure_version?: string
+  // Distingue un cierre 'section_review' por falta de contenido calibrable
+  // (response='no_calibrable') de un cierre de calibracion normal
+  // (response='revisada') -- ver CalibrationApplicability.
+  closure_reason?: string
   // Identidad de patron basada en huella de filas (no en pattern_id, que es
   // secuencial y se reasigna al cambiar la estructura). Siempre se envian
   // como eco de lo que el backend ya devolvio en PatternGroup -- el frontend
@@ -331,6 +335,29 @@ export interface PatternMatrixReconciliation {
   historical_section_reviewed: boolean
 }
 
+// Diagnostico generico (recalculado en vivo en cada carga, nunca hardcodeado
+// a una hoja/seccion) de si una seccion estructuralmente valida NO tiene
+// ningun contenido calibrable -- hallazgo A32/E1 (2026-08-11): 0 celdas
+// editables, 0 formulas, 0 patrones, con el cell-data ya escaneado y sin
+// advertencias pendientes. Cualquier duda tecnica (sin escanear, escaneo
+// incompleto, advertencias, patrones existentes) fuerza 'requires_calibration'.
+export type CalibrationApplicabilityStatus = 'requires_calibration' | 'not_calibratable'
+
+export interface CalibrationApplicabilityCriteria {
+  structure_available_and_consistent: boolean
+  cell_data_available: boolean
+  no_pending_warnings: boolean
+  no_editable_cells: boolean
+  no_functional_formulas: boolean
+  no_calibratable_patterns: boolean
+}
+
+export interface CalibrationApplicability {
+  status: CalibrationApplicabilityStatus
+  reason: string | null
+  criteria: CalibrationApplicabilityCriteria
+}
+
 export interface PatternMatrixResponse {
   section: PatternMatrixSection
   patterns: PatternGroup[]
@@ -342,6 +369,7 @@ export interface PatternMatrixResponse {
   header_labels: Record<string, string>
   warnings?: string[]
   reconciliation: PatternMatrixReconciliation
+  calibration_applicability?: CalibrationApplicability
 }
 
 export type RowFunctionalDecisionValue =
@@ -415,4 +443,66 @@ export interface CalibrationFunctionalRule {
   status: 'pending' | 'propuesta' | 'aprobada' | 'rechazada'
   updated_by: string
   updated_at: string | null
+}
+
+// ─── Progreso agregado de calibración ───────────────────────────────
+//
+// Ver backend SectionCalibrationMatrixService::buildStructureCalibrationSummary().
+// Una sección cuenta como "completed" cuando effective_section_reviewed
+// es true, sin importar si fue una calibración normal (response='revisada',
+// contada en 'calibrated') o un cierre "no requiere calibración"
+// (response='no_calibrable', contada en 'not_calibratable') -- ambas suman
+// al mismo total de completadas, nunca se restan entre sí.
+
+export interface CalibrationSectionCounters {
+  sections_total: number
+  sections_completed: number
+  sections_calibrated: number
+  sections_not_calibratable: number
+  sections_pending: number
+}
+
+export interface CalibrationSheetSummary extends CalibrationSectionCounters {
+  sheet_name: string
+  progress_pct: number
+  status: 'completada' | 'en_revision' | 'pendiente'
+}
+
+// Hoja marcada 'no_utilizada' por Estadística APS (ver
+// RemSheetUsageStatusService) -- estado de negocio a nivel de hoja
+// (año+serie+sheet_name), no una calificación de progreso de calibración.
+// Nunca se mezcla con pendiente/completada/no_calibrable: queda excluida
+// por completo del cálculo de progreso (ver progress_pct abajo).
+export interface CalibrationNoUtilizadaSheet {
+  sheet_name: string
+  sections_total: number
+  reason: string | null
+  decided_by: string | null
+  decided_at: string | null
+  structure_id: number | null
+}
+
+// Totales a nivel de estructura completa. sections_aplicables es el
+// denominador exclusivo de progress_pct -- las secciones de hojas
+// 'no_utilizadas' (sections_no_utilizadas) nunca entran en
+// sections_completed/sections_pending ni en el progreso.
+export interface CalibrationStructureTotals {
+  sections_total_estructura: number
+  sections_no_utilizadas: number
+  sections_aplicables: number
+  sections_completed: number
+  sections_calibrated: number
+  sections_not_calibratable: number
+  sections_pending: number
+  progress_pct: number
+  sheets_total: number
+  sheets_completed: number
+  sheets_no_utilizadas: number
+}
+
+export interface CalibrationSummaryResponse {
+  structure_id: number | null
+  sheets: CalibrationSheetSummary[]
+  no_utilizadas: CalibrationNoUtilizadaSheet[]
+  totals: CalibrationStructureTotals
 }

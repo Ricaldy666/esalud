@@ -1,26 +1,23 @@
 import { useNavigate } from 'react-router-dom'
-import { CalendarDays, ChevronRight, ClipboardCheck, FileSpreadsheet, Layers3 } from 'lucide-react'
+import {
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardCheck,
+  FileSpreadsheet,
+  Layers3,
+} from 'lucide-react'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { useStructures } from '../hooks/useStructures'
+import { useCalibrationSummary } from '../hooks/useCalibrationSummary'
+import { getStructureStatusLabel, getStructureStatusStyle } from '../utils/labels'
 import type { Structure } from '../types/structure'
-
-const STATUS_LABELS: Record<string, string> = {
-  draft: 'Borrador',
-  approved: 'Aprobada',
-  active: 'Activa',
-  superseded: 'Reemplazada',
-}
-
-const STATUS_STYLES: Record<string, string> = {
-  draft: 'bg-slate-100 text-slate-600 border-slate-200',
-  approved: 'bg-blue-100 text-blue-700 border-blue-200',
-  active: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  superseded: 'bg-amber-100 text-amber-700 border-amber-200',
-}
+import type { CalibrationStructureTotals } from '../types/calibration'
 
 export default function CalibrationDashboardPage() {
   const navigate = useNavigate()
   const { data, isLoading } = useStructures({ per_page: 100 })
+  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary()
   const visibleStructures =
     data?.data.filter((structure) => structure.status !== 'superseded') ?? []
 
@@ -61,6 +58,8 @@ export default function CalibrationDashboardPage() {
             <TemplateCard
               key={structure.id}
               structure={structure}
+              totals={structure.id === summary?.structure_id ? summary.totals : undefined}
+              loadingProgress={summaryLoading}
               onOpen={() => navigate(`/calibracion/templates/${structure.id}`)}
             />
           ))}
@@ -70,7 +69,17 @@ export default function CalibrationDashboardPage() {
   )
 }
 
-function TemplateCard({ structure, onOpen }: { structure: Structure; onOpen: () => void }) {
+function TemplateCard({
+  structure,
+  totals,
+  loadingProgress,
+  onOpen,
+}: {
+  structure: Structure
+  totals?: CalibrationStructureTotals
+  loadingProgress: boolean
+  onOpen: () => void
+}) {
   const forms = structure.forms_detail?.length ?? structure.stats?.total_forms ?? 0
   const sections =
     structure.stats?.total_sections ??
@@ -91,9 +100,9 @@ function TemplateCard({ structure, onOpen }: { structure: Structure; onOpen: () 
           <h2 className="mt-1 text-lg font-semibold text-slate-900">{structure.anio}</h2>
         </div>
         <span
-          className={`rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[structure.status] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}
+          className={`rounded-full border px-2 py-0.5 text-xs font-medium ${getStructureStatusStyle(structure.status)}`}
         >
-          {STATUS_LABELS[structure.status] ?? structure.status}
+          {getStructureStatusLabel(structure.status)}
         </span>
       </div>
 
@@ -103,8 +112,49 @@ function TemplateCard({ structure, onOpen }: { structure: Structure; onOpen: () 
         <Metric icon={CalendarDays} label="Secciones" value={String(sections)} />
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-        <span className="text-xs text-slate-500">Progreso: sin datos suficientes</span>
+      <div className="mt-5 border-t border-slate-100 pt-4">
+        {loadingProgress ? (
+          <p className="text-xs text-slate-400">Calculando progreso...</p>
+        ) : !totals ? (
+          <p className="text-xs text-slate-400">No aplica — no es la estructura activa</p>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-600">Progreso de calibración</span>
+              <span className="text-sm font-semibold text-slate-900">{totals.progress_pct}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-emerald-500"
+                style={{ width: `${totals.progress_pct}%` }}
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+              <span>
+                {totals.sheets_completed}/{totals.sheets_total} hojas completadas
+              </span>
+              <span>
+                {totals.sections_completed}/{totals.sections_aplicables} secciones
+              </span>
+              {totals.sections_not_calibratable > 0 && (
+                <span className="inline-flex items-center gap-1 text-slate-400">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {totals.sections_not_calibratable} no requiere calibración
+                </span>
+              )}
+              {totals.sections_pending > 0 && <span>{totals.sections_pending} pendientes</span>}
+            </div>
+            {totals.sheets_no_utilizadas > 0 && (
+              <p className="text-xs text-slate-400">
+                {totals.sheets_no_utilizadas} hojas no utilizadas por Estadística APS ·{' '}
+                {totals.sections_no_utilizadas} secciones
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center justify-end">
         <ChevronRight className="h-4 w-4 text-slate-400" />
       </div>
     </button>

@@ -1,7 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, ChevronRight, Layers3 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, ChevronRight, Layers3 } from 'lucide-react'
 import { structuresService } from '../services/structures'
+import { useCalibrationSummary } from '../hooks/useCalibrationSummary'
+import { getStructureStatusLabel } from '../utils/labels'
 
 export default function CalibrationTemplatePage() {
   const { templateId } = useParams<{ templateId: string }>()
@@ -13,6 +15,8 @@ export default function CalibrationTemplatePage() {
     queryFn: () => structuresService.get(structureId),
     enabled: Number.isFinite(structureId),
   })
+  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary()
+  const totals = structureId === summary?.structure_id ? summary.totals : undefined
 
   return (
     <div className="space-y-6">
@@ -40,7 +44,7 @@ export default function CalibrationTemplatePage() {
       ) : (
         <div className="space-y-4">
           <div className="grid gap-4 md:grid-cols-3">
-            <Summary label="Estado" value={structure.status} />
+            <Summary label="Estado" value={getStructureStatusLabel(structure.status)} />
             <Summary
               label="Hojas"
               value={String(structure.forms_detail?.length ?? structure.stats?.total_forms ?? 0)}
@@ -68,7 +72,50 @@ export default function CalibrationTemplatePage() {
                 <h2 className="mt-1 text-lg font-semibold text-slate-900">
                   Serie {structure.serie}
                 </h2>
-                <p className="mt-1 text-xs text-slate-500">Progreso: sin datos suficientes</p>
+                {summaryLoading ? (
+                  <p className="mt-1 text-xs text-slate-400">Calculando progreso...</p>
+                ) : !totals ? (
+                  <p className="mt-1 text-xs text-slate-400">
+                    No aplica — no es la estructura activa
+                  </p>
+                ) : (
+                  <div className="mt-1.5 space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="h-1.5 w-32 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-emerald-500"
+                          style={{ width: `${totals.progress_pct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-semibold text-slate-900">
+                        {totals.progress_pct}%
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                      <span>
+                        {totals.sheets_completed}/{totals.sheets_total} hojas
+                      </span>
+                      <span>
+                        {totals.sections_completed}/{totals.sections_aplicables} secciones
+                      </span>
+                      {totals.sections_not_calibratable > 0 && (
+                        <span className="inline-flex items-center gap-1 text-slate-400">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {totals.sections_not_calibratable} no requiere calibración
+                        </span>
+                      )}
+                      {totals.sections_pending > 0 && (
+                        <span>{totals.sections_pending} pendientes</span>
+                      )}
+                    </div>
+                    {totals.sheets_no_utilizadas > 0 && (
+                      <p className="text-xs text-slate-400">
+                        {totals.sheets_no_utilizadas} hojas no utilizadas por Estadística APS ·{' '}
+                        {totals.sections_no_utilizadas} secciones
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-slate-400" />

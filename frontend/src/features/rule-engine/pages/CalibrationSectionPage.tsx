@@ -246,6 +246,7 @@ export default function CalibrationSectionPage() {
               sheet={sheet ?? 'A01'}
               section={section ?? 'A'}
               readOnly={isReadOnly}
+              structureVersion={String(templateId ?? '')}
             />
           )}
         </>

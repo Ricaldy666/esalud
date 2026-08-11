@@ -221,14 +221,22 @@ class SectionDetectorServiceTwoRowHeaderTest extends TestCase
     }
 
     /**
-     * Patron real de A11a/L, M, N: la fila de encabezado SI tiene texto en
-     * columna A ("CONDICIÓN"), por lo que el criterio historico ya la
-     * encuentra correctamente en su primer intento -- debe seguir sin
-     * cambios (sin fila superior de respaldo), aunque el encabezado tambien
-     * tenga una segunda fila con sub-etiquetas que hoy no se combinan (fuera
-     * de alcance de esta correccion, ver hallazgo documentado).
+     * Patron real de A11a/L, M, N y A11/H: la fila de encabezado SI tiene
+     * texto en columna A ("CONDICIÓN"), por lo que el criterio historico ya
+     * la encuentra correctamente en su primer intento -- filaHeader se
+     * mantiene igual, sin fila superior de respaldo.
+     *
+     * La fila siguiente (3), con columna A vacia y una sub-etiqueta por
+     * columna ("10 - 14 años"), en su momento quedaba documentada como
+     * "fuera de alcance" -- hallazgo real de la auditoria de A19a
+     * (2026-08-07): esa misma forma (encabezado de 2 o mas niveles con A
+     * poblada en el nivel superior) aparece tambien en A01, A09, A11 y
+     * A11a, perdiendo la etiqueta especifica por columna (ej. "GRUPO DE
+     * EDAD" repetido en vez de "GRUPO DE EDAD / 10 - 14 años"). Corregido
+     * por SectionDetectorService::findTrailingHeaderRows(): ahora la
+     * etiqueta combina ambos niveles.
      */
-    public function test_condicion_style_header_with_text_in_column_a_is_unaffected(): void
+    public function test_condicion_style_header_combines_trailing_sub_label_row(): void
     {
         $ws = $this->sheet([
             1 => ['A' => 'SECCION L: SCREENING'],
@@ -241,10 +249,12 @@ class SectionDetectorServiceTwoRowHeaderTest extends TestCase
         $section = current(array_filter($sections, fn ($s) => $s->codigo === 'L'));
 
         $this->assertSame(2, $section->filaHeader, 'debe mantenerse igual al criterio historico: A tiene texto ("CONDICIÓN") desde la primera fila');
+        $this->assertSame(4, $section->filaInicioDatos, 'la fila 3 (sub-etiquetas, A vacia, sin formulas) debe tratarse como parte del encabezado, no como dato');
 
         $fields = $this->fieldsByLetter($sections, 'L');
         $this->assertSame('CONDICIÓN', $fields['A']->label);
-        $this->assertSame('TOTAL', $fields['B']->label);
-        $this->assertSame('GRUPO DE EDAD', $fields['C']->label);
+        $this->assertSame('TOTAL', $fields['B']->label, 'columna B no tiene sub-etiqueta en la fila 3 -- se mantiene igual');
+        $this->assertSame('GRUPO DE EDAD / 10 - 14 años', $fields['C']->label);
+        $this->assertSame('15 - 19 años', $fields['D']->label, 'columna D solo tiene etiqueta en el nivel inferior (fila 3); el nivel superior esta vacio para D');
     }
 }
