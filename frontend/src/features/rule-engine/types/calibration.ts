@@ -163,6 +163,14 @@ export interface CalibrationQuestion {
   backfill_status?: string | null
   reconciliation_status?: PatternReconciliationStatus
   derived_from_fingerprint?: string[] | null
+  // Metadata canonica v2 (Fase 1/3, 2026-08-12) -- server-owned, el
+  // frontend solo la lee para decidir que NO reenviar en el flujo normal
+  // de guardado (ver QuickCalibrationPanel::buildPayload()), nunca la
+  // calcula ni la construye.
+  fingerprint_version?: number
+  revalidated_by?: string
+  revalidated_at?: string
+  revalidation_source_type?: string
 }
 
 export interface CalibrationQuestionResponse {
@@ -505,4 +513,61 @@ export interface CalibrationSummaryResponse {
   sheets: CalibrationSheetSummary[]
   no_utilizadas: CalibrationNoUtilizadaSheet[]
   totals: CalibrationStructureTotals
+}
+
+// ─── Plan de migración al fingerprint canónico v2 (Fase 3, 2026-08-12) ──
+//
+// Ver backend PatternMigrationScanner::scanSection() -- clasificacion
+// recalculada EN VIVO en cada carga (nunca cacheada en el frontend como
+// verdad definitiva). Unico proposito: decidir si QuickRevalidationPanel
+// debe mostrarse en vez del flujo normal de calibracion. No participa del
+// calculo de progreso general ni de reconcileLive() en produccion.
+
+export type MigrationPlanCategory =
+  | 'AUTO_MIGRATE'
+  | 'QUICK_CONFIRMATION'
+  | 'FULL_REVALIDATION'
+  | 'MISMATCH'
+  | 'NEW_SECTION'
+  | 'NOT_CALIBRATABLE'
+  | 'NO_UTILIZADA'
+
+export interface MigrationPlanHistoricalAnswer {
+  response: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+}
+
+export interface MigrationPlanPattern {
+  pattern_id: number
+  category: MigrationPlanCategory
+  live_canonical_fingerprint: string | null
+  live_rows: number[]
+  already_v2_matching: boolean
+  question_count: number
+  // Solo presentes para patrones legacy con evidencia de fila extraible del
+  // texto de la pregunta historica -- ausentes en AUTO_MIGRATE/otros casos.
+  historical_answer?: MigrationPlanHistoricalAnswer | null
+  historical_rows?: number[] | null
+}
+
+export interface MigrationPlanColumnDiff {
+  added: string[]
+  removed: string[]
+  unknown: boolean
+}
+
+export interface MigrationPlanResponse {
+  sheet: string
+  code: string
+  category: MigrationPlanCategory
+  patterns: MigrationPlanPattern[]
+  // Ausente en categorias resueltas antes de llegar a comparar columnas
+  // (NEW_SECTION, NOT_CALIBRATABLE, NO_UTILIZADA, FULL_REVALIDATION sin
+  // preguntas de patron).
+  column_diff?: MigrationPlanColumnDiff
+}
+
+export interface QuickRevalidationConfirmResponse {
+  questions: CalibrationQuestion[]
 }

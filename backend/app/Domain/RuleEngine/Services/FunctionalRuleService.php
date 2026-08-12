@@ -3,6 +3,7 @@
 namespace App\Domain\RuleEngine\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class FunctionalRuleService
@@ -173,6 +174,25 @@ class FunctionalRuleService
         return $all['_questions']["{$sheet}_{$section}"] ?? [];
     }
 
+    /**
+     * Campos de metadata canonica v2 -- una vez que una pregunta los tiene
+     * (fingerprint_version=2), son SERVER-OWNED: solo
+     * applyQuickRevalidation() puede escribirlos/actualizarlos. El flujo
+     * normal de guardado (saveQuestions(), abajo) nunca debe confiar en lo
+     * que el navegador envie para estos campos -- el frontend legacy
+     * (QuickCalibrationPanel) siempre manda pattern_fingerprint en formato
+     * v1 (row_fingerprint), sin saber que la pregunta ya fue migrada/
+     * revalidada a v2. Ver hallazgo A01/G.-G.2, 2026-08-12.
+     */
+    private const PROTECTED_V2_FIELDS = [
+        'fingerprint_version',
+        'pattern_fingerprint',
+        'pattern_rows',
+        'revalidated_by',
+        'revalidated_at',
+        'revalidation_source_type',
+    ];
+
     public function saveQuestions(string $sheet, string $section, array $questions): array
     {
         $all = $this->loadAll();
@@ -196,18 +216,114 @@ class FunctionalRuleService
                 ];
             }
 
-            $existing[$i] = array_merge($old, $q, [
+            // Si la pregunta existente ya es canonica v2, se descartan del
+            // payload entrante los 6 campos protegidos ANTES del merge --
+            // asi el array_merge de abajo nunca puede pisarlos, sin importar
+            // que valores traiga $q. El resto de campos (response,
+            // review_status, reviewed_by, reviewed_at, source_type,
+            // observation, etc.) sigue actualizandose normalmente: esto NO
+            // bloquea decisiones funcionales legitimas del flujo normal,
+            // solo protege la metadata tecnica del mecanismo v2.
+            $incoming = ($old['fingerprint_version'] ?? null) === 2
+                ? array_diff_key($q, array_flip(self::PROTECTED_V2_FIELDS))
+                : $q;
+
+            $existing[$i] = array_merge($old, $incoming, [
                 'updated_at' => now()->toIso8601String(),
             ]);
         }
 
         $all['_questions'][$key] = $existing;
         $all['_questions_history'][$key] = $history;
-        $this->persistAll($all);
+        $this->persistAll($all, [
+            'source' => 'saveQuestions',
+            'sheet' => $sheet,
+            'section' => $section,
+        ]);
 
         // Invalida el agregado de progreso cacheado (ver
         // SectionCalibrationMatrixService::buildStructureCalibrationSummary())
         // -- cualquier respuesta guardada puede cambiar effective_section_reviewed.
+        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+
+        return $existing;
+    }
+
+    /**
+     * Fase 1 (flujo QUICK_CONFIRMATION, 2026-08-12): aplica una revalidacion
+     * rapida a TODAS las preguntas (pattern_question/pattern_confirmation)
+     * de un pattern_id puntual -- exclusivamente los campos tecnicos de
+     * fingerprint v2 + metadata de revalidacion. Deliberadamente NO acepta
+     * response/reviewed_by/reviewed_at/source_type como parametros -- esos
+     * campos nunca se tocan, precisamente para que esta funcion no pueda
+     * usarse (ni por error) para sobrescribir la decision funcional
+     * original. El llamador (CalibrationViewController::confirmQuickRevalidation())
+     * ya valido que la clasificacion en vivo es QUICK_CONFIRMATION antes de
+     * llegar aqui -- este metodo no vuelve a clasificar, solo escribe.
+     *
+     * @param  int[]  $patternRows  Filas del patron vigente, ya ordenadas.
+     * @return array Las preguntas de la seccion tras el cambio (mismo shape que getQuestions()).
+     *
+     * @throws \RuntimeException si no existe ninguna pregunta con ese pattern_id en la seccion.
+     */
+    public function applyQuickRevalidation(
+        string $sheet,
+        string $section,
+        int $patternId,
+        string $canonicalFingerprint,
+        array $patternRows,
+        string $revalidatedBy,
+    ): array {
+        $all = $this->loadAll();
+        $key = "{$sheet}_{$section}";
+        $existing = $all['_questions'][$key] ?? [];
+        $history = $all['_questions_history'][$key] ?? [];
+
+        $revalidatedAt = now()->toIso8601String();
+        $touchedAny = false;
+
+        foreach ($existing as $i => $q) {
+            if (!in_array($q['type'] ?? '', ['pattern_question', 'pattern_confirmation'], true)) {
+                continue;
+            }
+            if (($q['pattern_id'] ?? null) !== $patternId) {
+                continue;
+            }
+
+            // Deliberadamente SOLO estos 6 campos -- nunca response,
+            // reviewed_by, reviewed_at, source_type, question, id,
+            // pattern_id, pattern_key, review_status, closure_reason.
+            $existing[$i]['fingerprint_version'] = 2;
+            $existing[$i]['pattern_fingerprint'] = $canonicalFingerprint;
+            $existing[$i]['pattern_rows'] = $patternRows;
+            $existing[$i]['revalidated_by'] = $revalidatedBy;
+            $existing[$i]['revalidated_at'] = $revalidatedAt;
+            $existing[$i]['revalidation_source_type'] = 'manual_revalidation';
+
+            $touchedAny = true;
+        }
+
+        if (!$touchedAny) {
+            throw new \RuntimeException("No se encontraron preguntas de patron con pattern_id={$patternId} en {$key}.");
+        }
+
+        $history[] = [
+            'type' => 'pattern_revalidation',
+            'pattern_id' => $patternId,
+            'by' => $revalidatedBy,
+            'at' => $revalidatedAt,
+            'fingerprint_version' => 2,
+        ];
+
+        $all['_questions'][$key] = $existing;
+        $all['_questions_history'][$key] = $history;
+        $this->persistAll($all, [
+            'source' => 'applyQuickRevalidation',
+            'sheet' => $sheet,
+            'section' => $section,
+            'pattern_id' => $patternId,
+        ]);
+
         Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
 
         return $existing;
@@ -478,10 +594,55 @@ class FunctionalRuleService
         return $this->cachedAll = json_decode(Storage::disk('local')->get($path), true) ?? [];
     }
 
-    private function persistAll(array $data): void
+    /**
+     * Diagnostico minimo (2026-08-12, investigacion "POST 200 sin
+     * persistencia" de A01/D) alrededor de la unica escritura real del
+     * archivo -- deliberadamente NO cambia el comportamiento funcional: el
+     * valor de retorno de Storage::put() nunca se verifico antes de esto y
+     * sigue sin verificarse (no se agrega throw/retry/fallback todavia,
+     * solo se deja evidencia). $context es opcional y por defecto vacio
+     * para los demas call-sites de persistAll() -- solo
+     * applyQuickRevalidation() pasa sheet/section/pattern_id hoy. Nunca se
+     * loguea el contenido completo del JSON, solo su tamano en bytes.
+     */
+    private function persistAll(array $data, array $context = []): void
     {
         $path = self::STORAGE_DIR . '/' . self::STORAGE_FILE;
-        Storage::disk('local')->put($path, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        $absolutePath = Storage::disk('local')->path($path);
+        $before = $this->diagnosticSnapshot($path);
+
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        $putResult = Storage::disk('local')->put($path, $json);
+
+        $after = $this->diagnosticSnapshot($path);
+
+        Log::info('[FunctionalRuleService][persistAll-diagnostic] Escritura de reglas-funcionales.json', [
+            'put_result' => $putResult,
+            'absolute_path' => $absolutePath,
+            'content_size_bytes' => strlen($json),
+            'timestamp' => now()->toIso8601String(),
+            'context' => $context,
+            'before' => $before,
+            'after' => $after,
+        ]);
+
         $this->cachedAll = $data;
+    }
+
+    /**
+     * @return array{exists:bool, mtime:?string, size:?int}
+     */
+    private function diagnosticSnapshot(string $relativePath): array
+    {
+        $disk = Storage::disk('local');
+        if (! $disk->exists($relativePath)) {
+            return ['exists' => false, 'mtime' => null, 'size' => null];
+        }
+
+        return [
+            'exists' => true,
+            'mtime' => date('c', $disk->lastModified($relativePath)),
+            'size' => $disk->size($relativePath),
+        ];
     }
 }

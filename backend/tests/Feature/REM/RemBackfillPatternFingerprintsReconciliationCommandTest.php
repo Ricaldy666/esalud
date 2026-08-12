@@ -220,6 +220,35 @@ class RemBackfillPatternFingerprintsReconciliationCommandTest extends TestCase
         $this->assertStringContainsString('mutuamente excluyentes', Artisan::output());
     }
 
+    public function test_dry_run_reconciliation_executes_zero_write_queries(): void
+    {
+        // Prueba explicita del rediseno Fase 4 (2026-08-12): a diferencia del
+        // diseno anterior (transaccion con INSERT + UPDATE + ROLLBACK
+        // garantizado), la simulacion en memoria no debe emitir NINGUNA
+        // consulta de escritura -- ni siquiera dentro de una transaccion
+        // revertida despues.
+        Storage::fake('local');
+        $this->createBaseStructure();
+        $this->seedReglasFuncionales();
+
+        $writeQueries = [];
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$writeQueries) {
+            $sql = strtolower($query->sql);
+            if (str_starts_with($sql, 'insert') || str_starts_with($sql, 'update') || str_starts_with($sql, 'delete')) {
+                $writeQueries[] = $query->sql;
+            }
+        });
+
+        Artisan::call('rem:backfill-pattern-fingerprints', [
+            '--sheet' => 'A09',
+            '--sections' => 'F,G',
+            '--source' => $this->realSourcePath(),
+            '--dry-run' => true,
+        ]);
+
+        $this->assertSame([], $writeQueries, 'no debe ejecutarse ninguna consulta INSERT/UPDATE/DELETE durante la simulacion en memoria');
+    }
+
     public function test_write_without_confirm_is_rejected_and_never_touches_target(): void
     {
         Storage::fake('local');

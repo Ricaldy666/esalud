@@ -151,4 +151,138 @@ class PatternReconciliationServiceLiveTest extends TestCase
         $resultWithPending = $svc->reconcileLive($patterns, $questions);
         $this->assertFalse($svc->computeEffectiveSectionReviewed($resultWithPending));
     }
+
+    // ─── Compatibilidad transitoria v1/v2 (hallazgo A01/A, 2026-08-12) ───
+
+    private function canonicalQuestion(int $patternId, string $fingerprint, array $rows, string $reviewStatus = 'reviewed'): array
+    {
+        return [
+            'id' => "patron_{$patternId}_empty",
+            'pattern_id' => $patternId,
+            'response' => 'debe_registrar_cero',
+            'review_status' => $reviewStatus,
+            'reviewed_by' => 'Administrador Esalud',
+            'reviewed_at' => '2026-07-21T20:45:03.717Z',
+            'fingerprint_version' => 2,
+            'pattern_fingerprint' => $fingerprint,
+            'pattern_rows' => $rows,
+            'revalidated_by' => 'Francisco Arcos',
+            'revalidated_at' => '2026-08-12T18:43:37+00:00',
+            'revalidation_source_type' => 'manual_revalidation',
+        ];
+    }
+
+    public function test_v2_fingerprint_present_does_not_force_v1_mismatch(): void
+    {
+        // El bug exacto de A01/A: el patron vigente tiene un row_fingerprint
+        // v1 ("rowset_...") que NUNCA puede coincidir con un
+        // pattern_fingerprint v2 ("fpv2_..."). Antes del fix, esto forzaba
+        // requiere_revalidacion pese a que el patron esta correctamente
+        // migrado. Ahora debe ignorar por completo el fingerprint v2 para
+        // esta heuristica y caer al comportamiento legacy_unmigrated.
+        $patterns = [$this->pattern(1, 'rowset_98290c643a2bba52', [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])];
+        $question = $this->canonicalQuestion(1, 'fpv2_93841138a04af349', [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]);
+        $questions = [1 => [$question]];
+
+        $result = $this->service()->reconcileLive($patterns, $questions);
+
+        $this->assertSame(PatternReconciliationService::STATUS_REVIEWED, $result[1]['reconciliation_status']);
+        $this->assertSame('fingerprint_canonical_only', $result[1]['backfill_status']);
+        $this->assertNull($result[1]['derived_from_fingerprint']);
+    }
+
+    public function test_v2_fingerprint_not_reviewed_yet_is_pending_not_mismatch(): void
+    {
+        $patterns = [$this->pattern(1, 'rowset_x', [11, 12])];
+        $question = $this->canonicalQuestion(1, 'fpv2_x', [11, 12], reviewStatus: 'pending');
+        $questions = [1 => [$question]];
+
+        $result = $this->service()->reconcileLive($patterns, $questions);
+
+        $this->assertSame(PatternReconciliationService::STATUS_PENDING, $result[1]['reconciliation_status']);
+    }
+
+    public function test_section_partially_migrated_v1_and_v2_no_false_requires_revalidation(): void
+    {
+        // Una seccion con un patron ya migrado a v2 (revalidado) y otro
+        // todavia legacy v1 -- cada uno debe evaluarse con su propia
+        // heuristica, sin que uno contamine al otro.
+        $patterns = [
+            $this->pattern(1, 'rowset_98290c643a2bba52', [11, 12]),
+            $this->pattern(2, 'fp_b', [23, 24, 25, 26]),
+        ];
+        $questions = [
+            1 => [$this->canonicalQuestion(1, 'fpv2_93841138a04af349', [11, 12])],
+            2 => [$this->legacyQuestion(2)],
+        ];
+
+        $result = $this->service()->reconcileLive($patterns, $questions);
+
+        $this->assertSame(PatternReconciliationService::STATUS_REVIEWED, $result[1]['reconciliation_status']);
+        $this->assertSame('fingerprint_canonical_only', $result[1]['backfill_status']);
+        $this->assertSame(PatternReconciliationService::STATUS_REVIEWED, $result[2]['reconciliation_status']);
+        $this->assertSame('legacy_unmigrated', $result[2]['backfill_status']);
+    }
+
+    public function test_a01_a_equivalent_four_v2_patterns_not_degraded_by_format(): void
+    {
+        // Reproduccion directa del caso real A01/A: 4 patrones, cada uno con
+        // su propio fingerprint v2 correcto y filas distintas -- ninguno debe
+        // degradarse a requiere_revalidacion por el choque de formato v1/v2.
+        $patterns = [
+            $this->pattern(1, 'rowset_98290c643a2bba52', [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]),
+            $this->pattern(2, 'rowset_d71612199d65ff0b', [23, 24, 25, 26]),
+            $this->pattern(3, 'rowset_39aa387a740e5d84', [27, 28, 31, 32]),
+            $this->pattern(4, 'rowset_0e68a19768779352', [29, 30]),
+        ];
+        $questions = [
+            1 => [$this->canonicalQuestion(1, 'fpv2_93841138a04af349', [11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22])],
+            2 => [$this->canonicalQuestion(2, 'fpv2_0c882616ba60d8fd', [23, 24, 25, 26])],
+            3 => [$this->canonicalQuestion(3, 'fpv2_80b746e03d9c40a6', [27, 28, 31, 32])],
+            4 => [$this->canonicalQuestion(4, 'fpv2_f8b44225da5b5702', [29, 30])],
+        ];
+
+        $svc = $this->service();
+        $result = $svc->reconcileLive($patterns, $questions);
+
+        foreach ([1, 2, 3, 4] as $id) {
+            $this->assertSame(
+                PatternReconciliationService::STATUS_REVIEWED,
+                $result[$id]['reconciliation_status'],
+                "pattern {$id} no deberia degradarse a requiere_revalidacion"
+            );
+        }
+        $this->assertTrue($svc->computeEffectiveSectionReviewed($result));
+    }
+
+    public function test_v2_pattern_still_reviewed_by_reconcile_live_canonical(): void
+    {
+        // El mismo patron v2 que reconcileLive() ahora trata como
+        // 'fingerprint_canonical_only'/reviewed debe seguir siendo
+        // reconocido como reviewed por reconcileLiveCanonical() (todavia sin
+        // activar en produccion, pero debe quedar listo).
+        $svc = $this->service();
+        $pattern = ['id' => 1, 'canonical_fingerprint' => 'fpv2_93841138a04af349', 'filas' => [11, 12]];
+        $question = $this->canonicalQuestion(1, 'fpv2_93841138a04af349', [11, 12]);
+
+        $result = $svc->reconcileLiveCanonical([$pattern], [1 => [$question]]);
+
+        $this->assertSame(PatternReconciliationService::STATUS_REVIEWED, $result[1]['reconciliation_status']);
+    }
+
+    public function test_v2_compatibility_fix_does_not_touch_response_reviewed_by_reviewed_at(): void
+    {
+        $patterns = [$this->pattern(1, 'rowset_x', [11, 12])];
+        $question = $this->canonicalQuestion(1, 'fpv2_x', [11, 12]);
+        $questions = [1 => [$question]];
+
+        $this->service()->reconcileLive($patterns, $questions);
+
+        // reconcileLive() es puramente de lectura -- nunca muta el arreglo de
+        // preguntas de entrada. Se verifica explicitamente que los campos
+        // protegidos permanecen intactos despues de la llamada.
+        $this->assertSame('debe_registrar_cero', $question['response']);
+        $this->assertSame('Administrador Esalud', $question['reviewed_by']);
+        $this->assertSame('2026-07-21T20:45:03.717Z', $question['reviewed_at']);
+    }
 }

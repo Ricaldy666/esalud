@@ -12,8 +12,6 @@ use App\Domain\RuleEngine\Services\FunctionalRuleService;
 use App\Domain\RuleEngine\Services\PatternReconciliationService;
 use App\Domain\RuleEngine\Services\SectionCalibrationMatrixService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
@@ -27,14 +25,18 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  *
  * MODO RECONCILIACION (Fase 2, con --sheet + --sections): compara los
  * patrones vigentes hoy contra los patrones que resultarian de una
- * correccion de estructura propuesta (simulada en una transaccion con
- * ROLLBACK garantizado + Storage::fake, igual que la auditoria de
- * compatibilidad previa), reconcilia las respuestas guardadas por
- * row_fingerprint (no por pattern_id) usando PatternReconciliationService,
- * e informa el resultado. Soporta --dry-run (por defecto) o --write
- * (escritura real, gateada detras de --confirm + --target + backup
- * automatico) -- el camino de escritura esta implementado pero nunca se
- * invoca sin autorizacion explicita del operador en cada ejecucion.
+ * correccion de estructura propuesta. Desde el rediseno de Fase 4
+ * (2026-08-12, deuda tecnica #1) la simulacion del "despues" es 100% en
+ * memoria -- CellDataStorageService::seedCache() y
+ * SectionCalibrationMatrixService::seedStructureData() pueblan el estado
+ * propuesto sin tocar BD ni Storage en absoluto (ni transaccion, ni
+ * rollback, ni Storage::fake -- ya no hacen falta porque nunca se escribe
+ * nada). Reconcilia las respuestas guardadas por row_fingerprint (no por
+ * pattern_id) usando PatternReconciliationService, e informa el resultado.
+ * Soporta --dry-run (por defecto) o --write (escritura real, gateada detras
+ * de --confirm + --target + backup automatico) -- el camino de escritura
+ * esta implementado pero nunca se invoca sin autorizacion explicita del
+ * operador en cada ejecucion.
  */
 class RemBackfillPatternFingerprintsCommand extends Command
 {
@@ -192,61 +194,39 @@ class RemBackfillPatternFingerprintsCommand extends Command
         }
         $spreadsheet->disconnectWorksheets();
 
-        // --- "DESPUES": simulacion aislada -- DB con ROLLBACK garantizado + Storage fake ---
+        // --- "DESPUES": simulacion 100% EN MEMORIA (rediseno Fase 4, 2026-08-12) ---
+        // Reemplaza el diseno anterior (transaccion con ROLLBACK garantizado +
+        // Storage::fake) -- aquel era seguro (el rollback y la verificacion
+        // posterior lo garantizaban) pero SI llegaba a emitir escrituras SQL
+        // reales (INSERT + UPDATE de status) contra la BD real dentro de la
+        // transaccion, con una ventana de concurrencia breve donde la
+        // estructura activa real quedaba en status='draft'. Este diseno nuevo
+        // no escribe nada en ningun momento: CellDataStorageService::seedCache()
+        // y SectionCalibrationMatrixService::seedStructureData() (agregados
+        // junto con este cambio) pueblan el cache de instancia directamente,
+        // sin tocar Storage ni BD. getActiveStructure() sigue haciendo una
+        // lectura real (SELECT, nunca escritura) solo para obtener un objeto
+        // no nulo -- su contenido se ignora una vez que seedStructureData() ya
+        // establecio $structureData.
+        $freshCellStorage = new CellDataStorageService;
+        foreach ($sectionCodes as $sec) {
+            $freshCellStorage->seedCache($sheet, $sec, $proposedCells[$sec]);
+        }
+
+        $freshMatrixService = new SectionCalibrationMatrixService(
+            app(CertificationService::class),
+            app(FunctionalRuleService::class),
+            $freshCellStorage,
+            app(ColumnRoleResolverService::class),
+        );
+        $freshMatrixService->seedStructureData($proposedEstructura);
+
         $afterBySection = [];
-        DB::beginTransaction();
-        try {
-            $proposedRow = RemTemplateStructure::create([
-                'anio' => 2026,
-                'serie' => 'A',
-                'rem_template_id' => $activeStructure->rem_template_id,
-                'version_number' => 250,
-                'hash_estructura' => 'SIMULACION-RECONCILIACION-'.uniqid(),
-                'estructura' => $proposedEstructura,
-                'status' => 'active',
-                'source_filename' => $activeStructure->source_filename,
-                'notes' => 'Fila de simulacion de reconciliacion Fase 2 -- revertida por ROLLBACK, nunca debe persistir.',
-            ]);
-            RemTemplateStructure::where('id', $activeStructure->id)->update(['status' => 'draft']);
-
-            // Se lee a traves del disco 'local' actualmente vinculado (no via
-            // storage_path() directo) para que esto sea correcto tanto en uso
-            // real (disco real) como en tests que ya hicieron Storage::fake('local')
-            // antes de invocar este comando (de lo contrario, tras el fake()
-            // de la linea siguiente se perderia el fixture del test y se
-            // leeria el archivo real del disco, rompiendo el aislamiento).
-            $realReglas = Storage::disk('local')->exists(self::REGLAS_FUNCIONALES_PATH)
-                ? Storage::disk('local')->get(self::REGLAS_FUNCIONALES_PATH)
-                : json_encode(['_questions' => []]);
-            Storage::fake('local');
-            Storage::disk('local')->put(self::REGLAS_FUNCIONALES_PATH, $realReglas);
-
-            $fakeCellStorage = new CellDataStorageService;
-            foreach ($sectionCodes as $sec) {
-                $fakeCellStorage->saveCellData($sheet, $sec, $proposedCells[$sec]);
-            }
-
-            foreach ($sectionCodes as $sec) {
-                $freshMatrixService = new SectionCalibrationMatrixService(
-                    app(CertificationService::class),
-                    app(FunctionalRuleService::class),
-                    new CellDataStorageService,
-                    app(ColumnRoleResolverService::class),
-                );
-                $afterBySection[$sec] = $freshMatrixService->buildPatternMatrix($sheet, $sec);
-            }
-        } finally {
-            DB::rollBack();
+        foreach ($sectionCodes as $sec) {
+            $afterBySection[$sec] = $freshMatrixService->buildPatternMatrix($sheet, $sec);
         }
 
-        $stillActive = RemTemplateStructure::find($activeStructure->id)?->status === 'active';
-        $noResidualRows = ! RemTemplateStructure::where('version_number', 250)->exists();
-        if (! $stillActive || ! $noResidualRows) {
-            $this->error('ALERTA DE SEGURIDAD: la verificacion post-rollback no paso. Abortando sin continuar ni escribir nada.');
-
-            return self::FAILURE;
-        }
-        $this->info('Verificado tras rollback: estructura activa real intacta, sin filas de simulación residuales.');
+        $this->info('Simulación 100% en memoria: 0 filas creadas en rem_template_structures, 0 cambios de status, 0 escrituras en Storage.');
         $this->newLine();
 
         // --- Reconciliar cada sección por row_fingerprint ---

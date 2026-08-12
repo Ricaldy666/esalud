@@ -1,5 +1,5 @@
 ﻿import { useMemo, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
 import { calibrationService } from '../../services/calibration'
 import { NotCalibratableSectionPanel } from './NotCalibratableSectionPanel'
+import { QuickRevalidationPanel } from './QuickRevalidationPanel'
 import type {
   CalibrationQuestion,
   ColumnGroup,
@@ -445,6 +446,29 @@ export default function QuickCalibrationPanel({
     () => quickPatterns.filter((pattern) => pattern.possible_business_exception),
     [quickPatterns]
   )
+  // Fase 3/4 (2026-08-12): clasificacion de migracion al fingerprint v2,
+  // recalculada EN VIVO en cada carga -- decide unicamente si se muestra
+  // QuickRevalidationPanel en vez del flujo normal. No participa del
+  // calculo de progreso ni de reconcileLive() en produccion.
+  const { data: migrationPlan } = useQuery({
+    queryKey: ['migration-plan', sheet, section],
+    queryFn: () => calibrationService.getMigrationPlan(sheet, section),
+    enabled: Boolean(sheet) && Boolean(section),
+    staleTime: 0,
+  })
+  // "Revisar nuevamente esta sección" no persiste nada -- solo oculta el
+  // panel de confirmacion rapida y deja pasar al flujo normal de
+  // calibracion para que el usuario la rehaga manualmente. Se reinicia al
+  // cambiar de seccion (ajuste en render, no en efecto, para evitar el
+  // render en cascada de un setState dentro de useEffect).
+  const sectionKey = `${sheet}_${section}`
+  const [forceFullReview, setForceFullReview] = useState(false)
+  const [lastSectionKey, setLastSectionKey] = useState(sectionKey)
+  if (lastSectionKey !== sectionKey) {
+    setLastSectionKey(sectionKey)
+    setForceFullReview(false)
+  }
+
   const [showProblem, setShowProblem] = useState(false)
   const [problemType, setProblemType] = useState<ProblemType>('regla incorrecta')
   const [problemObservation, setProblemObservation] = useState('')
@@ -584,6 +608,16 @@ export default function QuickCalibrationPanel({
     const next: CalibrationQuestion[] = []
 
     for (const pattern of quickPatterns) {
+      // Si alguna pregunta de este patron ya quedo en fingerprint canonico
+      // v2 (por una confirmacion rapida previa), este flujo normal nunca
+      // debe reenviar pattern_fingerprint/pattern_rows en formato v1 -- el
+      // backend los ignora de todas formas (metadata server-owned, ver
+      // FunctionalRuleService::saveQuestions()), pero el payload no debe
+      // sugerir un valor que no va a aplicarse. Hallazgo A01/G.-G.2,
+      // 2026-08-12.
+      const patternIsV2 = questions.some(
+        (question) => question.pattern_id === pattern.id && question.fingerprint_version === 2
+      )
       const base = {
         row: null,
         pattern_id: pattern.id,
@@ -591,9 +625,11 @@ export default function QuickCalibrationPanel({
         type: 'pattern_question',
         suggests_block: false,
         // Eco de la identidad que el backend ya calculo y devolvio en este
-        // mismo patron -- nunca se calcula aqui.
-        pattern_fingerprint: pattern.row_fingerprint,
-        pattern_rows: pattern.pattern_rows,
+        // mismo patron -- nunca se calcula aqui. Omitido por completo
+        // cuando el patron ya es v2 (ver comentario arriba).
+        ...(patternIsV2
+          ? {}
+          : { pattern_fingerprint: pattern.row_fingerprint, pattern_rows: pattern.pattern_rows }),
       }
 
       const entries: Array<[DecisionKey, string, string]> = [
@@ -658,8 +694,9 @@ export default function QuickCalibrationPanel({
           row: null,
           pattern_id: pattern.id,
           pattern_key: `pattern_${pattern.id}`,
-          pattern_fingerprint: pattern.row_fingerprint,
-          pattern_rows: pattern.pattern_rows,
+          ...(patternIsV2
+            ? {}
+            : { pattern_fingerprint: pattern.row_fingerprint, pattern_rows: pattern.pattern_rows }),
           type: 'pattern_confirmation',
           id,
           question: 'Confirmación de lectura técnica desde el XLSM',
@@ -724,6 +761,23 @@ export default function QuickCalibrationPanel({
     }
 
     saveMutation.mutate(buildPayload(!showProblem))
+  }
+
+  if (migrationPlan?.category === 'QUICK_CONFIRMATION' && !forceFullReview) {
+    return (
+      <QuickRevalidationPanel
+        sheet={sheet}
+        section={section}
+        sectionTitle={sectionTitle}
+        plan={migrationPlan}
+        readOnly={readOnly}
+        previousSection={previousSection}
+        nextSection={nextSection}
+        onOpenAdvanced={onOpenAdvanced}
+        onNavigateSection={onNavigateSection}
+        onReviewAgain={() => setForceFullReview(true)}
+      />
+    )
   }
 
   if (data.calibration_applicability?.status === 'not_calibratable') {

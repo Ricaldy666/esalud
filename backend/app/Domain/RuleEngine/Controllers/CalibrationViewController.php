@@ -2,6 +2,9 @@
 
 namespace App\Domain\RuleEngine\Controllers;
 
+use App\Domain\RemParser\Models\RemTemplateStructure;
+use App\Domain\RuleEngine\Services\PatternMigrationScanner;
+use App\Domain\RuleEngine\Services\PatternReconciliationService;
 use App\Domain\RuleEngine\Services\SectionCalibrationMatrixService;
 use App\Domain\RuleEngine\Services\FunctionalRuleService;
 use App\Http\Controllers\Controller;
@@ -81,6 +84,159 @@ class CalibrationViewController extends Controller
         return response()->json([
             'data' => ['success' => true],
             'message' => 'Respuestas guardadas',
+            'errors' => null,
+        ]);
+    }
+
+    /**
+     * Clasificacion de migracion (Fase 3, 2026-08-12) -- 100% lectura, no
+     * conectada a reconcileLive()/applyPatternReconciliation() ni al
+     * calculo de progreso general (buildStructureCalibrationSummary()).
+     * Unico proposito: que el frontend sepa si debe mostrar
+     * QuickRevalidationPanel (categoria QUICK_CONFIRMATION) en vez del
+     * flujo normal de calibracion, sin activar el mecanismo v2 en
+     * produccion. No escribe nada.
+     */
+    public function migrationPlan(string $sheet, string $section, PatternMigrationScanner $scanner): JsonResponse
+    {
+        $activeStructure = RemTemplateStructure::where('status', 'active')->first();
+        if (! $activeStructure) {
+            return response()->json(['data' => null, 'message' => 'No hay ninguna estructura activa.', 'errors' => ['no_active_structure']], 422);
+        }
+
+        $estructura = is_string($activeStructure->estructura)
+            ? json_decode($activeStructure->estructura, true)
+            : $activeStructure->estructura;
+
+        $sectionDecl = null;
+        foreach ($estructura['forms'] ?? [] as $form) {
+            if (strtoupper((string) ($form['sheetName'] ?? '')) === strtoupper($sheet)) {
+                foreach ($form['sections'] ?? [] as $s) {
+                    if (($s['codigo'] ?? null) === $section) {
+                        $sectionDecl = $s;
+                    }
+                }
+            }
+        }
+        if ($sectionDecl === null) {
+            return response()->json(['data' => null, 'message' => "No se encontró la sección {$sheet}/{$section}.", 'errors' => ['section_not_found']], 404);
+        }
+
+        $plan = $scanner->scanSection($activeStructure, $sheet, $section, $sectionDecl);
+
+        return response()->json([
+            'data' => $plan,
+            'message' => 'Plan de migración obtenido',
+            'errors' => null,
+        ]);
+    }
+
+    /**
+     * Flujo QUICK_CONFIRMATION (Fase 1, 2026-08-12). Deliberadamente NO
+     * reutiliza saveQuestions(): ese endpoint acepta response/reviewed_by/
+     * reviewed_at/source_type libremente desde el body, lo cual es correcto
+     * para calibracion normal pero inseguro para una revalidacion tecnica
+     * (el frontend no debe poder alterar ni la decision original ni quien
+     * la reviso). Este endpoint no recibe del body nada mas que la
+     * identificacion de hoja/seccion/patron -- todo lo demas (fingerprint
+     * vigente, filas vigentes, usuario que revalida, timestamp) se calcula
+     * o se obtiene exclusivamente en el servidor.
+     */
+    public function confirmQuickRevalidation(Request $request, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner): JsonResponse
+    {
+        $activeStructure = RemTemplateStructure::where('status', 'active')->first();
+        if (! $activeStructure) {
+            return response()->json([
+                'data' => null,
+                'message' => 'No hay ninguna estructura activa.',
+                'errors' => ['no_active_structure'],
+            ], 422);
+        }
+
+        $estructura = is_string($activeStructure->estructura)
+            ? json_decode($activeStructure->estructura, true)
+            : $activeStructure->estructura;
+
+        $sectionDecl = null;
+        foreach ($estructura['forms'] ?? [] as $form) {
+            if (strtoupper((string) ($form['sheetName'] ?? '')) === strtoupper($sheet)) {
+                foreach ($form['sections'] ?? [] as $s) {
+                    if (($s['codigo'] ?? null) === $section) {
+                        $sectionDecl = $s;
+                    }
+                }
+            }
+        }
+        if ($sectionDecl === null) {
+            return response()->json([
+                'data' => null,
+                'message' => "No se encontró la sección {$sheet}/{$section} en la estructura activa.",
+                'errors' => ['section_not_found'],
+            ], 404);
+        }
+
+        // Reclasificacion EN VIVO, justo antes de decidir si se puede
+        // escribir -- nunca se confia en lo que el frontend muestra que
+        // haya cargado antes.
+        $plan = $scanner->scanSection($activeStructure, $sheet, $section, $sectionDecl);
+
+        if ($plan['category'] !== PatternReconciliationService::MIGRATION_QUICK_CONFIRMATION) {
+            return response()->json([
+                'data' => ['category' => $plan['category']],
+                'message' => 'Esta sección cambió desde que se cargó y ya no corresponde a una confirmación rápida. Debe revisarse completa.',
+                'errors' => ['no_longer_quick_confirmation'],
+            ], 409);
+        }
+
+        $patternPlan = null;
+        foreach ($plan['patterns'] as $p) {
+            if ($p['pattern_id'] === $patternId) {
+                $patternPlan = $p;
+
+                break;
+            }
+        }
+
+        if ($patternPlan === null || $patternPlan['category'] !== PatternReconciliationService::MIGRATION_QUICK_CONFIRMATION) {
+            return response()->json([
+                'data' => ['category' => $patternPlan['category'] ?? 'not_found'],
+                'message' => 'Este patrón cambió desde que se cargó y ya no corresponde a una confirmación rápida. Debe revisarse completo.',
+                'errors' => ['no_longer_quick_confirmation'],
+            ], 409);
+        }
+
+        $sortedRows = $patternPlan['live_rows'];
+        sort($sortedRows, SORT_NUMERIC);
+
+        $revalidatedBy = $request->user()?->name ?? $request->user()?->email;
+        if (! $revalidatedBy) {
+            return response()->json([
+                'data' => null,
+                'message' => 'No se pudo identificar al usuario autenticado.',
+                'errors' => ['unauthenticated'],
+            ], 401);
+        }
+
+        try {
+            $updated = $this->functionalRuleService->applyQuickRevalidation(
+                $sheet,
+                $section,
+                $patternId,
+                canonicalFingerprint: $patternPlan['live_canonical_fingerprint'],
+                patternRows: $sortedRows,
+                revalidatedBy: $revalidatedBy,
+            );
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'data' => null,
+                'message' => $e->getMessage(),
+                'errors' => ['pattern_not_found'],
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => ['questions' => $updated],
+            'message' => 'Revalidación confirmada.',
             'errors' => null,
         ]);
     }

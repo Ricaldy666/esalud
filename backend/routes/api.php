@@ -135,10 +135,12 @@ Route::prefix('v1')->group(function () {
                 Route::get('/{sheet}/sections/{section}/export', [CatalogController::class, 'sectionExport'])->name('section-export');
                 Route::get('/{sheet}/sections/{section}/matrix', [CatalogController::class, 'matrix'])->name('matrix');
                 Route::get('/{sheet}/sections/{section}/patterns', [CalibrationViewController::class, 'matrixData'])->name('patterns');
+                Route::get('/{sheet}/sections/{section}/migration-plan', [CalibrationViewController::class, 'migrationPlan'])->name('migration-plan');
                 Route::get('/{sheet}/sections/{section}/row-functional-decisions', [CatalogController::class, 'rowFunctionalDecisions'])->name('row-functional-decisions');
                 Route::get('/{sheet}/sections/{section}/questions', [CatalogController::class, 'getQuestions'])->name('questions');
                 Route::post('/{sheet}/sections/{section}/questions', [CatalogController::class, 'saveQuestions'])->name('questions.save');
                 Route::post('/{sheet}/sections/{section}/pattern-questions', [CalibrationViewController::class, 'saveQuestions'])->name('pattern-questions.save');
+                Route::post('/{sheet}/sections/{section}/patterns/{patternId}/quick-revalidation', [CalibrationViewController::class, 'confirmQuickRevalidation'])->name('patterns.quick-revalidation');
                 Route::post('/{sheet}/sections/{section}/bulk-functional', [CatalogController::class, 'bulkFunctional'])->name('bulk-functional');
                 Route::get('/{sheet}/sections/{section}/export-calibration', [CatalogController::class, 'exportCalibration'])->name('export-calibration');
                 Route::get('/{sheet}/sections/{section}/rows/{row}', [CatalogController::class, 'rowDetail'])->name('row-detail');

@@ -153,10 +153,27 @@ class RuleEngineService
 
             $rowFrom = $config['row_from'] ?? null;
             $rowTo = $config['row_to'] ?? null;
+            // total_row (convencion: row_to + 1) queda fuera de [row_from:row_to]
+            // por diseno -- sin esta excepcion, el prefiltro lo descarta antes de
+            // que SumEqualsEvaluator::evaluateVerticalAggregation() pueda
+            // encontrarlo, incluso cuando la fila si esta persistida en rem_data
+            // (confirmado empiricamente contra datos reales, ver auditoria Fase C).
+            // Endurecido en Fase 3C (2026-08-12): la excepcion solo aplica cuando
+            // la regla efectivamente va a pasar por evaluateVerticalAggregation()
+            // -- sum_equals + scope row_range + patron vertical estricto (un solo
+            // source_letter igual al target_column). Cualquier otro rule_type o
+            // forma de sum_equals (per_row, o row_range con multiples columnas
+            // origen) nunca ve total_row, aunque el campo este presente en config
+            // -- evita que la fila TOTAL se cuele como fila de negocio en
+            // evaluadores que no la reconocen (RequiredAndLeParentEvaluator,
+            // SumEqualsEvaluator::evaluatePerRow()).
+            $totalRow = $this->isVerticalSumEqualsRule($rule->rule_type, $config)
+                ? (isset($config['total_row']) ? (int) $config['total_row'] : null)
+                : null;
             if ($rowFrom !== null) {
                 $rows = $rows->filter(fn($rd) => (
-                    $rd->data['row_number'] >= $rowFrom
-                    && $rd->data['row_number'] <= $rowTo
+                    ($rd->data['row_number'] >= $rowFrom && $rd->data['row_number'] <= $rowTo)
+                    || ($totalRow !== null && (int) $rd->data['row_number'] === $totalRow)
                 ));
             }
 
@@ -417,6 +434,34 @@ class RuleEngineService
             }
         }
         return null;
+    }
+
+    /**
+     * Determina si $config, para $ruleType, efectivamente va a ser evaluada
+     * por SumEqualsEvaluator::evaluateVerticalAggregation() -- misma
+     * definicion de "patron vertical" ya usada en
+     * RuleBindingReconciliationService::classifyRule(), replicada aqui
+     * deliberadamente (sin extraerla a un servicio compartido) para no
+     * acoplar el motor de ejecucion a la capa de reconciliacion de
+     * bindings. No depende de hoja, seccion ni rule_id -- solo de la forma
+     * del config ya normalizado.
+     */
+    private function isVerticalSumEqualsRule(string $ruleType, array $config): bool
+    {
+        if ($ruleType !== 'sum_equals') {
+            return false;
+        }
+
+        if (($config['scope'] ?? null) !== 'row_range') {
+            return false;
+        }
+
+        $sourceLetters = $config['source_letters'] ?? [];
+        $targetColumn = $config['target_column'] ?? '';
+
+        return count($sourceLetters) === 1
+            && $targetColumn !== ''
+            && strtoupper((string) $sourceLetters[0]) === strtoupper((string) $targetColumn);
     }
 
     private function writeExecutionLog(

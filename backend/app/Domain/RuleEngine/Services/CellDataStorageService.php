@@ -37,6 +37,17 @@ class CellDataStorageService
      */
     private array $cache = [];
 
+    /**
+     * Secciones pobladas via seedCache() -- nunca tocan disco, ni para leer
+     * ni para escribir. hasCellData() las reporta como presentes sin
+     * consultar Storage, para que un llamador de solo simulacion (ej.
+     * reconciliacion de fingerprints en memoria) no dependa de que el
+     * archivo real exista ni lo sobreescriba.
+     *
+     * @var array<string, true>
+     */
+    private array $seededSections = [];
+
     public function saveCellData(string $sheet, string $section, array $cells): void
     {
         $path = $this->getPath($sheet, $section);
@@ -104,7 +115,33 @@ class CellDataStorageService
 
     public function hasCellData(string $sheet, string $section): bool
     {
+        if (isset($this->seededSections[$sheet . '|' . $section])) {
+            return true;
+        }
+
         return Storage::disk(self::DISK)->exists($this->getPath($sheet, $section));
+    }
+
+    /**
+     * Puebla el cache de instancia con cell-data propuesto (ej. de un scan
+     * en memoria contra un Excel fuente, sin persistir) sin tocar Storage
+     * en absoluto -- ni lectura ni escritura. Pensado para simulaciones
+     * read-only (reconciliacion de fingerprints contra una estructura
+     * propuesta) que necesitan que SectionCalibrationMatrixService vea
+     * "hay cell-data para esta seccion" sin que exista en disco real.
+     */
+    public function seedCache(string $sheet, string $section, array $cells): void
+    {
+        $serialized = [];
+        foreach ($cells as $coord => $cell) {
+            $serialized[$coord] = $cell instanceof \App\Domain\RemParser\DTOs\EnhancedCellDTO
+                ? $cell->toArray()
+                : $cell;
+        }
+
+        $key = $sheet . '|' . $section;
+        $this->cache[$key] = $serialized;
+        $this->seededSections[$key] = true;
     }
 
     /**

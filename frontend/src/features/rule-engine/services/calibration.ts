@@ -8,7 +8,9 @@ import type {
   CalibrationQuestionResponse,
   CalibrationRow,
   CalibrationSummaryResponse,
+  MigrationPlanResponse,
   PatternMatrixResponse,
+  QuickRevalidationConfirmResponse,
   RowFunctionalDecisionResponse,
   RowFunctionalRulePayload,
   RowFunctionalVersion,
@@ -133,6 +135,26 @@ export const calibrationService = {
       ApiResponse<{ versions: RowFunctionalVersion[]; total: number }>
     >(
       `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/rows/${row}/functional-rules/versions`
+    )
+    return data.data
+  },
+
+  getMigrationPlan: async (sheet: string, section: string): Promise<MigrationPlanResponse> => {
+    const { data } = await api.get<ApiResponse<MigrationPlanResponse>>(
+      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/migration-plan`
+    )
+    return data.data
+  },
+
+  confirmQuickRevalidation: async (
+    sheet: string,
+    section: string,
+    patternId: number
+  ): Promise<QuickRevalidationConfirmResponse> => {
+    await fetchCsrfCookie()
+
+    const { data } = await api.post<ApiResponse<QuickRevalidationConfirmResponse>>(
+      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/quick-revalidation`
     )
     return data.data
   },

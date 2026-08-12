@@ -1,3 +1,95 @@
+# Estado al cierre de la sesión — 2026-08-12 (FASE 3 MOTOR DE REGLAS — FASE A PERSISTIDA, FASE B AUDITADA, FASE C EN CURSO)
+
+Handoff de la campaña de reconciliación del motor de reglas REM (Fase 3), posterior al cierre de la calibración funcional Serie A (Fase 2 — ver sección siguiente más abajo, cerrada y **publicada en main el 2026-08-11, commit `f91bae8`**, no releer esa auditoría, ya está cerrada e íntegramente en el historial). Leer esta sección primero antes de continuar cualquier trabajo sobre `rem_rules`, `rem_rule_bindings` o el motor de evaluación de reglas — evita repetir Fase A o Fase B.
+
+## Fase 2 — cerrada y publicada en main
+
+Baseline: commit **`f91bae8`** ("feat(rem): complete Serie A structural and functional calibration"), HEAD de `main` al momento de escribir esto. Toda la campaña de calibración funcional Serie A (303/303 secciones, ver sección de abajo) quedó commiteada y en main antes de arrancar la Fase 3. Fase 3 arranca sobre ese baseline, sin volver a tocarlo.
+
+## Fase A — bindings SAFE_1_TO_1 persistidos hacia estructura 63 (CERRADA, ya en BD real)
+
+Ejecutada vía `php artisan rule:rebind-safe-to-structure --structure=63 --commit` (comando por defecto dry-run; requiere `--reason` y `--by` explícitos; solo agrega bindings nuevos vía `RuleBinding::updateOrCreate`, nunca toca `rem_rules`, nunca borra/desactiva bindings antiguos; reclasifica cada regla una segunda vez inmediatamente antes de persistir y aborta el lote completo si alguna deja de ser segura).
+
+- **115 reglas SAFE_1_TO_1 vinculadas** a la estructura activa 63.
+- Estado confirmado en BD real (verificado más de una vez en esta sesión, incluyendo después de la corrida de regresión de hoy): **`rem_rules=764`**, **`rem_rule_bindings=974`**, **bindings activos `bindable_type=structure, bindable_id=63` = 115**.
+- `MAX(updated_at)` de `rem_rule_bindings` = `2026-08-11 21:21:04` — marca el momento exacto de esta persistencia; no ha cambiado desde entonces (verificado de nuevo hoy 2026-08-12), confirmando que nada se escribió después.
+
+## Fase B — auditoría de reclasificación completa (CERRADA, solo lectura, nunca persistió nada)
+
+Ejecutada vía `RuleBindingReconciliationService::classifyAllActiveRules()` (clase 100% de lectura — revisada línea por línea, sin un solo `save()`/`create()`/`update()`/`insert` en toda la clase). Clasifica las 6 categorías (`SAFE_1_TO_1`, `REQUIRES_REMAP`, `DUPLICATE`, `ORPHAN`, `BLOCKED_BY_ENGINE_GAP`, `ALREADY_STRUCTURE_AGNOSTIC`) para cada regla `status=active` contra la estructura 63, excluyendo automáticamente las hojas `no_utilizada` del cálculo de candidatos seguros.
+
+**Re-ejecutada en vivo el 2026-08-12 (solo lectura, para verificar el handoff) contra el estado real de la BD** — 753 reglas activas clasificadas (de 764 `rem_rules` totales; las 11 restantes no están `active`):
+
+| Clasificación | Conteo |
+|---|---|
+| `SAFE_1_TO_1` | 136 (115 candidatas reales tras excluir 21 en hojas `no_utilizada` — coincide exacto con los 115 ya persistidos en Fase A) |
+| `REQUIRES_REMAP` | 66 |
+| `DUPLICATE` | 22 |
+| `BLOCKED_BY_ENGINE_GAP` | 331 |
+| `ALREADY_STRUCTURE_AGNOSTIC` | 198 |
+| Total en hojas `no_utilizada` (cualquier categoría, excluidas del cómputo de candidatos) | 80 |
+
+**Desglose funcional de los 66 `REQUIRES_REMAP`** (análisis manual de sesión anterior, no recalculado automáticamente por el servicio — el servicio no distingue niveles de confianza, esto es una subclasificación funcional sobre el mismo universo de 66, cuya suma coincide exacto: 44+2+1+19=66):
+- **44 remapeables de alta confianza.**
+- **2 de confianza media.**
+- **1 obsoleta.**
+- **19 requieren decisión funcional** (no automatizable, necesita revisión humana caso por caso).
+
+**Resultado real de duplicados** (verificado en vivo hoy): **22** reglas clasificadas `DUPLICATE` (mismo sheet+sección+columna+tipo que otra regla activa).
+
+## Fase C — auditoría de `sum_equals`/`total_row` (EN CURSO, próximo trabajo a retomar)
+
+Investiga el gap arquitectónico ya documentado como deuda técnica #5 de la campaña de calibración (Serie A): reglas `sum_equals` verticales cuyo `total_row` convencional (`row_to + 1`) puede caer fuera del rango `[row_from:row_to]` que el prefiltro de `RuleEngineService::execute()` aplicaba antes del fix de hoy, o directamente fuera de `rem_data` por ser un TOTAL/subtotal técnico excluido de persistencia (mecanismos #8/#12 de la campaña de calibración).
+
+- **Universo real auditado: 507 reglas verticales** (`sum_equals` con `row_range` y patrón de columna vertical).
+- **Causa raíz confirmada**: el prefiltro `[row_from:row_to]` de `RuleEngineService::execute()` descartaba la fila `total_row` antes de que `SumEqualsEvaluator::evaluateVerticalAggregation()` pudiera evaluarla, incluso cuando esa fila sí estaba persistida en `rem_data` — el fix de hoy (ver "Estado local" abajo) agrega `total_row` como excepción explícita al filtro.
+- **135 reglas resolubles solo con el fix del evaluador** (el fix del prefiltro basta, la fila TOTAL está persistida y accesible).
+- **223 reglas con config incompleto** (falta `total_row` en la config de la regla, o el valor declarado no es válido contra la sección actual — no las arregla el fix del evaluador por sí solo).
+- **149 reglas cuyo TOTAL es técnico y queda fuera de `rem_data`** por los mecanismos #8/#12 de exclusión de la campaña de calibración (TOTAL final inmediato / subtotal embebido hacia atrás) — este es exactamente el gap de deuda técnica #5, sigue sin resolución de diseño.
+- 135+223+149 = 507, cuadra con el universo auditado.
+- **No se ha tomado ninguna acción de escritura sobre reglas o bindings en Fase C todavía** — solo el fix de código en `RuleEngineService.php` (ver abajo, sin commit) y la auditoría de clasificación.
+
+## Estado local del working tree (sin commit, todo Fase 3)
+
+- `backend/app/Domain/RuleEngine/Services/RuleEngineService.php` — **modificado localmente, sin commit**: agrega `total_row` como excepción al filtro `[row_from:row_to]` (fix de causa raíz de Fase C, ver arriba). Escrito el 2026-08-11 17:51, antes de que corriera Fase A (21:21).
+- **Archivos nuevos sin commit** (Fase A/B):
+  - `backend/app/Console/Commands/RuleRebindSafeToStructureCommand.php`
+  - `backend/app/Domain/RuleEngine/Services/RuleBindingReconciliationService.php`
+  - `backend/tests/Feature/REM/RuleRebindSafeToStructureCommandTest.php`
+  - `backend/tests/Feature/RuleEngine/Services/RuleBindingReconciliationServiceTest.php`
+  - `backend/tests/Feature/RuleEngine/Services/RuleEngineServiceTotalRowFilterTest.php`
+  - `docs/CHECKLIST_VALIDACION_POST_DESPLIEGUE.md`, `docs/arquitectura-modulo-gestion-certificacion-reglas.md`, `docs/certificacion-catalogo-serie-a.md`
+- **No commit, no push de nada de Fase 3 todavía.** Todo permanece local sobre el baseline `f91bae8`.
+
+## Regresión `Feature/REM` — cerrada y aprobada (2026-08-12)
+
+La corrida quedó inconclusa la noche del 2026-08-11 por un apagón del equipo mientras corría (confirmado por el corte abrupto de `storage/logs/laravel.log` a las 22:01:46, sin proceso `php` colgado). Se volvió a correr completa hoy, **en solitario** (nunca en paralelo con `Feature/RuleEngine`, ver nota operativa de la campaña de calibración más abajo).
+
+- **133 tests / 490 assertions / 129 passed / 4 failed / 0 errors.**
+- Los 4 fallos son **exactamente los preexistentes de `StructurePersistenceServiceTest`** (mismos ya documentados en el cierre de la campaña de calibración) — sin regresiones nuevas en ningún otro archivo de la suite, incluyendo los tests nuevos de Fase A (`RuleRebindSafeToStructureCommandTest`).
+- **Requiere más de 512 MB de `memory_limit`** para completar sin cortarse — el default de `php.ini` (512M) produce un *fatal error* de memoria a mitad de suite (test 98/133, `StructurePersistenceServiceTest::test_persists_structure_as_new_version`). Pico real observado con memoria ampliada: **~688 MB**. Para correr esta suite completa usar `php -d memory_limit=-1 vendor/bin/phpunit tests/Feature/REM` (flag de proceso, no requiere tocar `php.ini`).
+- Reconfirma la nota operativa ya documentada: **no correr `Feature/REM` y `Feature/RuleEngine` en paralelo** (interferencia de `RefreshDatabase` contra el mismo esquema `esalud_testing`).
+
+## BD real intacta tras toda la Fase 3 (Fase A + Fase B + regresión de hoy)
+
+Verificado varias veces, última vez después de la corrida de regresión de hoy: **`rem_rules=764` / `rem_rule_bindings=974` / bindings activos a estructura 63 = `115`**. Ningún test de `Feature/REM` ni la reclasificación de Fase B tocó la BD real (`Feature/REM` usa `RefreshDatabase` contra `esalud_testing`; `RuleBindingReconciliationService` es de solo lectura).
+
+## Próximo trabajo (Fase 3)
+
+- Retomar Fase C: decidir diseño para las 149 reglas con TOTAL técnico fuera de `rem_data` (deuda técnica #5 de la campaña de calibración) y para las 223 con config incompleto (¿completar `total_row` manualmente por regla, o hay un patrón derivable automáticamente?).
+- Decidir si se autoriza el commit del fix de `RuleEngineService.php` (total_row en el prefiltro) y de los archivos nuevos de Fase A/B — **no autorizado todavía**.
+- Revisar manualmente los 66 `REQUIRES_REMAP` (44 alta confianza + 2 media + 1 obsoleta + 19 requieren decisión funcional) para decidir remapeo — no iniciado.
+- Los 22 `DUPLICATE` y 331 `BLOCKED_BY_ENGINE_GAP` no tienen plan de acción todavía — pendiente de definir en sesión futura.
+
+## Restricciones vigentes — Fase 3
+
+- No repetir Fase A (`rule:rebind-safe-to-structure --commit`) — ya persistida, 115 bindings confirmados.
+- No persistir Fase B — sigue siendo auditoría de solo lectura.
+- No commit ni push de ningún archivo de Fase 3 (`RuleEngineService.php` modificado, `RuleRebindSafeToStructureCommand.php`, `RuleBindingReconciliationService.php`, tests nuevos, docs nuevos) sin autorización explícita.
+- No modificar reglas (`rem_rules`) ni bindings (`rem_rule_bindings`) fuera de lo ya persistido en Fase A.
+
+---
+
 # Estado al cierre de la sesión — 2026-08-11 (CALIBRACIÓN FUNCIONAL SERIE A CERRADA AL 100%)
 
 Handoff de la campaña de auditoría/corrección estructural REM Serie A. Leer este archivo primero antes de continuar cualquier trabajo sobre hojas REM — evita repetir auditorías ya cerradas.

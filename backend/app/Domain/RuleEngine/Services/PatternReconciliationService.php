@@ -24,6 +24,37 @@ class PatternReconciliationService
     public const STATUS_UNRESOLVED = 'unresolved';
 
     /**
+     * Versionado explicito del algoritmo de fingerprint (Fase 2, deuda
+     * tecnica #1, 2026-08-12). LEGACY cubre tanto las respuestas sin ningun
+     * campo de fingerprint como las que ya traen `pattern_fingerprint` con
+     * el algoritmo viejo (solo filas, prefijo "rowset_") pero SIN el campo
+     * `fingerprint_version` explicito -- un fingerprint viejo nunca debe
+     * interpretarse como canonico solo porque el campo `pattern_fingerprint`
+     * existe. CANONICAL es exclusivamente el fingerprint calculado por
+     * SectionCalibrationMatrixService::computeCanonicalPatternFingerprint()
+     * (prefijo "fpv2_"), marcado con fingerprint_version=2 en el momento en
+     * que se guarda.
+     */
+    public const FINGERPRINT_VERSION_LEGACY = 1;
+
+    public const FINGERPRINT_VERSION_CANONICAL = 2;
+
+    /**
+     * Categorias de PLANIFICACION de migracion (Fase 5) -- a nivel de
+     * patron. Informativas para dry-run/reporte, nunca alteran
+     * reconciliation_status por si solas.
+     */
+    public const MIGRATION_AUTO_MIGRATE = 'AUTO_MIGRATE';
+
+    public const MIGRATION_QUICK_CONFIRMATION = 'QUICK_CONFIRMATION';
+
+    public const MIGRATION_FULL_REVALIDATION = 'FULL_REVALIDATION';
+
+    public const MIGRATION_MISMATCH = 'MISMATCH';
+
+    public const MIGRATION_NEW_SECTION = 'NEW_SECTION';
+
+    /**
      * @param  array<int, array{id:int, row_fingerprint:string, filas:int[]}>  $beforePatterns  Patrones vigentes hoy.
      * @param  array<int, array<int, array<string,mixed>>>  $beforeQuestionsByPatternId  pattern_id (de $beforePatterns) => preguntas guardadas para ese patron.
      * @param  array<int, array{id:int, row_fingerprint:string, filas:int[]}>  $afterPatterns  Patrones que resultarian tras el cambio propuesto.
@@ -147,7 +178,37 @@ class PatternReconciliationService
                 continue;
             }
 
-            $withFingerprint = array_values(array_filter($questions, fn ($q) => ! empty($q['pattern_fingerprint'])));
+            // Compatibilidad transitoria (2026-08-12, hallazgo A01/A): mientras
+            // reconcileLiveCanonical() no se active, esta funcion (v1) debe
+            // seguir comportandose exactamente igual que antes de que
+            // existiera el fingerprint canonico v2. Las preguntas ya
+            // migradas/revalidadas a v2 (fingerprint_version===2) escriben
+            // pattern_fingerprint en formato "fpv2_..." -- un formato
+            // distinto al v1 "rowset_..." que row_fingerprint usa. Sin este
+            // filtro, la comparacion de abajo nunca podia coincidir y
+            // degradaba a requiere_revalidacion cualquier patron apenas se
+            // le aplicaba una quick-revalidation, aunque reconcileLiveCanonical
+            // siguiera sin activarse. Las preguntas v2 se excluyen por
+            // completo de la heuristica legacy (ni fingerprint ni rows) --
+            // review_status se sigue evaluando sobre $questions completo,
+            // sin cambios.
+            $legacyQuestions = array_values(array_filter(
+                $questions,
+                fn ($q) => $this->resolveFingerprintVersion($q) !== self::FINGERPRINT_VERSION_CANONICAL
+            ));
+
+            if (empty($legacyQuestions)) {
+                $results[$pattern['id']] = $this->liveResult(
+                    $this->allReviewed($questions) ? self::STATUS_REVIEWED : self::STATUS_PENDING,
+                    'fingerprint_canonical_only',
+                    null,
+                    null,
+                );
+
+                continue;
+            }
+
+            $withFingerprint = array_values(array_filter($legacyQuestions, fn ($q) => ! empty($q['pattern_fingerprint'])));
             if (! empty($withFingerprint)) {
                 $recorded = $withFingerprint[0]['pattern_fingerprint'];
                 $agrees = $recorded === $pattern['row_fingerprint'];
@@ -164,7 +225,7 @@ class PatternReconciliationService
                 continue;
             }
 
-            $withRows = array_values(array_filter($questions, fn ($q) => ! empty($q['pattern_rows'])));
+            $withRows = array_values(array_filter($legacyQuestions, fn ($q) => ! empty($q['pattern_rows'])));
             if (! empty($withRows)) {
                 $recordedRows = $this->sortedUnique($withRows[0]['pattern_rows']);
                 $liveRows = $this->sortedUnique($pattern['filas']);
@@ -235,6 +296,138 @@ class PatternReconciliationService
         }
 
         return true;
+    }
+
+    /**
+     * Determina la version de fingerprint de una pregunta guardada. Sin
+     * `fingerprint_version` explicito, SIEMPRE se trata como LEGACY --
+     * nunca se infiere v2 solo porque `pattern_fingerprint` este presente
+     * (ver deuda tecnica #1: todo fingerprint anterior a esta version del
+     * mecanismo, aunque ya se llame `pattern_fingerprint`, se calculo con
+     * el algoritmo viejo de solo-filas).
+     */
+    public function resolveFingerprintVersion(array $question): int
+    {
+        if (isset($question['fingerprint_version'])) {
+            return (int) $question['fingerprint_version'];
+        }
+
+        return self::FINGERPRINT_VERSION_LEGACY;
+    }
+
+    /**
+     * Reconciliacion ESTRICTA v2 (Fase 3, deuda tecnica #1, disenada y
+     * autorizada 2026-08-12). NO esta conectada a buildPatternMatrix() ni a
+     * ningun flujo de produccion -- mientras no se autorice explicitamente
+     * la migracion real de las 301 secciones ya calibradas, el sistema en
+     * vivo sigue usando reconcileLive() (v1, sin cambios) para no pasar de
+     * golpe de "100% calibrado" a "multiples secciones pendientes" antes de
+     * tener las 235 seguras migradas y las 66 restantes clasificadas. Este
+     * metodo es la implementacion del mecanismo nuevo, consumida hoy
+     * unicamente por la simulacion de migracion (Fase 5) -- activarlo en
+     * produccion es un paso posterior, separado y explicito (reemplazar la
+     * llamada a reconcileLive() por esta en
+     * SectionCalibrationMatrixService::applyPatternReconciliation()).
+     *
+     * Principios (autorizados 2026-08-12), en orden de evaluacion:
+     *   1. Fingerprint v2 guardado coincide con el canonico vigente ->
+     *      puede conservar 'reviewed' (si ademas review_status='reviewed').
+     *   2. Fingerprint v2 guardado NO coincide -> 'requiere_revalidacion'.
+     *   3. Respuesta v1/legacy -> NUNCA 'reviewed' solo por coincidir el
+     *      pattern_id -- sin importar cuanta evidencia indirecta exista.
+     *   4. (Ver classifyLegacyPatternForMigration() para la clasificacion
+     *      informativa de que tan buena es esa evidencia legacy -- no
+     *      cambia el resultado aqui: sigue siendo 'requiere_revalidacion'
+     *      hasta que una migracion real escriba un fingerprint v2.)
+     *   5. Sin ninguna evidencia -> 'requiere_revalidacion' (mismo
+     *      resultado que el 3/4, la diferencia es solo informativa).
+     *   6. Patron sin ninguna pregunta guardada -> 'pending' (patron
+     *      nuevo dentro de una seccion ya revisada).
+     *
+     * @param  array<int, array{id:int, canonical_fingerprint:string, filas:int[]}>  $currentPatterns  Patrones vigentes (deben incluir 'canonical_fingerprint', ver computeCanonicalPatternFingerprint()).
+     * @param  array<int, array<int, array<string,mixed>>>  $questionsByPatternId  pattern_id vigente => preguntas guardadas para ese id.
+     * @return array<int, array{reconciliation_status:string, fingerprint_version_checked:int, mismatch_detail:?array}>
+     */
+    public function reconcileLiveCanonical(array $currentPatterns, array $questionsByPatternId): array
+    {
+        $results = [];
+
+        foreach ($currentPatterns as $pattern) {
+            $questions = $questionsByPatternId[$pattern['id']] ?? [];
+
+            if (empty($questions)) {
+                $results[$pattern['id']] = $this->canonicalResult(self::STATUS_PENDING, null);
+
+                continue;
+            }
+
+            $v2Question = null;
+            foreach ($questions as $q) {
+                if ($this->resolveFingerprintVersion($q) === self::FINGERPRINT_VERSION_CANONICAL && ! empty($q['pattern_fingerprint'])) {
+                    $v2Question = $q;
+
+                    break;
+                }
+            }
+
+            if ($v2Question !== null) {
+                $agrees = $v2Question['pattern_fingerprint'] === ($pattern['canonical_fingerprint'] ?? null);
+
+                $results[$pattern['id']] = $this->canonicalResult(
+                    $agrees
+                        ? ($this->allReviewed($questions) ? self::STATUS_REVIEWED : self::STATUS_PENDING)
+                        : self::STATUS_REQUIERE_REVALIDACION,
+                    $agrees ? null : ['stored' => $v2Question['pattern_fingerprint'], 'live' => $pattern['canonical_fingerprint'] ?? null],
+                );
+
+                continue;
+            }
+
+            // v1/legacy (con o sin pattern_fingerprint viejo): nunca 'reviewed'
+            // solo porque el pattern_id coincide -- principio 3.
+            $results[$pattern['id']] = $this->canonicalResult(self::STATUS_REQUIERE_REVALIDACION, null);
+        }
+
+        return $results;
+    }
+
+    private function canonicalResult(string $status, ?array $mismatchDetail): array
+    {
+        return [
+            'reconciliation_status' => $status,
+            'fingerprint_version_checked' => self::FINGERPRINT_VERSION_CANONICAL,
+            'mismatch_detail' => $mismatchDetail,
+        ];
+    }
+
+    /**
+     * Clasificacion INFORMATIVA de planificacion de migracion (Fase 5) para
+     * un patron legacy -- nunca otorga 'reviewed', solo prioriza cuanto
+     * trabajo humano hace falta antes de una migracion real. Generico: no
+     * depende de hoja/seccion, solo de la evidencia recibida.
+     *
+     * @param  ?int[]  $historicalRows  Filas recuperadas de evidencia historica (ej. texto libre de la pregunta), o null si no se pudo recuperar nada.
+     * @param  int[]  $liveRows  Filas del patron vigente hoy.
+     * @param  ?bool  $structureIdenticalSinceHistoricalVersion  true si la seccion declarada en la version de estructura historica es byte-identica a la vigente; null si no se pudo determinar.
+     */
+    public function classifyLegacyPatternForMigration(
+        ?array $historicalRows,
+        array $liveRows,
+        ?bool $structureIdenticalSinceHistoricalVersion,
+    ): string {
+        if ($historicalRows === null) {
+            return self::MIGRATION_FULL_REVALIDATION;
+        }
+
+        $rowsMatch = $this->sortedUnique($historicalRows) === $this->sortedUnique($liveRows);
+
+        if (! $rowsMatch) {
+            return self::MIGRATION_MISMATCH;
+        }
+
+        return $structureIdenticalSinceHistoricalVersion === true
+            ? self::MIGRATION_AUTO_MIGRATE
+            : self::MIGRATION_QUICK_CONFIRMATION;
     }
 
     /**

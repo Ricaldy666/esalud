@@ -136,6 +136,21 @@ class SectionCalibrationMatrixService
         $this->cellDataStorage->forgetSection($sheet, $section);
     }
 
+    /**
+     * Fuerza el "estructura activa" que parseEstructura() devuelve, sin
+     * tocar BD -- pensado exclusivamente para simulaciones read-only en
+     * memoria (ej. reconciliacion de fingerprints contra una estructura
+     * propuesta que nunca se persiste). getActiveStructure() todavia hace
+     * una lectura real (SELECT, sin escritura) solo para obtener un objeto
+     * RemTemplateStructure no nulo que buildMatrix() necesita para no
+     * abortar con 'not_found' -- su contenido se ignora por completo una
+     * vez que $structureData ya esta poblado aqui.
+     */
+    public function seedStructureData(array $estructura): void
+    {
+        $this->structureData = $estructura;
+    }
+
     public function buildMatrix(string $sheet, string $section): array
     {
         $this->currentSheet = $sheet;
@@ -432,6 +447,95 @@ class SectionCalibrationMatrixService
         return 'rowset_' . substr(hash('sha256', $canonico), 0, 16);
     }
 
+    /**
+     * Firma canonica v2 de un patron (deuda tecnica #1 de la campana de
+     * calibracion Serie A, cerrada 2026-08-12): computeRowFingerprint()
+     * (v1, "rowset_...") solo depende del conjunto de filas -- una seccion
+     * cuyas columnas, formulas o editabilidad cambiaron bajo el mismo
+     * conjunto de filas (o el mismo pattern_id reasignado a un patron
+     * distinto) seguia reportandose "revisada" sin evidencia real. Esta es
+     * la UNICA funcion que calcula la huella canonica -- todo consumidor
+     * (reconciliacion en vivo, backfill/migracion, simulacion de
+     * migracion) debe llamarla en vez de reimplementar el criterio.
+     *
+     * Insumos, todos ya calculados por buildDynamicPatternDefinitions()
+     * para agrupar filas en patrones (no se recalculan aqui, se reciben
+     * normalizados desde el patron ya construido):
+     *   - filas: conjunto de filas del patron (orden/duplicados no afectan
+     *     la huella).
+     *   - totalColumns/originColumns: columnas funcionales del patron
+     *     (orden no afecta la huella).
+     *   - formulaTemplates: formula normalizada por columna total (fila ya
+     *     reemplazada por {fila} via normalizeFormulaTemplate()).
+     *   - editabilitySignature: string ya producido por
+     *     buildEditabilitySignature() ("A:B|B:E|...") -- bloqueada/editable
+     *     por columna funcional, misma para todas las filas de un patron
+     *     por construccion del agrupamiento.
+     *   - mode: 'formula' vs 'direct_input' -- distincion funcional real
+     *     (una fila sin formula de TOTAL se valida distinto que una con
+     *     formula), se incluye por eso.
+     *
+     * Deliberadamente NO incluye: structure_id/version (bakearlo
+     * invalidaria toda seccion cada vez que cambia CUALQUIER hoja de la
+     * estructura, no solo la afectada -- sobre-invalidacion), warnings,
+     * conceptos/nombres de profesionales (texto visual, no cambia la regla
+     * funcional), ni ningun otro campo de presentacion.
+     *
+     * Serializacion deterministica antes del hash: filas ordenadas
+     * numericamente y deduplicadas: columnas ordenadas alfabeticamente
+     * (mayusculas) y deduplicadas; formula_templates ordenadas por clave de
+     * columna (ksort) con formula normalizada a mayusculas. Un patron sin
+     * ninguna fila valida recibe la huella reservada 'fpv2_empty' (nunca
+     * coincide entre si, igual que 'fp_empty' en v1).
+     */
+    public function computeCanonicalPatternFingerprint(
+        array $filas,
+        array $totalColumns,
+        array $originColumns,
+        array $formulaTemplates,
+        string $editabilitySignature,
+        string $mode,
+    ): string {
+        $normalizedRows = array_values(array_unique(array_filter(
+            array_map(fn ($f) => (int) $f, $filas),
+            fn (int $f) => $f > 0
+        )));
+
+        if (empty($normalizedRows)) {
+            return 'fpv2_empty';
+        }
+
+        sort($normalizedRows, SORT_NUMERIC);
+
+        $normalizeColumnList = function (array $columns): array {
+            $normalized = array_values(array_unique(array_map(
+                fn ($c) => strtoupper(trim((string) $c)),
+                array_filter($columns, fn ($c) => trim((string) $c) !== '')
+            )));
+            sort($normalized, SORT_STRING);
+
+            return $normalized;
+        };
+
+        $normalizedTotals = $normalizeColumnList($totalColumns);
+        $normalizedOrigins = $normalizeColumnList($originColumns);
+
+        $normalizedFormulas = [];
+        foreach ($formulaTemplates as $column => $template) {
+            $normalizedFormulas[strtoupper((string) $column)] = strtoupper((string) $template);
+        }
+        ksort($normalizedFormulas, SORT_STRING);
+
+        $canonico = implode(',', $normalizedRows)
+            . '|' . implode(',', $normalizedTotals)
+            . '|' . implode(',', $normalizedOrigins)
+            . '|' . json_encode($normalizedFormulas)
+            . '|' . $editabilitySignature
+            . '|' . strtolower(trim($mode));
+
+        return 'fpv2_' . substr(hash('sha256', $canonico), 0, 16);
+    }
+
     public function buildPatternMatrix(string $sheet, string $section): array
     {
         $matrix = $this->buildMatrix($sheet, $section);
@@ -604,9 +708,28 @@ class SectionCalibrationMatrixService
                 ];
             }
 
+            $enrichedOriginColumns = $patron['origin_columns'] ?? $patron['columnas_origen'];
+            $enrichedTotalColumns = $patron['total_columns'] ?? [$patron['columna_total']];
+            $enrichedFormulaTemplates = $patron['formula_templates'] ?? [$patron['columna_total'] => $patron['formula_template']];
+            $enrichedMode = $patron['mode'] ?? 'formula';
+            $enrichedEditabilitySignature = $patron['editability_signature'] ?? '';
+
             $enriched[] = [
                 'id' => $patron['id'],
                 'row_fingerprint' => $this->computeRowFingerprint($patron['filas']),
+                // Firma canonica v2 (deuda tecnica #1) -- unica funcion que la
+                // calcula, ver computeCanonicalPatternFingerprint(). No se
+                // persiste todavia por si sola: PatternReconciliationService
+                // decide, segun fingerprint_version de la respuesta guardada,
+                // si corresponde compararla contra esta o contra row_fingerprint.
+                'canonical_fingerprint' => $this->computeCanonicalPatternFingerprint(
+                    $patron['filas'],
+                    $enrichedTotalColumns,
+                    $enrichedOriginColumns,
+                    $enrichedFormulaTemplates,
+                    $enrichedEditabilitySignature,
+                    $enrichedMode,
+                ),
                 'nombre' => $patron['nombre'],
                 'descripcion' => $patron['descripcion'],
                 'regla_funcional_label' => self::REGLA_FUNCIONAL_LABELS[$patron['id']] ?? 'Suma de columnas = TOTAL',
@@ -614,11 +737,12 @@ class SectionCalibrationMatrixService
                 'formula_template' => $patron['formula_template'],
                 'columnas_origen' => $patron['columnas_origen'],
                 'columna_total' => $patron['columna_total'],
-                'origin_columns' => $patron['origin_columns'] ?? $patron['columnas_origen'],
-                'total_columns' => $patron['total_columns'] ?? [$patron['columna_total']],
-                'formula_templates' => $patron['formula_templates'] ?? [$patron['columna_total'] => $patron['formula_template']],
+                'origin_columns' => $enrichedOriginColumns,
+                'total_columns' => $enrichedTotalColumns,
+                'formula_templates' => $enrichedFormulaTemplates,
                 'source' => $patron['source'] ?? 'legacy_a01_a',
-                'mode' => $patron['mode'] ?? 'formula',
+                'mode' => $enrichedMode,
+                'editability_signature' => $enrichedEditabilitySignature,
                 'cantidad_filas' => count($patronRows),
                 'conceptos' => array_keys($conceptos),
                 'profesionales' => array_keys($profesionales),
@@ -1195,6 +1319,11 @@ class SectionCalibrationMatrixService
                     'formula_templates' => $formulaTemplates,
                     'source' => $hasCellData ? 'cell_data' : 'structure_inferred',
                     'mode' => !empty($activeTotalColumns) ? 'formula' : 'direct_input',
+                    // Identica para todas las filas de este grupo por construccion
+                    // (es parte de la clave $signature que las agrupo) -- se
+                    // captura una sola vez para exponerla en el patron final,
+                    // consumida por computeCanonicalPatternFingerprint().
+                    'editability_signature' => $editabilitySignature,
                 ];
             }
 
@@ -1227,6 +1356,7 @@ class SectionCalibrationMatrixService
                 'formula_templates' => $formulaTemplates,
                 'source' => $group['source'],
                 'mode' => $group['mode'] ?? 'formula',
+                'editability_signature' => $group['editability_signature'] ?? '',
             ];
             $id++;
         }
