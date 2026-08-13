@@ -10,6 +10,30 @@ class ValidationErrorFormatterService
 {
     private array $sectionMetaCache = [];
 
+    /**
+     * Indice en memoria de RemData por upload, construido UNA sola vez por
+     * uploadId: uploadId -> SHEET (mayusculas) -> rowNumber -> RemData.
+     * Hallazgo de rendimiento (produccion, upload 8, 2026-08-13):
+     * resolveFunctionalSectionMeta() ejecutaba RemData::query()->get() de
+     * las ~2177 filas del upload en CADA combinacion (sheet,row) sin cache
+     * previo -- 1001 errores -> cientos de recargas completas (193s /
+     * 86.5MB). Con este indice, la carga es O(1) por lookup despues de la
+     * primera construccion.
+     *
+     * @var array<int, array<string, array<int, RemData>>>
+     */
+    private array $remDataIndexCache = [];
+
+    /**
+     * Cache de CertificationService::getSectionInfo() por "sheet|seccion"
+     * -- ese metodo vuelve a consultar la estructura activa (sin cache
+     * propia, ver deuda tecnica #6 documentada) en cada llamada; varias
+     * filas de una misma seccion disparaban la misma consulta repetida.
+     *
+     * @var array<string, array|null>
+     */
+    private array $sectionInfoCache = [];
+
     public function __construct(private ?CertificationService $certificationService = null)
     {
         $this->certificationService ??= app(CertificationService::class);
@@ -49,7 +73,11 @@ class ValidationErrorFormatterService
             $formatted = $formatted->filter(fn ($e) => ($e['tipo_error'] ?? 'tecnico') === $filters['tipo_error']);
         }
 
-        // Deduplicate: same form + section + campo + tipo_error + mensaje = duplicate
+        // Deduplicate: same form + section + campo + tipo_error + mensaje = duplicate.
+        // $seen como array asociativo (isset O(1)) en vez de in_array() sobre
+        // una lista (O(n) por chequeo, O(n^2) total con muchos errores) --
+        // misma semantica de comparacion estricta de string, solo cambia el
+        // costo.
         $seen = [];
         $formatted = $formatted->filter(function ($e) use (&$seen) {
             $key = ($e['form'] ?? '') . '|'
@@ -57,10 +85,10 @@ class ValidationErrorFormatterService
                  . ($e['campo'] ?? '') . '|'
                  . ($e['tipo_error'] ?? '') . '|'
                  . ($e['mensaje'] ?? '');
-            if (in_array($key, $seen, true)) {
+            if (isset($seen[$key])) {
                 return false;
             }
-            $seen[] = $key;
+            $seen[$key] = true;
             return true;
         });
 
@@ -323,15 +351,7 @@ class ValidationErrorFormatterService
             return $this->sectionMetaCache[$cacheKey];
         }
 
-        $remData = RemData::query()
-            ->where('rem_upload_id', $uploadId)
-            ->get()
-            ->first(function (RemData $row) use ($sheet, $rowNumber) {
-                $data = $row->data ?? [];
-
-                return strtoupper((string) ($data['section'] ?? $row->section ?? '')) === strtoupper($sheet)
-                    && (int) ($data['row_number'] ?? 0) === $rowNumber;
-            });
+        $remData = $this->getRemDataIndex($uploadId)[strtoupper($sheet)][$rowNumber] ?? null;
 
         $sectionCode = $remData?->data['rem_section_code'] ?? null;
         if (!is_string($sectionCode) || trim($sectionCode) === '') {
@@ -342,13 +362,56 @@ class ValidationErrorFormatterService
             ];
         }
 
-        $sectionInfo = $this->certificationService?->getSectionInfo($sheet, $sectionCode);
+        $sectionInfo = $this->getSectionInfoCached($sheet, $sectionCode);
 
         return $this->sectionMetaCache[$cacheKey] = [
             'section_code' => $sectionCode,
             'section_name' => $sectionInfo['titulo'] ?? null,
             'section_order' => $sectionInfo['fila_inicio'] ?? null,
         ];
+    }
+
+    /**
+     * Construye (una sola vez por uploadId) el indice SHEET->rowNumber de
+     * RemData. Preserva EXACTAMENTE la semantica de
+     * Collection::first(fn($row) => ...) del codigo original: si dos filas
+     * de RemData coinciden en (sheet,row_number), se conserva la PRIMERA
+     * encontrada en el orden natural de la consulta -- nunca se
+     * sobreescribe con una posterior.
+     *
+     * @return array<string, array<int, RemData>>
+     */
+    private function getRemDataIndex(int $uploadId): array
+    {
+        if (isset($this->remDataIndexCache[$uploadId])) {
+            return $this->remDataIndexCache[$uploadId];
+        }
+
+        $index = [];
+        RemData::query()
+            ->where('rem_upload_id', $uploadId)
+            ->get()
+            ->each(function (RemData $row) use (&$index) {
+                $data = $row->data ?? [];
+                $sheet = strtoupper((string) ($data['section'] ?? $row->section ?? ''));
+                $rowNumber = (int) ($data['row_number'] ?? 0);
+
+                if (!isset($index[$sheet][$rowNumber])) {
+                    $index[$sheet][$rowNumber] = $row;
+                }
+            });
+
+        return $this->remDataIndexCache[$uploadId] = $index;
+    }
+
+    private function getSectionInfoCached(string $sheet, string $sectionCode): ?array
+    {
+        $key = "{$sheet}|{$sectionCode}";
+        if (array_key_exists($key, $this->sectionInfoCache)) {
+            return $this->sectionInfoCache[$key];
+        }
+
+        return $this->sectionInfoCache[$key] = $this->certificationService?->getSectionInfo($sheet, $sectionCode);
     }
 
     private function formatFunctionalMessage(string $concept, string $professional, array $criterio): ?string
