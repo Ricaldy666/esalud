@@ -84,20 +84,26 @@ class ValidateRemUploadJob implements ShouldQueue
         MemoryProbe::log('validate_job.despues_persistencia_resultados', ['upload_id' => $this->upload->id]);
 
         // Step 4: Determine final status from combined results. Este job es el
-        // validador principal: es la unica fuente de verdad para success/with_errors,
-        // y debe escribirlo siempre (antes se omitia el update cuando no habia
-        // errores, dejando el estado que hubiera puesto el parseo -- ahora ya
-        // no aplica, porque ProcessRemUploadJob deja el upload en 'validating').
+        // validador principal: es la unica fuente de verdad para success/with_errors
+        // (ValidateWithEngineJob nunca recalcula ni puede revertir esta decision,
+        // solo la aplica cuando termina -- ver su finalize()).
         $allResults = $results->merge($functionalResults->toArray());
         $hasErrors = $allResults->contains(fn ($r) => ($r['passed'] ?? true) === false && ($r['severity'] ?? 'error') === 'error');
-
-        $this->upload->update(['status' => $hasErrors ? 'with_errors' : 'success']);
+        $finalStatus = $hasErrors ? 'with_errors' : 'success';
 
         // Step 5: Dispatch engine job if enabled (will add RuleExecutionLog + additional results).
-        // ValidateWithEngineJob ya no debe tocar upload.status (ver su propio
-        // handle()) -- este job es el que decide el estado final.
+        // Si el motor va a correr, el estado terminal se difiere hasta que
+        // termine (o determine que no corre) -- de lo contrario el frontend deja
+        // de hacer polling en cuanto ve success/with_errors y captura un
+        // validation_summary parcial, sin los resultados que todavia va a
+        // escribir el motor. $finalStatus viaja al job para que lo aplique el;
+        // este job sigue siendo la unica fuente de verdad sobre CUAL es el
+        // estado, solo cambia CUANDO se persiste.
         if ($featureFlags->get('enabled')) {
-            ValidateWithEngineJob::dispatch($this->upload->id);
+            $this->upload->update(['status' => 'validating']);
+            ValidateWithEngineJob::dispatch($this->upload->id, $finalStatus);
+        } else {
+            $this->upload->update(['status' => $finalStatus]);
         }
 
         MemoryProbe::log('validate_job.fin', [

@@ -7,6 +7,7 @@ use App\Domain\REM\Models\RemTemplate;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Requests\StoreRemUploadRequest;
 use App\Domain\REM\Services\RemUploadPreviewService;
+use App\Domain\RuleEngine\Services\ValidationSummaryService;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RemUploadResource;
 use Illuminate\Http\JsonResponse;
@@ -136,7 +137,7 @@ class RemUploadController extends Controller
         ]);
     }
 
-    public function status(Request $request, RemUpload $remUpload): JsonResponse
+    public function status(Request $request, RemUpload $remUpload, ValidationSummaryService $summaryService): JsonResponse
     {
         $this->authorize('view', $remUpload);
 
@@ -168,24 +169,24 @@ class RemUploadController extends Controller
             default => 'Estado desconocido',
         };
 
-        $validationResults = $remUpload->validationResults();
+        // Misma fuente que /rule-engine/uploads/{id}/validation-summary
+        // (ValidationSummaryController -> ValidationSummaryService::summary()):
+        // combina RemValidationResult (legacy, agrupado por rule_key) y
+        // RuleExecutionLog (motor). Antes este endpoint recalculaba su propio
+        // resumen contando filas de RemValidationResult sin agrupar y sin
+        // sumar el motor -- daba un numero distinto (y mas alto en "aplicable")
+        // que el de la pagina de resultado final para el mismo upload, aun
+        // con el pipeline ya terminado. Reusar el mismo servicio garantiza que
+        // RemUploadResultCard reciba exactamente el mismo resumen definitivo.
+        $summary = $summaryService->summary($remUpload->id);
 
-        $validationSummary = null;
-        if ($validationResults->count() > 0) {
-            $total = $validationResults->count();
-            $passed = $validationResults->where('passed', true)->count();
-            $failed = $validationResults->where('passed', false)->count();
-            $applicable = $passed + $failed;
-            $compliance = $applicable > 0 ? round(($passed / $applicable) * 100, 2) : null;
-
-            $validationSummary = [
-                'total_rules' => $total,
-                'applicable' => $applicable,
-                'passed' => $passed,
-                'failed' => $failed,
-                'compliance' => $compliance,
-            ];
-        }
+        $validationSummary = $summary['total_rules'] > 0 ? [
+            'total_rules' => $summary['total_rules'],
+            'applicable' => $summary['applicable'],
+            'passed' => $summary['passed'],
+            'failed' => $summary['failed'],
+            'compliance' => $summary['cumplimiento_porcentaje'],
+        ] : null;
 
         return response()->json([
             'data' => [
