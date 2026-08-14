@@ -215,6 +215,11 @@ class SectionCalibrationMatrixService
             ? $this->getFormulaTotalColumnsFromCellData($sectionData, $cellDataForRows)
             : [];
 
+        // Mismo motivo que $formulaTotalColumns arriba: buildFunctionalRulesForMatrixRow()
+        // llamaba a getFunctionalColumns($sectionData, $cellDataForRows) -- invariante por
+        // fila -- de nuevo en cada iteracion de este loop.
+        $functionalColumns = $this->getFunctionalColumns($sectionData, $cellDataForRows);
+
         $rows = [];
         for ($row = $filaInicio; $row <= $filaFin; $row++) {
             $rowType = $this->classifyRow($sheet, $section, $row, $filaHeader, $sectionData);
@@ -231,7 +236,7 @@ class SectionCalibrationMatrixService
                 $rowType = 'special';
             }
 
-            $matrixFunctionalRules = $this->buildFunctionalRulesForMatrixRow($row, $rowCells, $sectionData, $cellDataForRows);
+            $matrixFunctionalRules = $this->buildFunctionalRulesForMatrixRow($row, $rowCells, $sectionData, $cellDataForRows, $functionalColumns);
             $directRule = $this->findDirectRule($rules, $row);
             $evidenceDetail = $this->getEvidenceDetail($evidenceRules, $row, $sectionData, $columnIndex);
             if ($rowType !== 'data') {
@@ -1233,6 +1238,10 @@ class SectionCalibrationMatrixService
             ? $this->getFormulaTotalColumnsFromCellData($sectionData, $cellDataRows)
             : $this->getTotalColumns($sectionData);
         $structureOriginColumns = $this->getStructureOriginColumns($sectionData, $totalColumns);
+        // Invariante por fila (misma razon que en buildMatrix()/getFormulaTotalColumnsFromCellData())
+        // -- getEditableInputColumnsForRow() lo recalculaba desde cero por cada fila sin
+        // total-columna activa. Precalculado aqui y pasado como parametro.
+        $functionalColumns = $hasCellData ? $this->getFunctionalColumns($sectionData, $cellDataRows) : [];
 
         foreach ($rows as $rowData) {
             if (($rowData['row_type'] ?? '') !== 'data') continue;
@@ -1267,7 +1276,7 @@ class SectionCalibrationMatrixService
                 }
 
                 if ($hasCellData && empty($activeTotalColumns)) {
-                    $directInputColumns = $this->getEditableInputColumnsForRow($sectionData, $rowCells);
+                    $directInputColumns = $this->getEditableInputColumnsForRow($sectionData, $rowCells, $functionalColumns);
                 }
             }
 
@@ -1564,13 +1573,20 @@ class SectionCalibrationMatrixService
         return $totalLabel !== '' ? "Regla principal: {$totalLabel}" : 'Regla principal de sexo';
     }
 
-    private function buildFunctionalRulesForMatrixRow(int $row, array $rowCells, array $sectionData, array $cellDataRows): array
+    private function buildFunctionalRulesForMatrixRow(int $row, array $rowCells, array $sectionData, array $cellDataRows, ?array $functionalColumns = null): array
     {
         if (empty($rowCells)) return [];
 
         $rules = [];
 
-        foreach ($this->getFunctionalColumns($sectionData, $cellDataRows) as $totalColumn) {
+        // $functionalColumns es invariante por fila (depende de $sectionData y de
+        // TODA la seccion, no de esta fila) -- el llamador normal (buildMatrix())
+        // lo precalcula una sola vez fuera de su loop y lo pasa aqui. El default
+        // null solo cubre llamadas directas fuera de ese loop (ninguna en este
+        // archivo hoy, mantenido por compatibilidad/tests) recalculandolo como antes.
+        $functionalColumns ??= $this->getFunctionalColumns($sectionData, $cellDataRows);
+
+        foreach ($functionalColumns as $totalColumn) {
             $cell = $rowCells[$totalColumn] ?? [];
             if (!($cell['es_formula'] ?? false)) continue;
 
@@ -1714,8 +1730,16 @@ class SectionCalibrationMatrixService
     {
         $columns = [];
 
+        // Precalculado fuera del loop: getFunctionalColumns($sectionData, $cellDataRows)
+        // no depende de $row/$rowCells (recibe siempre la seccion completa), asi que
+        // recalcularlo en cada iteracion es el mismo patron O(filas) redundante ya
+        // documentado en buildMatrix() -- aqui componia ademas con el propio escaneo
+        // interno de getFunctionalColumns() sobre todas las filas, dando O(filas^2).
+        // Medido: 288M llamadas a columnNumber() en el computo frio antes de este fix.
+        $functionalColumns = $this->getFunctionalColumns($sectionData, $cellDataRows);
+
         foreach ($cellDataRows as $row => $rowCells) {
-            foreach ($this->getFunctionalColumns($sectionData, $cellDataRows) as $column) {
+            foreach ($functionalColumns as $column) {
                 $cell = $rowCells[$column] ?? [];
                 if (!($cell['es_formula'] ?? false)) continue;
 
@@ -2131,9 +2155,17 @@ class SectionCalibrationMatrixService
         return array_values(array_unique($columns));
     }
 
-    private function getEditableInputColumnsForRow(array $sectionData, array $rowCells): array
+    private function getEditableInputColumnsForRow(array $sectionData, array $rowCells, ?array $functionalColumns = null): array
     {
-        $functionalColumns = $this->getFunctionalColumns($sectionData, [$rowCells]);
+        // $functionalColumns, cuando lo pasa el llamador, es el resultado
+        // section-wide (todas las filas) precalculado una sola vez -- superset
+        // del resultado de calcularlo solo con [$rowCells]. Es equivalente aqui
+        // porque el filtro de abajo ya descarta explicitamente (a) toda columna
+        // de etiqueta sin condicion, y (b) cualquier columna ausente en esta
+        // fila via `empty($cell)` -- exactamente lo que limitaria el resultado
+        // a una sola fila si se recalculara. El default null preserva el
+        // comportamiento original para cualquier otro llamador.
+        $functionalColumns ??= $this->getFunctionalColumns($sectionData, [$rowCells]);
         $columns = [];
 
         foreach ($functionalColumns as $column) {
@@ -2324,13 +2356,28 @@ class SectionCalibrationMatrixService
         return $columns[0] . ':' . $columns[count($columns) - 1];
     }
 
+    /**
+     * Memoizado por instancia: funcion pura (misma letra de columna siempre
+     * da el mismo numero), y el universo de letras distintas vistas en una
+     * request es pequeno (columnas de Excel reales, nunca miles) frente a la
+     * cantidad de veces que se invoca -- llamada desde comparadores de
+     * usort() y desde filtros ejecutados por columna en muchos puntos de
+     * este archivo.
+     */
+    private array $columnNumberCache = [];
+
     private function columnNumber(string $column): int
     {
+        if (isset($this->columnNumberCache[$column])) {
+            return $this->columnNumberCache[$column];
+        }
+
         $number = 0;
         foreach (str_split(strtoupper($column)) as $char) {
             $number = ($number * 26) + (ord($char) - 64);
         }
-        return $number;
+
+        return $this->columnNumberCache[$column] = $number;
     }
 
     private function columnName(int $number): string
