@@ -571,3 +571,53 @@ export interface MigrationPlanResponse {
 export interface QuickRevalidationConfirmResponse {
   questions: CalibrationQuestion[]
 }
+
+// Flujo de resolucion MISMATCH (2026-08-21). Un patron MISMATCH solo puede
+// resolverse por la via rapida si ya fue auditado y etiquetado como
+// safe_reconfirm o structural_row_exclusion -- human_review y
+// structural_review nunca admiten confirmacion rapida, ver
+// MismatchResolutionAuditService (backend).
+//
+// structural_row_exclusion (2026-08-24, hallazgo A09/G P2/P4): categoria
+// INDEPENDIENTE de safe_reconfirm para patrones cuya unica diferencia de
+// filas es la exclusion de una o mas filas TOTAL lider (mecanismo #6,
+// SectionCalibrationMatrixService::isEmbeddedLeadingTotalRow()) ya
+// verificadas mecanicamente por el motor -- nunca una decision de negocio,
+// nunca "confiar a ciegas". safe_reconfirm sigue exigiendo igualdad EXACTA
+// de filas y nunca se usa para este caso.
+export type MismatchResolutionCategory =
+  | 'safe_reconfirm'
+  | 'human_review'
+  | 'structural_review'
+  | 'structural_row_exclusion'
+
+export interface MismatchResolutionTag {
+  sheet: string
+  section: string
+  pattern_id: number
+  category: MismatchResolutionCategory
+  audited_fingerprint: string
+  audited_rows: number[]
+  reason: string
+  audited_by: string
+  audited_at: string
+  // Presentes SOLO para tags category=structural_row_exclusion -- ver
+  // RuleTagMismatchResolutionCommand (backend).
+  historical_rows?: number[]
+  excluded_total_rows?: number[]
+  exclusion_mechanism?: string
+}
+
+export interface MismatchResolutionDetails {
+  live_category: MigrationPlanCategory
+  live_rows: number[]
+  live_canonical_fingerprint: string | null
+  historical_answer?: MigrationPlanHistoricalAnswer | null
+  historical_rows?: number[] | null
+  column_diff: MigrationPlanColumnDiff | null
+  resolution_tag: MismatchResolutionTag | null
+}
+
+export interface MismatchResolutionConfirmResponse {
+  questions: CalibrationQuestion[]
+}

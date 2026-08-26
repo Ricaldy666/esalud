@@ -11,6 +11,7 @@ import {
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
 import { calibrationService } from '../../services/calibration'
+import { MismatchResolutionPanel } from './MismatchResolutionPanel'
 import { NotCalibratableSectionPanel } from './NotCalibratableSectionPanel'
 import { QuickRevalidationPanel } from './QuickRevalidationPanel'
 import type {
@@ -776,6 +777,23 @@ export default function QuickCalibrationPanel({
         onOpenAdvanced={onOpenAdvanced}
         onNavigateSection={onNavigateSection}
         onReviewAgain={() => setForceFullReview(true)}
+      />
+    )
+  }
+
+  // Flujo de resolucion MISMATCH (2026-08-21): nunca se confirma a ciegas
+  // por caer en esta categoria -- MismatchResolutionPanel exige ademas una
+  // etiqueta de auditoria previa (safe_reconfirm/human_review/
+  // structural_review) por patron antes de admitir cualquier accion rapida.
+  if (migrationPlan?.category === 'MISMATCH' && !forceFullReview) {
+    return (
+      <MismatchResolutionPanel
+        sheet={sheet}
+        section={section}
+        sectionTitle={sectionTitle}
+        plan={migrationPlan}
+        readOnly={readOnly}
+        onOpenAdvanced={onOpenAdvanced}
       />
     )
   }

@@ -9,6 +9,8 @@ import type {
   CalibrationRow,
   CalibrationSummaryResponse,
   MigrationPlanResponse,
+  MismatchResolutionConfirmResponse,
+  MismatchResolutionDetails,
   PatternMatrixResponse,
   QuickRevalidationConfirmResponse,
   RowFunctionalDecisionResponse,
@@ -155,6 +157,30 @@ export const calibrationService = {
 
     const { data } = await api.post<ApiResponse<QuickRevalidationConfirmResponse>>(
       `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/quick-revalidation`
+    )
+    return data.data
+  },
+
+  getMismatchResolutionDetails: async (
+    sheet: string,
+    section: string,
+    patternId: number
+  ): Promise<MismatchResolutionDetails> => {
+    const { data } = await api.get<ApiResponse<MismatchResolutionDetails>>(
+      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution`
+    )
+    return data.data
+  },
+
+  confirmMismatchResolution: async (
+    sheet: string,
+    section: string,
+    patternId: number
+  ): Promise<MismatchResolutionConfirmResponse> => {
+    await fetchCsrfCookie()
+
+    const { data } = await api.post<ApiResponse<MismatchResolutionConfirmResponse>>(
+      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution/confirm`
     )
     return data.data
   },
