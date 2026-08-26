@@ -1,3 +1,232 @@
+# Estado al cierre de la sesión — 2026-08-26 (FASE 3 MOTOR DE REGLAS — CIERRE DE LA CAMPAÑA MISMATCH, ESTADO REAL SERIE A CONFIRMADO)
+
+Handoff de cierre de la campaña de reconciliación MISMATCH del motor de reglas REM (Fase 3), continuación directa de la sección "2026-08-21" de más abajo (léela para el detalle completo de mecanismos/fixes de esa jornada — no se repite aquí). Esta sección documenta el **estado final confirmado hoy**, tras completar las tandas 2B-2 a 2B-6 más el trabajo adicional de identidad estable, reparación de A09/G, y el barrido final de los 14 `HUMAN_REVIEW` originales. Leer esta sección primero antes de retomar cualquier trabajo sobre calibración, reconciliación o el flujo MISMATCH.
+
+## Campaña MISMATCH — técnicamente reconciliada (cerrada)
+
+**Todos los MISMATCH detectados quedaron explicados o auditados con evidencia — ninguno permanece como "diferencia sin explicar".** Resultado final:
+
+- **117 patrones tagueados y reconfirmados como `safe_reconfirm`** (drift puro del algoritmo canónico de fingerprint v2 — filas, columnas, fórmulas y editabilidad idénticas entre la estructura histórica y la viva; demostrado con evidencia real de `cell_data` y de `rem_data` en cada caso, nunca por analogía). Secciones cerradas por esta vía en la jornada de hoy: `A05/U`, `A04/F`, `A04/I.1`, `A04/I.2`, `A07/A` (3 patrones), `A08/M`, `A11/E` (3 patrones), `A27/D`, `A27/E`, `A27/F`, `A27/K` (8 patrones), `A30/A`, `A32/L` (4 patrones), `A32/M`, `A32/N`.
+- **2 patrones tagueados y reconfirmados como `structural_row_exclusion`** (`A09/G` P3/P4 — exclusión mecánica de fila TOTAL líder, mecanismo #6, verificada patrón por patrón contra el gate ya documentado en la sección 2026-08-21).
+- **1 patrón tagueado como `human_review`**: `A30/C` P1 — ver más abajo, es la única excepción real.
+- Total de tags en `mismatch-resolution-audit.json`: **120** (117 `safe_reconfirm` + 2 `structural_row_exclusion` + 1 `human_review`).
+- **Incidente cerrado**: la corrupción real de datos de `A09/G` (causa raíz: `applyQuickRevalidation()` escribía por `pattern_id` posicional en vez de por identidad histórica resuelta) fue diagnosticada, reparada con evidencia verificable (backup + hash previo, campos restaurados solo desde fuentes verificables: `_questions_history` y tags de auditoría legacy) y el fix de causa raíz quedó aplicado de forma genérica (no un parche puntual) — ver sección 2026-08-21 para el detalle completo.
+
+### Corrección importante sobre la clasificación original de los 14 `HUMAN_REVIEW`
+
+La clasificación original (documentada en la sección 2026-08-21, heredada de una auditoría más temprana de la campaña) marcaba 14 secciones como `HUMAN_REVIEW`: `A04/I.1, A04/I.2, A04/F, A07/A, A08/M, A11/E, A27/D, A27/E, A27/F, A27/K, A30/A, A32/L, A32/M, A32/N`. **Auditoría profunda de cada una, hoy, con evidencia real (`cell_data`, `rem_data`, comparación de estructura histórica vs. viva) demostró que 13 de esas 14 eran en realidad `SAFE_RECONFIRM` puro** — la etiqueta `HUMAN_REVIEW` original no reflejaba ningún cambio funcional real, solo drift del algoritmo. Las 13 quedaron reconfirmadas (ver lista arriba). **`A30/C` es la única excepción genuina** de las 14 originales — ver abajo por qué.
+
+## A30/C — único ítem restante, y por qué es distinto
+
+| Patrón | Filas | Estado |
+|---|---|---|
+| P1 | 81,82,83,84,85,86,87,88,89,92,93 | **`human_review`** — calibración funcional nueva pendiente, no drift técnico |
+| P2 | 90,91 | Resuelto — `AUTO_MIGRATE` |
+
+**A30/C P1 es la única sección donde la auditoría encontró una superficie de captura real y genuinamente nueva** (a diferencia de las otras 13, donde la superficie de columnas era idéntica): columnas `J` (Modalidad → Institucional), `K` (Modalidad → Compra de Servicio → Sistema), `L` (Modalidad → Compra de Servicio → Extrasistema), correspondientes al bloque "Nivel Primario" — verificadas en `cell_data` real como celdas de escritura directa genuinas (no fórmulas, no totales, no columnas auxiliares). La estructura histórica (id=52, revisada el 2026-08-10 por Francisco Arcos) **no incluía estas 3 columnas en absoluto** — la decisión histórica `debe_registrar_cero` nunca pudo haberlas considerado. Las 138 cargas reales históricas no aportan evidencia: la clave `J`/`K`/`L` nunca existió en `values`, porque el parser nunca leyó esas columnas al no estar declaradas entonces.
+
+**Decisión de diseño explícita (2026-08-26, adoptada tras discusión)**: este caso **no se trata como trabajo de reconciliación pendiente**, y **Claude/el asistente no decide ni sugiere** si J/K/L deben registrar 0, pueden quedar vacías, o no aplican — esa es una decisión funcional que corresponde exclusivamente a Estadística APS, a tomar desde la interfaz ordinaria de calibración de ATHENEA (la misma vía con la que se calibró cada patrón nuevo de la Serie A desde el inicio del proyecto). El patrón queda etiquetado `human_review` (tag ya persistido) y a la espera, sin fecha límite, igual que `A05/V`/`A30/D`.
+
+**Nota arquitectónica (deuda/mejora futura, NO implementada)**: se detectó que la capa de reconciliación (`PatternMigrationScanner`/`PatternReconciliationService`, categorías `AUTO_MIGRATE`/`MISMATCH`/`FULL_REVALIDATION`/`QUICK_CONFIRMATION`) y la capa de auditoría (`MismatchResolutionAuditService`, categorías `safe_reconfirm`/`human_review`/`structural_review`/`structural_row_exclusion`) están completamente desacopladas — el scanner nunca lee los tags. Por eso una sección con un patrón ya auditado y tagueado `human_review` (como `A30/C`) sigue contándose globalmente como `MISMATCH` sin distinguirse de un MISMATCH nunca auditado. Propuesta para el futuro: un estado `MIGRATION_NEEDS_CALIBRATION` (o similar) en la capa de reconciliación que el scanner asigne cuando exista un tag `human_review` vigente, separándolo del conteo de "trabajo de reconciliación técnica pendiente". **No implementar sin autorización explícita** — es una decisión de diseño real (uniría dos subsistemas hoy independientes), no una corrección menor.
+
+## Estado real de Serie A confirmado hoy (verificado en vivo, no de memoria)
+
+El conteo "303/303 (100%)" de la sección 2026-08-11 (más abajo) fue correcto en su momento, pero quedó superado por el crecimiento posterior de la estructura activa. **Estado real verificado hoy contra `SectionCalibrationMatrixService::buildStructureCalibrationSummary()` y el scanner en vivo**:
+
+- `sections_aplicables` = **306**
+- `sections_completed` = **304**
+- `sections_calibrated` = **302**
+- `sections_not_calibratable` = **2** (`A04/N`, `A32/E1`, sin cambios)
+- `sections_pending` = **2** — exclusivamente `A05/V` y `A30/D`
+
+**`A05/V` y `A30/D` son `NEW_SECTION`** (detectadas por evolución de la estructura, nunca calibradas) **y permanecen deliberadamente fuera de alcance** — no deben interpretarse como calibración olvidada ni como regresión. Ya estaban documentadas así en `CLAUDE.md` ("Nunca calibrar dentro de esta campaña") desde antes de hoy.
+
+**`A33` — corrección de una nota desactualizada**: verificado en vivo hoy (BD real + scanner) que A33 está **100% calibrada**: 5/5 secciones (`A`, `B`, `C`, `D`, `E`), 9/9 patrones revisados (A=1, B=3, C=1, D=2, E=2), todas `review_status=section_reviewed`, `reviewed_by=Francisco Arcos`, respuestas funcionales reales persistidas para los 9 patrones, timestamps 2026-08-11T15:17:57–15:18:19. Las 5 secciones clasifican `AUTO_MIGRATE` en el scanner vivo (fingerprint guardado = fingerprint recalculado). La nota original en la sección 2026-08-11 más abajo ("0 patrones revisados... pendiente de calibración funcional manual") quedó desactualizada porque la calibración ocurrió más tarde ese mismo día y el checkpoint nunca se editó — anotado in situ en esa sección, **sin borrar el texto original**.
+
+## Hallazgos técnicos para backlog (documentados, no bloquean nada, no corregidos)
+
+Filas fantasma/TOTAL histórico descubiertas durante la auditoría de esta campaña — mismo patrón ya conocido (mecanismo #6/#8), estructura activa ya corregida hacia adelante, histórico intencionalmente no limpiado (decisión ya establecida en toda la campaña):
+
+- **`A30/A` fila 12**: 131 registros históricos reales en `rem_data`, `concept="TOTAL"`, con valores numéricos no-cero. Fuera del patrón calibrado (`P1` = filas 13-67), sin efecto sobre su clasificación.
+- **`A32/N` fila 204**: 55 registros históricos, valores siempre `null`. Fuera del patrón calibrado (`P1` = filas 206-207).
+- Se suman a la lista ya documentada en la sección 2026-08-11 (mecanismo #8): A01, A23, A26, A28, A29 (25 filas TOTAL final fantasma).
+
+## Baseline técnico final de la campaña MISMATCH
+
+`MISMATCH` (scanner) = 1 (`A30/C`, solo por P1) · Tags = 120 · `rem_rules` = 764 · `rem_rule_bindings` = 1204 · Estructura activa = 67/v35 · Bindings a estructura 67 = 0 · `reglas-funcionales.json` sin cambios fuera de las reconfirmaciones documentadas · Nada commiteado ni pusheado.
+
+## Próximo trabajo (autorizado a nivel de intención, no iniciado)
+
+- Revisar los **66 `REQUIRES_REMAP`** documentados en la sección 2026-08-12 (Fase B) — no iniciado.
+- Decidir el diseño pendiente del gap arquitectónico `sum_equals`/`total_row` (deuda técnica #5, sección 2026-08-12).
+- Decidir si se autoriza el commit del trabajo acumulado de Fase 3 (ver auditoría de working tree de esta misma fecha, entregada en el chat, no repetida aquí).
+
+## Restricciones vigentes
+
+- **No calibrar `A30/C` P1, `A05/V` ni `A30/D`** — la decisión funcional corresponde a Estadística APS desde la interfaz ordinaria, no a este asistente.
+- **No implementar el estado `MIGRATION_NEEDS_CALIBRATION`** (propuesta arquitectónica) sin autorización explícita.
+- Todas las restricciones generales de Fase 3 documentadas en las secciones anteriores **siguen vigentes**.
+
+---
+
+# Estado al cierre de la sesión — 2026-08-21 (FASE 3 MOTOR DE REGLAS — FLUJO SAFE_RECONFIRM EN PRODUCCIÓN LOCAL, TANDA 2B-2 TAGUEADA/PENDIENTE DE CLIC)
+
+Handoff de la campaña de reconciliación del motor de reglas REM (Fase 3), continuación directa de la sección "2026-08-12" de más abajo (léela también si necesitas contexto de Fase A/B/C, pero **no la repitas**: nada de esa sección cambió hoy). Leer esta sección primero antes de tocar cualquier tag/reconfirmación MISMATCH, `SectionCalibrationMatrixService`, `SectionDetectorService`, o el flujo de resolución de patrones.
+
+## Qué problema se está resolviendo
+
+Desde ~2026-08-13 hasta hoy (gap no documentado en este archivo, trabajo de sesiones intermedias) la estructura activa avanzó de **63 → 66 → 67**. Al retomar hoy, `PatternMigrationScanner` (que compara el `pattern_fingerprint` v2 guardado en `reglas-funcionales.json` contra el fingerprint canónico recalculado en vivo) reportaba **43 secciones en categoría `MISMATCH`** — patrones cuya fórmula/estructura no cambió realmente, pero cuyo fingerprint sí cambió por mejoras del motor de detección (ver fixes abajo). El objetivo de hoy fue: (1) corregir los bugs de motor que causaban fingerprints "falso positivo", (2) diseñar e implementar un flujo seguro y auditable para resolver esos MISMATCH desde la interfaz (nunca a ciegas), y (3) empezar a resolverlos en tandas pequeñas, verificadas paso a paso contra Excel/cell-data real.
+
+## Fixes de motor aplicados hoy (código, sin commit)
+
+1. **`SectionDetectorService` — fila TOTAL líder contaminando labels** (bug pre-existente encontrado al auditar A30/D). Cuando una fila TOTAL/subtotal líder compartía la firma de columnas con filas de captura reales, `findTrailingHeaderRows()` la incluía en el array usado para construir las etiquetas de columna (`ColumnDetectorService`), contaminando el label de columnas reales. Fix: nuevo parámetro de salida `$filasTotalLider` en `findTrailingHeaderRows()`, restado (`array_diff`) del array pasado a `columnDetector->detect()` en los dos call-sites de `detect()` y dentro de `findSecondaryHeaderBlocks()`. Cubierto por `SectionDetectorServiceLeadingTotalRowLabelTest.php` (6 tests) y `SectionDetectorServiceLeadingTotalRowLabelRealFileTest.php` (2 tests, archivo real).
+2. **Corrección estructural real de A30 (patch aplicado, estructura 66→67 activada)** — motivada por el fix anterior. El patch real (con backup previo, dry-run repetido, commit y approve/activate) afectó las secciones **A30/A, A30/C, A30/D y A30/E** de la hoja A30 real. Esta es la razón por la que la estructura activa pasó de 66 a **67 (versión 35)**. Detalle fila-por-fila de ese patch específico: ver el informe "RESULTADO PATCH REAL A30 TOTAL LÍDER" entregado en el chat de esa fase (no repetido aquí completo por longitud — si hace falta, se puede reconstruir con `php artisan tinker` contra `RemTemplateStructure::find(67)` vs `find(66)` en modo solo lectura).
+3. **Gate individual de fórmulas en `SectionCalibrationMatrixService`** — tres fixes acumulativos aplicados hoy sobre `isFunctionalHorizontalFormula()` / `buildDynamicPatternDefinitions()` / `hasEditableInputComponentsForFormula()`:
+   - **Fase 2**: `isFunctionalHorizontalFormula()` simplificado a un criterio puramente evidencial (deja de rechazar por conteo/label de componentes; solo exige que exista evidencia real — `isSexMainRuleFormula()` o `hasEditableInputComponentsForFormula()`).
+   - **Fase 3 ("arrastre")**: el loop de activación por fila de `buildDynamicPatternDefinitions()` no revalidaba la firma de dependencias de cada fila individualmente, dejando que filas inválidas "viajaran" sobre la candidatura de toda la columna. Fix: revalidación por fila (`isSameRowFormula`, columnas de dependencia no vacías, columna total no incluida en el origen).
+   - **Fix de "búsqueda existencial de evidencia"** (mismo día, después del anterior): `hasEditableInputComponentsForFormula()` hacía cortocircuito en la PRIMERA fila con la misma firma que fallaba, sin seguir buscando en filas posteriores con la misma firma que sí tuvieran evidencia válida. Fix: búsqueda existencial completa sobre todas las filas antes de descartar.
+   - **Veredicto final tras barrido completo A/B/C (aislando cada fix con `git stash`)**: **`GATE_INDIVIDUAL_ESTABLE`** — el gate queda estable, generaliza correctamente (confirmado también en A03/A.4 y A11/E, no solo en los casos originalmente auditados), sin pérdidas ni ganancias espurias nuevas.
+   - Tests: `SectionCalibrationMatrixServiceHorizontalTwoComponentTest.php` (9), `SectionCalibrationMatrixServiceRowLevelValidationGateTest.php` (12), `SectionCalibrationMatrixServiceExistentialEvidenceSearchTest.php` (10).
+4. **`PatternMigrationScanner::scanSection()` — `historical_answer` ausente en el path canónico v2** (hallazgo durante la verificación UI del flujo MISMATCH). El path legacy (v1) ya exponía `historical_answer` (para mostrar "decisión anterior" en el panel); el path v2 (canónico, el que produce prácticamente todos los MISMATCH reales de la campaña) nunca lo seteaba. Fix de una línea: reutiliza `summarizeHistoricalAnswer()` también en el path v2. Solo lectura, no participa de la clasificación. Test: `test_historical_answer_is_exposed_for_canonical_v2_mismatch` en `MismatchResolutionApiTest.php`.
+
+**Efecto combinado de estos fixes sobre el catálogo**: el fix de Fase 2 introdujo 9 secciones nuevas en MISMATCH (auditadas y clasificadas 4 SAFE / 5 no-triviales); el fix de "arrastre" afectó 36 secciones (23 ganancias, 13 pérdidas); el fix existencial corrigió esas 13 pérdidas sin introducir regresiones nuevas (confirmado con barrido A/B/C). El universo final de 43 MISMATCH (auditado exhaustivamente, ver clasificación abajo) es el resultado neto de toda esta cadena de fixes.
+
+## Estructura activa
+
+**ID 67, versión 35.** Confirmada sin cambios durante TODO el trabajo de hoy de ahí en adelante (piloto + Tanda 1 + Tanda 2 completa) — verificado en cada post-check. **No se ha hecho ningún rebind a 67** (bindings de reglas a `bindable_type=structure, bindable_id=67` = **0**, confirmado repetidamente). Los bindings de Fase A siguen apuntando a las estructuras antiguas: 115 a estructura 63, 115 a estructura 66 (rebind ya ejecutado en una fase anterior de hoy, antes del trabajo documentado en detalle en esta sección).
+
+## Flujo SAFE_RECONFIRM — diseño y cómo funciona
+
+Diseñado y construido hoy porque se descubrió que el endpoint/flujo existente (`confirmQuickRevalidation` / `QuickRevalidationPanel.tsx`) está **estrictamente limitado a categoría `QUICK_CONFIRMATION`** y nunca puede resolver `MISMATCH` — ninguno de los 43 MISMATCH podía tocarse desde la interfaz antes de este trabajo.
+
+**Piezas nuevas:**
+- **`MismatchResolutionAuditService`** (`backend/app/Domain/RuleEngine/Services/MismatchResolutionAuditService.php`, nuevo) — almacén JSON separado (`storage/app/private/certificacion/mismatch-resolution-audit.json`), **deliberadamente distinto de `reglas-funcionales.json`**. Guarda solo una **etiqueta de clasificación** por `(sheet, section, pattern_id)`: `category` (`safe_reconfirm`/`human_review`/`structural_review`), `audited_fingerprint`, `audited_rows`, `reason`, `audited_by`, `audited_at`. Nunca toca `response`/`reviewed_by`/`reviewed_at`/`review_status` ni ningún fingerprint real.
+- **`rule:tag-mismatch-resolution {sheet} {section} {pattern_id} --category= --reason= --by= [--commit]`** (comando nuevo, `RuleTagMismatchResolutionCommand.php`) — dry-run por defecto. Antes de permitir el tag: exige que la categoría viva sea `MISMATCH` (nunca taguea algo que ya cambió), y para `safe_reconfirm` específicamente exige que las filas vivas coincidan **exactamente** con las filas históricas guardadas (si no, aborta — un cambio de filas es por definición un cambio estructural, nunca `safe_reconfirm`).
+- **`CalibrationViewController::mismatchResolutionDetails()`** (GET, solo lectura) y **`confirmMismatchResolution()`** (POST) — endpoints nuevos, separados de `confirmQuickRevalidation()` (que no se tocó). El POST revalida en vivo: categoría aún `MISMATCH` → si no, 409; existe un tag → si no, 409 `not_audited`; tag es `safe_reconfirm` → si es `human_review`/`structural_review`, 409 `requires_full_review`; `audited_fingerprint`/`audited_rows` del tag siguen coincidiendo con lo vivo → si no, 409 `audit_stale`. Solo si todo pasa, llama a `FunctionalRuleService::applyQuickRevalidation()` (sin modificar ese método) — escribe únicamente los 6 campos ya protegidos: `fingerprint_version`, `pattern_fingerprint`, `pattern_rows`, `revalidated_by`, `revalidated_at`, `revalidation_source_type`.
+- **Rutas nuevas** en `routes/api.php`: `GET .../patterns/{patternId}/mismatch-resolution` y `POST .../patterns/{patternId}/mismatch-resolution/confirm`.
+- **`MismatchResolutionPanel.tsx`** (frontend, nuevo) — integrado en `QuickCalibrationPanel.tsx` con un branch nuevo (`migrationPlan?.category === 'MISMATCH' && !forceFullReview`), al lado del branch ya existente de `QuickRevalidationPanel`. Una tarjeta por patrón MISMATCH: sin tag → sin botón; `safe_reconfirm` → botón "Confirmar reconfirmación segura"; `human_review` → botón "Abrir revisión funcional completa" (navega a vista avanzada, nunca confirma); `structural_review` → aviso, sin botón. **Un clic = exactamente un `pattern_id` resuelto** (confirmado leyendo el código, no asumido) — una sección con N patrones MISMATCH muestra N tarjetas en la misma pantalla.
+- Tests: `MismatchResolutionApiTest.php` (12 tests, fixtures 100% sintéticas, nunca contra las 43 secciones reales) — cubre: QUICK_CONFIRMATION intacto, safe_reconfirm confirma, human_review/structural_review rechazados, sin-tag rechazado, `audit_stale` por cambio de fingerprint/filas, campos protegidos intactos, metadata de revalidación correcta, historial registrado, aislamiento entre patrones.
+- **Regresión completa `tests/Feature/RuleEngine`** corrida dos veces hoy (antes y después del fix de `PatternMigrationScanner`): 254 tests, 219 passed, **35 failed — exactamente los mismos preexistentes ya documentados en sesiones anteriores**, cero regresiones nuevas atribuibles a este trabajo.
+
+## Uso real — piloto y tandas (todo verificado punta a punta, con clics reales en ATHENEA)
+
+Metodología repetida en cada patrón/tanda, sin excepción: (1) auditoría fresca contra Excel/cell-data real antes de proponer; (2) revalidación inmediata contra el estado vivo justo antes de escribir; (3) dry-run del comando de tag; (4) solo si coincide exactamente, `--commit`; (5) post-check inmediato del tag; (6) usuario hace los clics reales en ATHENEA; (7) post-check read-only campo por campo (fingerprint, rows, decisión histórica, `reviewed_by/at/status`, metadata `revalidated_*`, tags intactos, barrido global de MISMATCH). Nunca hubo una sola discrepancia en todo el proceso.
+
+- **Piloto — A05/N P3** (fila 208): primer caso real, end-to-end. `AUTO_MIGRATE` confirmado, MISMATCH 43→42.
+- **Tanda 1 (5/5 confirmados)**: A05/O P3, A05/R P1, A23/B P4, A27/A P9 (+ el piloto A05/N P3) — MISMATCH 42→38.
+- **Tanda 2 Parte 1 (5/5 tagueados y confirmados)**: A03/A.6 P1, A03/C P1, A03/D.6 P1, A07/G P1, A05/Q P2 — MISMATCH 38→33.
+- **Tanda 2 Parte 2A (4 secciones / 8 patrones, tagueados y confirmados)**: A03/A.4 (P1,P2), A07/D (P1,P2), A08/B (P1,P2), A11/D (P1,P3) — MISMATCH 33→29.
+- **Auditoría Parte 2B (solo lectura, 13 secciones / 69 patrones restantes clasificados)**: 66 `SAFE_RECONFIRM`, **3 `REQUIRES_INVESTIGATION`** (`A09/G P2`, `A09/G P4`, `A32/D1 P3` — mismo conjunto de columnas de origen se comporta de forma inconsistente entre filas del mismo patrón: a veces genuinamente editable, a veces fórmula o totalmente bloqueado sin evidencia directa — no se fuerza a SAFE_RECONFIRM, quedan en categoría propia hasta decisión futura). 0 reclasificados a `HUMAN_REVIEW` (ninguno mostró relación nueva).
+- **Tanda 2B-1 (6/6 tagueados y confirmados)**: A07/F (P1,P2,P3), A09/I (P7,P8,P9) — MISMATCH 29→27.
+- **Tanda 2B-2 — TAGUEADA, PENDIENTE DE CLIC MANUAL (ver checkpoint exacto abajo).**
+
+## ★ CHECKPOINT EXACTO AL CIERRE DE HOY ★
+
+**Tanda 2B-2 quedó tagueada (14/14 `--commit` exitosos, verificados uno por uno) pero NO reconfirmada en ATHENEA todavía.**
+
+Patrones tagueados como `safe_reconfirm`, pendientes de clic manual:
+- **A11/A.1**: P1 (filas 13,14,15,16,17,19,20), P2 (18,24), P3 (21), P4 (22), P5 (23,26), P6 (25,28,29,30), P7 (27).
+- **A11/A.2**: P1 (35,36,37,38,39,41,42), P2 (40,46), P3 (43), P4 (44), P5 (45,48), P6 (47,50,51,52), P7 (49).
+
+= **14 patrones / 14 clics manuales pendientes** ("Confirmar reconfirmación segura" en cada tarjeta).
+
+Rutas ATHENEA:
+- A11/A.1 → `/calibracion/templates/67/series/A/sheets/A11/sections/A.1`
+- A11/A.2 → `/calibracion/templates/67/series/A/sheets/A11/sections/A.2`
+
+**Baseline numérico exacto al cerrar hoy** (verificado en el último post-check, antes de los 14 clics pendientes):
+- Secciones `MISMATCH` = **27**
+- Tags de auditoría en `mismatch-resolution-audit.json` = **38**
+- `rem_rules` = **764**
+- `rem_rule_bindings` = **1204**
+- Estructura activa = **67 / versión 35**
+- Bindings a estructura 67 = **0**
+- `reglas-funcionales.json` — última escritura real fue la reconfirmación de A09/I P9 (Tanda 2B-1), nada escrito después (los 14 tags de 2B-2 solo tocaron `mismatch-resolution-audit.json`).
+
+### Primer paso de mañana
+
+1. El usuario abre ATHENEA y hace los **14 clics** de Tanda 2B-2 (rutas arriba).
+2. Claude ejecuta **solo un post-check read-only** verificando: A11/A.1 P1-P7 y A11/A.2 P1-P7 → `AUTO_MIGRATE`; ambas secciones completas sin MISMATCH; fingerprints = canónico vivo ya auditado; `pattern_rows` sin cambio; decisiones históricas sin cambio; `reviewed_by`/`reviewed_at`/`review_status` históricos intactos; metadata `revalidated_*` agregada; los 38 tags intactos; ningún patrón ajeno tocado; MISMATCH baja **27 → 25** exacto; `rem_rules=764`, `rem_rule_bindings=1204`, estructura `67/v35`, bindings a 67=`0` siguen iguales.
+3. Si todo coincide: reportar **`TANDA_2B_2_OK`** y STOP antes de preparar la siguiente tanda.
+4. **Si el estado vivo difiere de este checkpoint en cualquier punto: STOP inmediato y reportar la discrepancia antes de escribir nada** — no asumir, no forzar, no intentar "corregir" el checkpoint.
+
+## Plan posterior ya acordado (no ejecutar sin autorización explícita turno a turno)
+
+- **Tanda 2B-3**: A11/A.3 (P1-P7) + A11/A.4 (P1-P7) — 14 patrones. Esperado MISMATCH 25→23.
+- **Tanda 2B-4**: A11/A.5 (P1-P7) + A11/A.6 (P1-P7) — 14 patrones. Esperado MISMATCH 23→21.
+- **Tanda 2B-5**: A11/C.1 (4) + A11/C.2 (4) + A11/F (4) — 12 patrones. Esperado MISMATCH 21→18.
+- **Tanda 2B-6 (solo subconjunto seguro)**: A09/G (P1,P3,P5,P6) + A32/D1 (P1,P2) — 6 patrones. Estas 2 secciones **NO** saldrán de MISMATCH tras esta tanda (cada una retiene 1 patrón `REQUIRES_INVESTIGATION` sin resolver: A09/G P2/P4, A32/D1 P3) — el contador de *secciones* seguiría en 18, pero el conteo de *patrones* individuales bajaría a 3 pendientes de esa categoría.
+- **Piso proyectado si se completan las 4 tandas restantes con SAFE_RECONFIRM solamente**: **18 secciones MISMATCH** = 14 `HUMAN_REVIEW` + `A05/U` + `A30/C` + `A09/G` (parcial) + `A32/D1` (parcial).
+
+## Clasificación completa vigente de los 43 MISMATCH originales
+
+**Ya resueltos (19 secciones / patrones, ver arriba)**: A05/N, A05/O, A05/R, A23/B, A27/A (Tanda 1) + A03/A.6, A03/C, A03/D.6, A07/G, A05/Q (Tanda 2 Pte.1) + A03/A.4, A07/D, A08/B, A11/D (Tanda 2 Pte.2A) + A07/F, A09/I (Tanda 2B-1).
+
+**Tagueados, pendientes de clic (Tanda 2B-2)**: A11/A.1, A11/A.2.
+
+**`SAFE_RECONFIRM` restante, auditado, sin taguear (44 patrones)**: A11/A.3 (7), A11/A.4 (7), A11/A.5 (7), A11/A.6 (7), A11/C.1 (4), A11/C.2 (4), A11/F (4), A09/G subconjunto seguro (P1,P3,P5,P6 = 4 de 6 patrones), A32/D1 subconjunto seguro (P1,P2 = 2 de 3 patrones).
+
+**`REQUIRES_INVESTIGATION` (3 patrones, NO tocar sin decisión explícita)**: `A09/G P2`, `A09/G P4`, `A32/D1 P3` — el mismo conjunto de columnas de origen que en otras filas del mismo patrón es genuinamente editable, aquí aparece como fórmula o completamente bloqueado sin evidencia directa. No es una relación nueva (no es `HUMAN_REVIEW`), es una inconsistencia evidencial que requiere revisión manual antes de clasificar.
+
+**`HUMAN_REVIEW` (14 secciones / 30 patrones, sin tocar, requiere revisión funcional humana, no automatizable con este flujo)**: A04/I.1, A04/I.2, A04/F, A07/A, A08/M, A11/E, A27/D, A27/E, A27/F, A27/K, A30/A, A32/L, A32/M, A32/N.
+
+**`A05/U` y `A30/C`** — MISMATCH estructural histórico conocido, preexistente a esta campaña, fuera de alcance de este flujo. No tocar.
+
+**`NEW_SECTION`** — A05/V, A30/D. Nunca calibrar dentro de esta campaña de resolución de MISMATCH.
+
+**`QUICK_CONFIRMATION`** — A11a (10 secciones: A, C, E, F, G, H, I, J, K, N). Flujo completamente distinto (`confirmQuickRevalidation`/`QuickRevalidationPanel.tsx`, no tocado hoy), funcionando normalmente, nunca mezclar con el flujo MISMATCH.
+
+**`NO_UTILIZADA`** — 75 secciones (A21, A24, A25, A30AR, A34), sin cambios, ver sección 2026-08-11 más abajo.
+
+**`NOT_CALIBRATABLE`** — A04/N, A32/E1, sin cambios.
+
+## Estado del working tree (sin commit, todo local)
+
+Confirmado con `git status` al cierre de hoy — nada commiteado, nada pusheado, rama sincronizada con `origin/main`:
+
+**Modificados:**
+- `backend/app/Domain/RemParser/Services/SectionDetectorService.php` (fix TOTAL líder labels, hoy + fix RichText de sesión anterior)
+- `backend/app/Domain/RuleEngine/Controllers/CalibrationViewController.php` (2 endpoints nuevos: `mismatchResolutionDetails`, `confirmMismatchResolution`)
+- `backend/app/Domain/RuleEngine/Services/PatternMigrationScanner.php` (fix `historical_answer` en path v2)
+- `backend/app/Domain/RuleEngine/Services/SectionCalibrationMatrixService.php` (3 fixes del gate individual)
+- `backend/routes/api.php` (2 rutas nuevas)
+- `frontend/src/features/rule-engine/components/patterns/QuickCalibrationPanel.tsx` (branch nuevo para `MismatchResolutionPanel`)
+- `frontend/src/features/rule-engine/services/calibration.ts` (2 métodos nuevos)
+- `frontend/src/features/rule-engine/types/calibration.ts` (tipos nuevos del flujo MISMATCH)
+
+**Nuevos, sin trackear:**
+- `backend/app/Console/Commands/RuleTagMismatchResolutionCommand.php`
+- `backend/app/Domain/RuleEngine/Services/MismatchResolutionAuditService.php`
+- `backend/demo/` (contenido no relacionado con esta campaña, verificar antes de tocar)
+- `backend/tests/Feature/REM/SectionDetectorServiceLeadingTotalRowLabelRealFileTest.php`
+- `backend/tests/Feature/RuleEngine/MismatchResolutionApiTest.php`
+- `backend/tests/Feature/RuleEngine/Services/SectionCalibrationMatrixServiceExistentialEvidenceSearchTest.php`
+- `backend/tests/Feature/RuleEngine/Services/SectionCalibrationMatrixServiceHorizontalTwoComponentTest.php`
+- `backend/tests/Feature/RuleEngine/Services/SectionCalibrationMatrixServiceRowLevelValidationGateTest.php`
+- `backend/tests/Unit/RemParser/Services/SectionDetectorServiceLeadingTotalRowLabelTest.php`
+- `backend/tests/Unit/RemParser/Services/SectionDetectorServiceRichTextMarkerTest.php` (de sesión anterior, aún sin commit)
+- `frontend/src/features/rule-engine/components/patterns/MismatchResolutionPanel.tsx`
+
+**Persistido en BD real (no en git, ver checkpoint numérico arriba)**: 38 tags en `mismatch-resolution-audit.json`; 19 patrones reales reconfirmados en `reglas-funcionales.json` (fingerprint_version=2, `revalidated_by`/`revalidated_at`/`revalidation_source_type` agregados — nunca se tocó `response`/`reviewed_by`/`reviewed_at`/`review_status`); estructura 67/v35 activa (creada/activada hoy a partir del patch de A30).
+
+## Reglas de seguridad vigentes — Fase 3 / flujo MISMATCH
+
+- **No rebind a estructura 67.**
+- **No ejecutar `reconcileLiveCanonical()`** (existe en `PatternReconciliationService` pero nunca se invoca desde código de producción — solo en tests aislados).
+- No producción, no servidor expuesto, no deploy.
+- **No reconfirmación masiva/automática** — siempre patrón por patrón, con verificación antes y después.
+- **No modificar decisiones históricas** (`response`) para hacer "desaparecer" un MISMATCH.
+- **No convertir `HUMAN_REVIEW` en `SAFE_RECONFIRM`** sin evidencia real nueva revisada por un humano.
+- **No reconfirmar los 3 `REQUIRES_INVESTIGATION`** (`A09/G P2`, `A09/G P4`, `A32/D1 P3`) sin decisión explícita futura sobre qué hacer con ellos.
+- **No tocar `A05/U` ni `A30/C`** por este flujo (estructural histórico conocido, fuera de alcance).
+- **No calibrar `A05/V` ni `A30/D`** dentro de esta campaña (son `NEW_SECTION`).
+- **No mezclar `A11a`** (10 secciones `QUICK_CONFIRMATION`) con el flujo MISMATCH — son flujos y endpoints distintos.
+- **No commit ni push** de nada de lo listado arriba sin autorización explícita.
+- Todas las restricciones generales de Fase 3/Fase 2 más abajo (no rebind a 63, no repetir Fase A/B, etc.) **siguen vigentes** — nada de eso cambió hoy.
+- **Si al reanudar mañana el estado vivo (MISMATCH, tags, `rem_rules`, `rem_rule_bindings`, estructura activa) difiere de este checkpoint: STOP y reportar la discrepancia antes de escribir absolutamente nada.**
+
+---
+
 # Estado al cierre de la sesión — 2026-08-12 (FASE 3 MOTOR DE REGLAS — FASE A PERSISTIDA, FASE B AUDITADA, FASE C EN CURSO)
 
 Handoff de la campaña de reconciliación del motor de reglas REM (Fase 3), posterior al cierre de la calibración funcional Serie A (Fase 2 — ver sección siguiente más abajo, cerrada y **publicada en main el 2026-08-11, commit `f91bae8`**, no releer esa auditoría, ya está cerrada e íntegramente en el historial). Leer esta sección primero antes de continuar cualquier trabajo sobre `rem_rules`, `rem_rule_bindings` o el motor de evaluación de reglas — evita repetir Fase A o Fase B.
@@ -92,6 +321,8 @@ Verificado varias veces, última vez después de la corrida de regresión de hoy
 
 # Estado al cierre de la sesión — 2026-08-11 (CALIBRACIÓN FUNCIONAL SERIE A CERRADA AL 100%)
 
+> ⚠ **NOTA DE ACTUALIZACIÓN (2026-08-26)**: los conteos "303/303" y "0 pendientes" de esta sección eran correctos **el 2026-08-11**, pero quedaron superados por la evolución posterior de la estructura activa (crecimiento a 67/v35, secciones nuevas detectadas). Esta sección se conserva íntegra como registro histórico — **no se reescribe**. El estado real vigente hoy está documentado en la sección "2026-08-26 (CIERRE CAMPAÑA MISMATCH...)" al inicio de este archivo: 306 secciones aplicables, 304 completadas, 2 pendientes (`A05/V`, `A30/D`, deliberadamente fuera de alcance, no un retroceso).
+
 Handoff de la campaña de auditoría/corrección estructural REM Serie A. Leer este archivo primero antes de continuar cualquier trabajo sobre hojas REM — evita repetir auditorías ya cerradas.
 
 ## Cierre definitivo de la calibración funcional Serie A (2026-08-11)
@@ -122,7 +353,7 @@ Handoff de la campaña de auditoría/corrección estructural REM Serie A. Leer e
 - **A30 (cerrada)** — usuario confirmó calibración manual completa de C (filas 99-108, columnas Z:AJ). "No realizar más cambios sobre A30 salvo que aparezca un hallazgo futuro." **A30/B queda cerrada también con su desfase conocido sin corregir** (ver deuda técnica #2 abajo) — no se autorizó tocarla.
 - **A31 (cerrada)** — cerrada estructuralmente y funcionalmente, usuario confirmó calibración manual completa de las 5 secciones (A,B,C,D,E). "No realizar más cambios sobre A31 salvo que aparezca un hallazgo futuro."
 - **A32 (cerrada)** — cerrada estructuralmente y funcionalmente, usuario confirmó calibración manual completa de las 19 secciones, incluyendo validación en interfaz del nuevo estado `calibration_applicability.status = not_calibratable` en E1 (ver mecanismo #14 abajo). "No realizar más cambios sobre A32 salvo que aparezca un hallazgo futuro."
-- **A33 (cerrada estructuralmente)** — usuario aprobó el patch completo (estructura activa ID 63). Pendiente de calibración funcional manual — nunca calibrada, 0 patrones revisados en las 5 secciones (A,B,C,D,E).
+- **A33 (cerrada estructuralmente)** — usuario aprobó el patch completo (estructura activa ID 63). Pendiente de calibración funcional manual — nunca calibrada, 0 patrones revisados en las 5 secciones (A,B,C,D,E). **[SUPERADO — ver nota 2026-08-26 al inicio del archivo: A33 se calibró funcionalmente más tarde ese mismo día (2026-08-11, ~15:17-15:18), 9/9 patrones revisados por Francisco Arcos. Esta nota quedó desactualizada por no haberse editado tras esa calibración — verificado en vivo el 2026-08-26 contra BD y scanner real: A33 = 5/5 secciones AUTO_MIGRATE, 100% completada.]**
 
 ### Resumen de A30 (referencia histórica)
 
