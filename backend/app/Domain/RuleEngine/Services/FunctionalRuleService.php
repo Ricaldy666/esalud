@@ -264,15 +264,49 @@ class FunctionalRuleService
      * @param  int[]  $patternRows  Filas del patron vigente, ya ordenadas.
      * @return array Las preguntas de la seccion tras el cambio (mismo shape que getQuestions()).
      *
+     * $revalidationSourceType/$historicalRowsBeforeExclusion/$excludedTotalRows/
+     * $exclusionMechanism son EXCLUSIVOS del flujo structural_row_exclusion
+     * (2026-08-24, CalibrationViewController::confirmMismatchResolution()) --
+     * parametros nuevos, opcionales, al final de la firma con el MISMO valor
+     * por defecto que el codigo ya escribia antes ('manual_revalidation'):
+     * la llamada existente de confirmQuickRevalidation() (safe_reconfirm via
+     * QuickRevalidationPanel) sigue escribiendo exactamente lo mismo, sin
+     * ningun campo nuevo. Los 6 campos protegidos siguen siendo exactamente
+     * los mismos 6 -- $historicalRowsBeforeExclusion/$excludedTotalRows/
+     * $exclusionMechanism NUNCA se escriben en la pregunta, solo en la
+     * entrada de $history (append-only, fuera del objeto protegido) para
+     * dejar trazabilidad completa sin tocar el invariante de "solo 6 campos".
+     *
+     * $historicalPatternId (2026-08-24, hallazgo de corrupcion real A09/G
+     * P3 -- ver PatternMigrationScanner::scanSection() 'historical_pattern_id'):
+     * ANTES este parametro se llamaba $patternId y los llamadores le pasaban
+     * el pattern_id VIVO/posicional (el mismo que ve el usuario en la UI).
+     * Cuando un patron se desplaza de posicion (ej. tras excluir una fila
+     * TOTAL lider, mecanismo #6), ese numero posicional puede coincidir por
+     * pura casualidad con el pattern_id CRUDO de un patron historico
+     * TOTALMENTE DISTINTO -- la fila 'if (pattern_id !== $patternId)' de
+     * abajo entonces sobrescribia las preguntas equivocadas. Ahora el
+     * parametro se llama explicitamente $historicalPatternId y DEBE ser el
+     * valor devuelto por matchLivePatternsToHistorical() (expuesto como
+     * 'historical_pattern_id' en cada patron de scanSection()) -- la MISMA
+     * identidad que ya se uso para resolver el tag/gate, nunca el numero
+     * posicional vivo. Los llamadores (CalibrationViewController) son
+     * responsables de pasar el valor correcto; este metodo no vuelve a
+     * resolver identidad, solo escribe contra la que se le indique.
+     *
      * @throws \RuntimeException si no existe ninguna pregunta con ese pattern_id en la seccion.
      */
     public function applyQuickRevalidation(
         string $sheet,
         string $section,
-        int $patternId,
+        int $historicalPatternId,
         string $canonicalFingerprint,
         array $patternRows,
         string $revalidatedBy,
+        string $revalidationSourceType = 'manual_revalidation',
+        ?array $historicalRowsBeforeExclusion = null,
+        ?array $excludedTotalRows = null,
+        ?string $exclusionMechanism = null,
     ): array {
         $all = $this->loadAll();
         $key = "{$sheet}_{$section}";
@@ -286,7 +320,7 @@ class FunctionalRuleService
             if (!in_array($q['type'] ?? '', ['pattern_question', 'pattern_confirmation'], true)) {
                 continue;
             }
-            if (($q['pattern_id'] ?? null) !== $patternId) {
+            if (($q['pattern_id'] ?? null) !== $historicalPatternId) {
                 continue;
             }
 
@@ -298,22 +332,34 @@ class FunctionalRuleService
             $existing[$i]['pattern_rows'] = $patternRows;
             $existing[$i]['revalidated_by'] = $revalidatedBy;
             $existing[$i]['revalidated_at'] = $revalidatedAt;
-            $existing[$i]['revalidation_source_type'] = 'manual_revalidation';
+            $existing[$i]['revalidation_source_type'] = $revalidationSourceType;
 
             $touchedAny = true;
         }
 
         if (!$touchedAny) {
-            throw new \RuntimeException("No se encontraron preguntas de patron con pattern_id={$patternId} en {$key}.");
+            throw new \RuntimeException("No se encontraron preguntas de patron con pattern_id={$historicalPatternId} en {$key}.");
         }
 
-        $history[] = [
+        $historyEntry = [
             'type' => 'pattern_revalidation',
-            'pattern_id' => $patternId,
+            'pattern_id' => $historicalPatternId,
             'by' => $revalidatedBy,
             'at' => $revalidatedAt,
             'fingerprint_version' => 2,
+            'revalidation_source_type' => $revalidationSourceType,
+            'pattern_rows' => $patternRows,
         ];
+        if ($historicalRowsBeforeExclusion !== null) {
+            $historyEntry['historical_rows_before_exclusion'] = $historicalRowsBeforeExclusion;
+        }
+        if ($excludedTotalRows !== null) {
+            $historyEntry['excluded_total_rows'] = $excludedTotalRows;
+        }
+        if ($exclusionMechanism !== null) {
+            $historyEntry['exclusion_mechanism'] = $exclusionMechanism;
+        }
+        $history[] = $historyEntry;
 
         $all['_questions'][$key] = $existing;
         $all['_questions_history'][$key] = $history;
@@ -321,7 +367,7 @@ class FunctionalRuleService
             'source' => 'applyQuickRevalidation',
             'sheet' => $sheet,
             'section' => $section,
-            'pattern_id' => $patternId,
+            'pattern_id' => $historicalPatternId,
         ]);
 
         Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
