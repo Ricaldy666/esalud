@@ -18,6 +18,42 @@ class SectionDetectorService
         $this->columnDetector = $columnDetector ?? new ColumnDetectorService();
     }
 
+    /**
+     * Normaliza el valor crudo de una celda (`Cell::getValue()`) a texto
+     * plano antes de evaluar el marcador SECCION -- hallazgo A30 (2026-08-18):
+     * cuando Excel guarda la celda con formato mixto (parte del texto en
+     * negrita, otro color, etc.), PhpSpreadsheet devuelve un objeto
+     * RichText en vez de un string, y el `is_string()` usado hasta ahora en
+     * los 3 puntos de deteccion de marcador fallaba silenciosamente,
+     * dejando el marcador invisible sin ningun error (caso real: A30 fila
+     * 94, "SECCION D: TELEINTERCONSULTA ODONTOLOGICA" nunca se detecto).
+     * RichText implementa __toString() correctamente (confirmado: castea
+     * al texto plano esperado), asi que basta con castear cualquier valor
+     * escalar u objeto con __toString -- cualquier otro tipo (array, objeto
+     * sin __toString, etc.) se descarta como null, nunca como cadena vacia,
+     * para no introducir falsos positivos nuevos.
+     */
+    private function extractCellText(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_string($value)) {
+            return $value;
+        }
+
+        if (is_scalar($value)) {
+            return (string) $value;
+        }
+
+        if (is_object($value) && method_exists($value, '__toString')) {
+            return (string) $value;
+        }
+
+        return null;
+    }
+
     public function detect(Worksheet $worksheet, string $sheetName): array
     {
         $highestRow = $worksheet->getHighestRow();
@@ -27,14 +63,15 @@ class SectionDetectorService
         $ultimaFilaSeccion = 0;
 
         for ($row = 1; $row <= $highestRow; $row++) {
-            $cellValue = $worksheet->getCell('A' . $row)->getValue();
+            $cellValue = $this->extractCellText($worksheet->getCell('A' . $row)->getValue());
 
-            if (is_string($cellValue) && preg_match(self::PATRON_SECCION, $cellValue, $m)) {
+            if ($cellValue !== null && preg_match(self::PATRON_SECCION, $cellValue, $m)) {
                 $codigo = $m[1];
                 $titulo = trim($m[2]);
 
                 [$filaHeader, $filaHeaderSuperior] = $this->findHeaderRow($worksheet, $row + 1, $highestRow, $highestCol);
-                $filasHeaderAdicionales = $this->findTrailingHeaderRows($worksheet, $filaHeader + 1, $highestRow, $highestCol);
+                $filasTotalLider = [];
+                $filasHeaderAdicionales = $this->findTrailingHeaderRows($worksheet, $filaHeader + 1, $highestRow, $highestCol, $filasTotalLider);
                 $filaInicioDatos = (empty($filasHeaderAdicionales) ? $filaHeader : end($filasHeaderAdicionales)) + 1;
 
                 $anchoConocido = $this->lastPlainTextColumnIndex($worksheet, $filaHeader, $highestCol);
@@ -48,8 +85,14 @@ class SectionDetectorService
                     $worksheet, $filaInicioDatos, $filaFinDatos, $anchoConocido, $highestCol
                 );
 
+                // Las filas TOTAL lider siguen contando para filaInicioDatos/
+                // anchoConocido (arriba, sin cambios) pero se excluyen del
+                // conjunto usado para construir labels multinivel de columna
+                // -- ver findTrailingHeaderRows() y hallazgo A30/A-C-D-E.
+                $filasHeaderParaLabels = array_values(array_diff($filasHeaderAdicionales, $filasTotalLider));
+
                 $fields = $this->columnDetector->detect(
-                    $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, $codigo, $filaHeaderSuperior, $filasHeaderAdicionales, $bloquesSecundarios
+                    $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, $codigo, $filaHeaderSuperior, $filasHeaderParaLabels, $bloquesSecundarios
                 );
 
                 $secciones[] = new ParsedSectionDTO(
@@ -69,7 +112,8 @@ class SectionDetectorService
 
         if (empty($secciones)) {
             [$filaHeader, $filaHeaderSuperior] = $this->findHeaderRow($worksheet, 1, $highestRow, $highestCol);
-            $filasHeaderAdicionales = $this->findTrailingHeaderRows($worksheet, $filaHeader + 1, $highestRow, $highestCol);
+            $filasTotalLider = [];
+            $filasHeaderAdicionales = $this->findTrailingHeaderRows($worksheet, $filaHeader + 1, $highestRow, $highestCol, $filasTotalLider);
             $filaInicioDatos = (empty($filasHeaderAdicionales) ? $filaHeader : end($filasHeaderAdicionales)) + 1;
 
             $anchoConocido = $this->lastPlainTextColumnIndex($worksheet, $filaHeader, $highestCol);
@@ -83,8 +127,10 @@ class SectionDetectorService
                 $worksheet, $filaInicioDatos, $filaFinDatos, $anchoConocido, $highestCol
             );
 
+            $filasHeaderParaLabels = array_values(array_diff($filasHeaderAdicionales, $filasTotalLider));
+
             $fields = $this->columnDetector->detect(
-                $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, null, $filaHeaderSuperior, $filasHeaderAdicionales, $bloquesSecundarios
+                $worksheet, $filaHeader, $filaInicioDatos, $filaFinDatos, $highestCol, $sheetName, null, $filaHeaderSuperior, $filasHeaderParaLabels, $bloquesSecundarios
             );
 
             $secciones[] = new ParsedSectionDTO(
@@ -292,16 +338,17 @@ class SectionDetectorService
      *
      * @return int[] filas adicionales de encabezado, en orden (vacio si no hay ninguna)
      */
-    private function findTrailingHeaderRows(Worksheet $ws, int $startRow, int $maxRow, string $highestCol): array
+    private function findTrailingHeaderRows(Worksheet $ws, int $startRow, int $maxRow, string $highestCol, array &$filasTotalLider = []): array
     {
         $filas = [];
+        $filasTotalLider = [];
         $filaHeader = $startRow - 1;
         $anchoEncabezado = $this->lastPlainTextColumnIndex($ws, $filaHeader, $highestCol);
         $maxColIndex = $this->columnIndexFromLetter($highestCol);
 
         for ($row = $startRow; $row <= $maxRow; $row++) {
-            $valColA = $ws->getCell('A' . $row)->getValue();
-            if (is_string($valColA) && preg_match(self::PATRON_SECCION, trim($valColA))) {
+            $valColA = $this->extractCellText($ws->getCell('A' . $row)->getValue());
+            if ($valColA !== null && preg_match(self::PATRON_SECCION, trim($valColA))) {
                 // Corte duro: un marcador "SECCION ..." nunca es parte del
                 // encabezado de la seccion actual, sin importar densidad o
                 // formulas -- mismo guard ya usado en findHeaderRow() y
@@ -367,7 +414,17 @@ class SectionDetectorService
                     && $this->rowHasAnyPlainText($ws, $row + 1, $maxColIndex);
 
                 if ($siguienteTieneTextoReal) {
+                    // Se acumula para el calculo de filaInicioDatos (igual
+                    // que antes), pero se marca aparte en $filasTotalLider
+                    // -- ver uso en detect(), que la excluye del conjunto
+                    // pasado a ColumnDetectorService::detect() para
+                    // construir labels multinivel (hallazgo A30/A-C-D-E,
+                    // 2026-08-21: el texto propio de esta fila, ej. "TOTAL",
+                    // se filtraba como si fuera un nivel de encabezado
+                    // legitimo, contaminando la etiqueta de la columna
+                    // descriptiva y marcandola incorrectamente esTotal=true).
                     $filas[] = $row;
+                    $filasTotalLider[] = $row;
                     continue;
                 }
 
@@ -601,14 +658,15 @@ class SectionDetectorService
 
         $row = $filaInicioDatos;
         while ($row <= $maxRow) {
-            $valColA = $ws->getCell('A' . $row)->getValue();
-            $aEstaVacia = $valColA === null || trim((string) $valColA) === '';
-            $esMarcadorSeccion = is_string($valColA) && preg_match(self::PATRON_SECCION, trim($valColA));
+            $valColA = $this->extractCellText($ws->getCell('A' . $row)->getValue());
+            $aEstaVacia = $valColA === null || trim($valColA) === '';
+            $esMarcadorSeccion = $valColA !== null && preg_match(self::PATRON_SECCION, trim($valColA));
             $tieneTextoNuevo = !$esMarcadorSeccion
                 && $this->rowHasPlainTextBeyondColumn($ws, $row, $anchoActual, $maxColIndex);
 
             if (!$aEstaVacia && !$esMarcadorSeccion && $tieneTextoNuevo) {
-                $filasAdicionales = $this->findTrailingHeaderRows($ws, $row + 1, $maxRow, $highestCol);
+                $filasTotalLiderSecundario = [];
+                $filasAdicionales = $this->findTrailingHeaderRows($ws, $row + 1, $maxRow, $highestCol, $filasTotalLiderSecundario);
                 $filaInicioDatosSecundario = (empty($filasAdicionales) ? $row : end($filasAdicionales)) + 1;
 
                 $nuevoAncho = max($anchoActual, $this->lastPlainTextColumnIndex($ws, $row, $highestCol));
@@ -619,7 +677,10 @@ class SectionDetectorService
                 if ($nuevoAncho > $anchoActual) {
                     $bloques[] = [
                         'filaHeader' => $row,
-                        'filasAdicionales' => $filasAdicionales,
+                        // Igual que en detect(): se excluyen del set usado
+                        // para labels solo las filas TOTAL lider, nunca del
+                        // calculo de filaInicioDatos/ancho de arriba.
+                        'filasAdicionales' => array_values(array_diff($filasAdicionales, $filasTotalLiderSecundario)),
                         'columnaInicioNueva' => $anchoActual + 1,
                         'filaInicioDatos' => $filaInicioDatosSecundario,
                     ];
@@ -929,8 +990,8 @@ class SectionDetectorService
         $rachaVacias = 0;
 
         for ($row = $startRow; $row <= $maxRow; $row++) {
-            $val = $ws->getCell('A' . $row)->getValue();
-            if (is_string($val) && preg_match(self::PATRON_SECCION, $val)) {
+            $val = $this->extractCellText($ws->getCell('A' . $row)->getValue());
+            if ($val !== null && preg_match(self::PATRON_SECCION, $val)) {
                 return $row - 1;
             }
 
