@@ -1270,6 +1270,18 @@ class SectionCalibrationMatrixService
                         continue;
                     }
 
+                    // Revalida la firma PROPIA de esta fila (su propio conjunto de
+                    // dependencias) contra el mismo gate de evidencia usado para
+                    // habilitar la columna a nivel de seccion -- $totalColumns ya
+                    // paso ese gate para ALGUNA fila, pero eso no garantiza que
+                    // ESTA fila comparta una firma valida (hallazgo A07/A,
+                    // 2026-08-21: una vez habilitada, cualquier formula de la
+                    // misma columna se marcaba activa sin volver a verificarse,
+                    // "arrastrando" filas cuya propia forma nunca fue evaluada).
+                    if (!$this->isFunctionalHorizontalFormula($totalColumn, $depColumns, $sectionData, $cellDataRows)) {
+                        continue;
+                    }
+
                     $activeTotalColumns[] = $totalColumn;
                     $originColumns = array_values(array_unique(array_merge($originColumns, $depColumns)));
                     $formulaTemplates[$totalColumn] = $this->normalizeFormulaTemplate($cell['formula'] ?? '', $row);
@@ -1775,42 +1787,55 @@ class SectionCalibrationMatrixService
             && str_contains($secondLabel, 'mujeres');
     }
 
+    /**
+     * Gate de evidencia para aceptar `totalColumn = componentes` como relacion
+     * horizontal real -- rediseñado 2026-08-21 (hallazgo A07/A: filas con 5 y
+     * 18 componentes, ambas genuinas y verificadas contra el Excel real,
+     * quedaban rechazadas porque las ramas anteriores exigian una cantidad
+     * exacta de componentes y coincidencia de texto de etiqueta -- ninguna de
+     * las dos es un criterio confiable: una fila real puede tener cualquier
+     * cantidad de componentes, y una etiqueta multinivel compuesta, ej.
+     * "CONSULTAS Y CONTROLES MEDICOS / TOTAL", nunca calzaba con el patron de
+     * texto exacto `contains('total ')`).
+     *
+     * Dos caminos de aceptacion, ninguno basado en cantidad de componentes ni
+     * en texto de etiqueta:
+     *  - isSexMainRuleFormula(): suma de subtotales adyacentes (ej. Ambos
+     *    Sexos = Hombres + Mujeres) -- tolera que los componentes sean ellos
+     *    mismos formulas, no solo entrada manual.
+     *  - hasEditableInputComponentsForFormula(): evidencia directa de
+     *    cell-data -- existe al menos una fila real donde el total es formula,
+     *    sus dependencias coinciden EXACTAMENTE con los componentes dados, y
+     *    esos componentes son entrada editable real. Sin limite de cantidad.
+     */
+    /**
+     * Gate de evidencia para aceptar `totalColumn = componentes` como relacion
+     * horizontal real -- rediseñado 2026-08-21 (hallazgo A07/A: filas con 5 y
+     * 18 componentes, ambas genuinas y verificadas contra el Excel real,
+     * quedaban rechazadas porque las ramas anteriores exigian una cantidad
+     * exacta de componentes y coincidencia de texto de etiqueta -- ninguna de
+     * las dos es un criterio confiable: una fila real puede tener cualquier
+     * cantidad de componentes, y una etiqueta multinivel compuesta, ej.
+     * "CONSULTAS Y CONTROLES MEDICOS / TOTAL", nunca calzaba con el patron de
+     * texto exacto `contains('total ')`).
+     *
+     * Dos caminos de aceptacion, ninguno basado en cantidad de componentes ni
+     * en texto de etiqueta:
+     *  - isSexMainRuleFormula(): suma de subtotales adyacentes (ej. Ambos
+     *    Sexos = Hombres + Mujeres) -- tolera que los componentes sean ellos
+     *    mismos formulas, no solo entrada manual.
+     *  - hasEditableInputComponentsForFormula(): evidencia directa de
+     *    cell-data -- existe al menos una fila real donde el total es formula,
+     *    sus dependencias coinciden EXACTAMENTE con los componentes dados, y
+     *    esos componentes son entrada editable real. Sin limite de cantidad.
+     */
     private function isFunctionalHorizontalFormula(string $totalColumn, array $components, array $sectionData, array $cellDataRows): bool
     {
         if (empty($components)) return false;
         if (in_array($totalColumn, $components, true)) return false;
-        if ($this->isSexMainRuleFormula($totalColumn, $components, $sectionData, $cellDataRows)) return true;
 
-        $totalLabel = $this->normalizeHeaderText($this->labelForColumn($totalColumn, $sectionData, $cellDataRows));
-        $componentLabels = array_map(
-            fn($component) => $this->normalizeHeaderText($this->labelForColumn($component, $sectionData, $cellDataRows)),
-            $components
-        );
-
-        if (str_contains($totalLabel, 'hombres')) {
-            return count($components) > 2 && array_reduce(
-                $componentLabels,
-                fn($carry, $label) => $carry && str_contains($label, 'hombres'),
-                true
-            );
-        }
-
-        if (str_contains($totalLabel, 'mujeres')) {
-            return count($components) > 2 && array_reduce(
-                $componentLabels,
-                fn($carry, $label) => $carry && str_contains($label, 'mujeres'),
-                true
-            );
-        }
-
-        if (($totalLabel === 'total' || str_contains($totalLabel, 'total '))
-            && count($components) > 1
-            && $this->hasEditableInputComponentsForFormula($totalColumn, $components, $cellDataRows)
-        ) {
-            return true;
-        }
-
-        return false;
+        return $this->isSexMainRuleFormula($totalColumn, $components, $sectionData, $cellDataRows)
+            || $this->hasEditableInputComponentsForFormula($totalColumn, $components, $cellDataRows);
     }
 
     private function isGenericTotalMainRuleFormula(string $totalColumn, array $components, array $sectionData, array $cellDataRows): bool
@@ -1822,8 +1847,32 @@ class SectionCalibrationMatrixService
             && $this->hasEditableInputComponentsForFormula($totalColumn, $components, $cellDataRows);
     }
 
+    /**
+     * Busqueda EXISTENCIAL de evidencia -- corregido 2026-08-21 (hallazgo
+     * auditoria de 13 secciones "CORRECCION_DE_ARRASTRE_INVALIDO": A05/C,
+     * A05/C2, A05/G, A05/Q, A08/R, A09/G). Bug previo: la funcion retornaba
+     * `false` en cuanto encontraba la PRIMERA fila con la firma exacta
+     * (columna total + conjunto de dependencias) si esa fila fallaba el
+     * chequeo de editabilidad -- nunca seguia buscando otras filas con la
+     * misma firma. Patron real descubierto: una fila TOTAL/subtotal lider
+     * (ej. A05/C fila 35) comparte la firma exacta con filas normales de
+     * captura real (ej. A05/C filas 45,46) porque el rango de columnas que
+     * suman es identico, pero los componentes de la fila lider son ellos
+     * mismos formulas bloqueadas (no captura), mientras que en las filas
+     * normales SI son entrada editable real. Si la fila lider aparecia
+     * primero en la iteracion, la funcion abortaba antes de llegar a
+     * confirmar la evidencia real de las filas validas.
+     *
+     * Principio corregido: existencia de evidencia valida, no "la primera
+     * coincidencia decide". Recorre TODAS las filas con la firma exacta;
+     * solo retorna false si NINGUNA de ellas tiene los componentes
+     * editables/no-formula.
+     */
     private function hasEditableInputComponentsForFormula(string $totalColumn, array $components, array $cellDataRows): bool
     {
+        $normalizedComponents = $components;
+        sort($normalizedComponents);
+
         foreach ($cellDataRows as $rowCells) {
             $totalCell = $rowCells[$totalColumn] ?? [];
             if (!($totalCell['es_formula'] ?? false)) continue;
@@ -1831,19 +1880,24 @@ class SectionCalibrationMatrixService
             $dependencies = $totalCell['dependencias'] ?? [];
             $dependencyColumns = $this->extractDependencyColumns($dependencies);
             sort($dependencyColumns);
-
-            $normalizedComponents = $components;
-            sort($normalizedComponents);
             if ($dependencyColumns !== $normalizedComponents) continue;
 
+            $allEditable = true;
             foreach ($components as $component) {
                 $componentCell = $rowCells[$component] ?? [];
                 if (($componentCell['es_formula'] ?? false) || ($componentCell['esta_bloqueada'] ?? true)) {
-                    return false;
+                    $allEditable = false;
+                    break;
                 }
             }
 
-            return true;
+            if ($allEditable) {
+                return true;
+            }
+
+            // Esta fila comparte la firma pero no es evidencia valida --
+            // sigue buscando otras filas con la misma firma exacta, en vez
+            // de abortar la busqueda completa.
         }
 
         return false;
@@ -2423,6 +2477,7 @@ class SectionCalibrationMatrixService
 
         $lastRow = $sectionData['filaFinDatos'] ?? 32;
             if ($this->isEmbeddedBackwardSubtotalRow($sheet, $section, $row, $sectionData)) return 'total';
+            if ($this->isEmbeddedLeadingTotalRow($sheet, $section, $row, $sectionData)) return 'total';
 
         return 'data';
     }
@@ -2563,6 +2618,140 @@ class SectionCalibrationMatrixService
         }
 
         return $tieneFormulaHaciaAtras;
+    }
+
+    /**
+     * Fila TOTAL LIDER embebida dentro del rango activo de una seccion --
+     * patron OPUESTO a isEmbeddedBackwardSubtotalRow() (hallazgo A09/G
+     * filas 183 y 196, 2026-08-24, auditoria de los REQUIRES_INVESTIGATION
+     * de Tanda 2B-6): la columna de concepto tiene texto propio que parece
+     * etiqueta TOTAL, y toda celda con evidencia de cell_data entre las
+     * columnas de la seccion es una formula que referencia EXCLUSIVAMENTE
+     * filas POSTERIORES a $row (nunca la propia fila ni una anterior). Si
+     * alguna celda tiene evidencia de ser capturable de verdad (editable,
+     * no bloqueada), la fila se trata como dato real, no como total -- no
+     * se excluye. Misma logica estructural que
+     * RemParserService::isEmbeddedLeadingTotalRow() (mecanismo #6 del
+     * pipeline de persistencia), portada aqui de forma independiente
+     * porque esta clase nunca aplicaba ese mecanismo al construir
+     * patrones de calibracion -- solo isEmbeddedBackwardSubtotalRow()
+     * (mecanismo #12) estaba conectado en classifyRow(), dejando filas
+     * TOTAL lider reales (que agregan hacia adelante) mezcladas como
+     * 'data' dentro de un patron junto a filas heterogeneas.
+     *
+     * Publico desde 2026-08-24 (flujo structural_row_exclusion,
+     * RuleTagMismatchResolutionCommand via PatternMigrationScanner): el
+     * gate de exclusion estructural necesita verificar, fila por fila, que
+     * cada fila que un patron dice "excluir" cumple REALMENTE este
+     * mecanismo -- nunca confiar en que una fila ausente del conjunto vivo
+     * sea automaticamente un TOTAL lider legitimo.
+     */
+    public function isEmbeddedLeadingTotalRow(string $sheet, string $section, int $row, array $sectionData): bool
+    {
+        if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
+            return false;
+        }
+
+        $sectionStartRow = (int) ($sectionData['filaInicioDatos'] ?? 0);
+        if ($sectionStartRow <= 0) {
+            return false;
+        }
+
+        $columnas = [];
+        foreach ($sectionData['fields'] ?? [] as $f) {
+            $letra = $f['letra'] ?? '';
+            if ($letra === '') {
+                continue;
+            }
+            $columnas[] = $letra;
+        }
+        $columnas = array_values(array_unique($columnas));
+        usort($columnas, fn(string $a, string $b) => \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($a) <=> \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($b));
+
+        // A diferencia de isEmbeddedBackwardSubtotalRow() (que asume que la
+        // PRIMERA celda de texto plano ya es la etiqueta de concepto),
+        // hallazgo A09/G filas 183/196: la columna de concepto real
+        // ("Altas integrales...") vive ANTES que la columna con el
+        // marcador "TOTAL" (encabezado multi-columna "PROGRAMA -
+        // ACTIVIDAD" en A/B/C, con "TOTAL" recien en C) -- se recorren
+        // TODAS las columnas de texto plano de la fila buscando una que
+        // parezca etiqueta TOTAL, en vez de detenerse en la primera.
+        $columnaConcepto = null;
+        foreach ($columnas as $columna) {
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+            $valorBruto = $cell['valor_bruto'] ?? null;
+            if ($valorBruto === null || trim((string) $valorBruto) === '') {
+                continue;
+            }
+            if (($cell['es_formula'] ?? false) === true) {
+                continue;
+            }
+
+            if ($this->pareceEtiquetaTotalMatrix((string) $valorBruto)) {
+                $columnaConcepto = $columna;
+                break;
+            }
+        }
+
+        if ($columnaConcepto === null) {
+            return false;
+        }
+
+        $tieneAlgunaFormula = false;
+        foreach ($columnas as $columna) {
+            if ($columna === $columnaConcepto) {
+                continue;
+            }
+
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+
+            $esFormula = ($cell['es_formula'] ?? false) === true;
+            if (!$esFormula) {
+                $esCapturableReal = ($cell['es_editable'] ?? false) === true
+                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                if ($esCapturableReal) {
+                    return false;
+                }
+                continue;
+            }
+
+            $formulaTexto = (string) ($cell['formula'] ?? '');
+            if ($formulaTexto === '' || !preg_match_all('/[A-Z]{1,3}(\d+)/', $formulaTexto, $matches)) {
+                return false;
+            }
+
+            // Hallazgo A09/G fila 183: D183=SUM(F183) y F183=SUM(AD183+...+AP183)
+            // son subtotales HORIZONTALES de la propia fila (mismo patron ya
+            // documentado en el mecanismo #8 de TOTAL final: "una referencia a
+            // la propia fila es neutral") -- no descalifican la fila como
+            // TOTAL lider, pero tampoco cuentan por si solas como evidencia de
+            // agregacion hacia adelante. Solo una referencia a una fila
+            // ESTRICTAMENTE posterior cuenta como evidencia; una referencia a
+            // una fila ESTRICTAMENTE anterior si descalifica (mezclaria
+            // semantica con el mecanismo #12).
+            $tieneReferenciaPosterior = false;
+            foreach ($matches[1] as $filaReferenciada) {
+                $fr = (int) $filaReferenciada;
+                if ($fr < $row) {
+                    return false;
+                }
+                if ($fr > $row) {
+                    $tieneReferenciaPosterior = true;
+                }
+            }
+
+            if ($tieneReferenciaPosterior) {
+                $tieneAlgunaFormula = true;
+            }
+        }
+
+        return $tieneAlgunaFormula;
     }
 
     private function pareceEtiquetaTotalMatrix(string $valor): bool

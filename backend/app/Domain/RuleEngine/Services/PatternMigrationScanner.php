@@ -67,6 +67,20 @@ class PatternMigrationScanner
     }
 
     /**
+     * Expone el mecanismo #6 (TOTAL lider embebido,
+     * SectionCalibrationMatrixService::isEmbeddedLeadingTotalRow()) a
+     * traves del scanner -- unico punto de entrada usado por el flujo
+     * structural_row_exclusion (RuleTagMismatchResolutionCommand) para
+     * verificar, fila por fila, que cada fila que un tag dice "excluir"
+     * cumple REALMENTE el mecanismo, en vez de asumirlo porque esta ausente
+     * del conjunto vivo.
+     */
+    public function isEmbeddedLeadingTotalRow(string $sheet, string $section, int $row, array $sectionData): bool
+    {
+        return $this->matrixService->isEmbeddedLeadingTotalRow($sheet, $section, $row, $sectionData);
+    }
+
+    /**
      * Reclasifica UNA seccion contra el estado vigente -- usado tanto por
      * el barrido completo como por la reverificacion inmediatamente antes
      * de persistir en el comando de migracion (nunca confia en un
@@ -133,10 +147,20 @@ class PatternMigrationScanner
         $matrix = $this->matrixService->buildPatternMatrix($sheet, $code);
         $this->matrixService->forgetSectionCache($sheet, $code);
 
+        $identity = $this->matchLivePatternsToHistorical($matrix['patterns'] ?? [], $byPatternId);
+        $matchedHistoricalPid = $identity['matches'];
+
         $patternResults = [];
         foreach ($matrix['patterns'] ?? [] as $pattern) {
+            // $pid es el identificador VIVO (posicional, tal como lo ve/clickea
+            // el usuario en la UI y tal como lo recibe rule:tag-mismatch-resolution
+            // -- nunca cambia el "nombre" del patron mostrado). Las preguntas
+            // historicas asociadas ($patternQs), en cambio, se resuelven por
+            // IDENTIDAD DE CONTENIDO via matchLivePatternsToHistorical(), no por
+            // este mismo numero -- ver docblock de ese metodo para la causa raiz.
             $pid = $pattern['id'];
-            $patternQs = $byPatternId[$pid] ?? [];
+            $matchedPid = $matchedHistoricalPid[$pid] ?? null;
+            $patternQs = $matchedPid !== null ? ($byPatternId[$matchedPid] ?? []) : [];
             $liveRows = $pattern['filas'];
             $liveFingerprint = $pattern['canonical_fingerprint'] ?? null;
 
@@ -145,6 +169,11 @@ class PatternMigrationScanner
                     'pattern_id' => $pid, 'category' => PatternReconciliationService::MIGRATION_FULL_REVALIDATION,
                     'live_canonical_fingerprint' => $liveFingerprint, 'live_rows' => $liveRows,
                     'already_v2_matching' => false, 'question_count' => 0,
+                    // Sin match por identidad (nuevo, o ambiguo/split/merge --
+                    // ver matchLivePatternsToHistorical()): no hay filas
+                    // historicas que ofrecer, nunca se adivina.
+                    'historical_rows' => null,
+                    'historical_pattern_id' => null,
                 ];
 
                 continue;
@@ -166,6 +195,38 @@ class PatternMigrationScanner
                     'category' => $agrees ? PatternReconciliationService::MIGRATION_AUTO_MIGRATE : PatternReconciliationService::MIGRATION_MISMATCH,
                     'live_canonical_fingerprint' => $liveFingerprint, 'live_rows' => $liveRows,
                     'already_v2_matching' => $agrees, 'question_count' => count($patternQs),
+                    // Hallazgo 2026-08-21 (verificacion UI del flujo MISMATCH):
+                    // el path legacy ya exponia esto para mostrar "decision
+                    // anterior" en el panel -- el path canonico (v2) nunca lo
+                    // seteaba, dejando la decision historica real invisible
+                    // para practicamente todos los MISMATCH reales de la
+                    // campaña (todos v2). Solo lectura, mismo criterio que el
+                    // path legacy, nunca participa de la clasificacion.
+                    'historical_answer' => $this->summarizeHistoricalAnswer($patternQs),
+                    // Filas del patron historico REALMENTE emparejado por
+                    // identidad ($patternQs, resuelto arriba via
+                    // matchLivePatternsToHistorical()) -- nunca del pattern_id
+                    // crudo/posicional. Consumido por
+                    // RuleTagMismatchResolutionCommand para el gate de
+                    // seguridad "filas vivas == filas historicas" del
+                    // safe_reconfirm (hallazgo 2026-08-24: antes de esto, el
+                    // comando hacia su propio lookup independiente por
+                    // pattern_id crudo, rompiendo el gate exactamente en los
+                    // casos donde el pattern_id vivo se desplazo).
+                    'historical_rows' => $this->historicalRowsForPatternQuestions($patternQs),
+                    // pattern_id CRUDO/historico (almacenado en las preguntas
+                    // emparejadas, $matchedPid) -- distinto de $pid (vivo,
+                    // posicional). Hallazgo 2026-08-24 (corrupcion real A09/G
+                    // P3): FunctionalRuleService::applyQuickRevalidation()
+                    // escribia filtrando por el pattern_id VIVO, no por este.
+                    // Cuando un patron se desplaza de posicion (ej. tras
+                    // excluir una fila TOTAL lider), esa escritura terminaba
+                    // sobrescribiendo las preguntas de un patron historico
+                    // TOTALMENTE DISTINTO que por coincidencia comparte el
+                    // mismo numero posicional hoy. CalibrationViewController
+                    // debe usar SIEMPRE este campo (nunca pattern_id) como
+                    // argumento de escritura hacia applyQuickRevalidation().
+                    'historical_pattern_id' => $matchedPid,
                 ];
 
                 continue;
@@ -182,6 +243,9 @@ class PatternMigrationScanner
                 // (Fase 3), nunca se usa para decidir la clasificacion.
                 'historical_answer' => $this->summarizeHistoricalAnswer($patternQs),
                 'historical_rows' => $historicalRows,
+                // Ver comentario extenso arriba (rama v2) -- misma razon,
+                // mismo campo, tambien necesario para la rama legacy.
+                'historical_pattern_id' => $matchedPid,
             ];
         }
 
@@ -190,7 +254,246 @@ class PatternMigrationScanner
             'category' => $this->mostConservativeCategory(array_column($patternResults, 'category')),
             'patterns' => $patternResults,
             'column_diff' => $columnDiff,
+            // Diagnostico de matchLivePatternsToHistorical(): pattern_id
+            // historicos (reglas-funcionales.json) sin ningun patron vivo
+            // correspondiente -- normal cuando una fila (ej. TOTAL lider)
+            // sale por completo del conjunto vivo. Nunca participa de la
+            // clasificacion, solo visibilidad/auditoria.
+            'orphaned_historical_pattern_ids' => $identity['orphaned_historical_pattern_ids'],
         ];
+    }
+
+    /**
+     * Empareja patrones VIVOS (identificados por su conjunto de filas,
+     * $pattern['filas']) con grupos de preguntas HISTORICAS (agrupadas por
+     * su pattern_id almacenado en reglas-funcionales.json) usando
+     * IDENTIDAD DE CONTENIDO en vez de posicion.
+     *
+     * Causa raiz (auditoria 2026-08-24, hallazgo A05/C, A05/G, A19b/A):
+     * pattern_id es puramente secuencial -- buildDynamicPatternDefinitions()
+     * asigna $id=1,2,3... en el orden en que cada grupo de filas aparece
+     * por primera vez (ver SectionCalibrationMatrixService). Antes de este
+     * metodo, scanSection() empataba directamente `$byPatternId[$pattern['id']]`
+     * -- si un patron completo desaparece del conjunto vivo (ej. una fila
+     * TOTAL lider que hoy es unico miembro de su propio patron, ver
+     * mecanismo #6 recien conectado en classifyRow()), TODOS los pattern_id
+     * posteriores se corren una posicion, y scanSection() terminaba
+     * comparando filas reales sin ningun cambio funcional contra metadata
+     * historica de un patron completamente distinto -- MISMATCH artificial,
+     * y en el peor caso, "patron no encontrado" para preguntas historicas
+     * huerfanas cuyo id ya no lo ocupa nadie.
+     *
+     * Estrategia en fases, cada una estrictamente mas laxa que la anterior.
+     * NINGUNA fase "adivina": un candidato solo se compromete si es
+     * inequivoco en AMBOS sentidos (el patron vivo tiene un unico candidato
+     * historico Y ese patron historico tiene un unico candidato vivo). Si
+     * hay mas de un candidato de cualquier lado (split: un historico se
+     * dividio en varios vivos; merge: varios historicos se fusionaron en
+     * uno vivo) NINGUNO de esos candidatos se compromete -- el patron vivo
+     * queda sin pareja historica, cae naturalmente a FULL_REVALIDATION en
+     * scanSection() (mismo camino que ya usa hoy para "patron nuevo, sin
+     * ninguna pregunta historica"), nunca se elige arbitrariamente uno.
+     *
+     *  1. Coincidencia EXACTA de conjunto de filas -- cubre el caso mas
+     *     comun (sin cambios) y tambien el shift puro P2->P1 sin ningun
+     *     cambio de contenido (A05/G: vivo [112,113,114] == historico P2).
+     *  2. Subconjunto/superconjunto UNICO -- un patron se encogio o crecio
+     *     pero sigue habiendo una correspondencia 1:1 (A09/G P2 historico
+     *     [183,190,191] -> vivo [190,191] tras excluir el TOTAL lider 183).
+     *  3. Overlap Jaccard >=50% UNICO -- red de seguridad adicional para
+     *     variaciones menores que no son subconjunto/superconjunto exacto.
+     *
+     * @param array $livePatterns Patrones vivos, cada uno con 'id' (int) y 'filas' (array<int>).
+     * @param array<int, array> $historicalPatternsByPid Preguntas historicas agrupadas por pattern_id.
+     * @return array{matches: array<int,int>, orphaned_historical_pattern_ids: array<int>}
+     */
+    public function matchLivePatternsToHistorical(array $livePatterns, array $historicalPatternsByPid): array
+    {
+        $liveRowSets = [];
+        foreach ($livePatterns as $pattern) {
+            $liveRowSets[$pattern['id']] = $this->normalizeRows($pattern['filas'] ?? []);
+        }
+
+        $histRowSets = [];
+        foreach ($historicalPatternsByPid as $pid => $questions) {
+            $rows = $this->historicalRowsForPatternQuestions($questions);
+            if ($rows !== null) {
+                $histRowSets[$pid] = $this->normalizeRows($rows);
+            }
+        }
+
+        $matches = [];
+        // $usedHist/$usedLive: SOLO pares realmente comprometidos (matches) --
+        // gobiernan el calculo final de orphaned_historical_pattern_ids.
+        $usedHist = [];
+        $usedLive = [];
+        // $excludedHist/$excludedLive: comprometidos + AMBIGUOS ya vistos en
+        // una fase anterior mas estricta -- gobiernan que candidatos se
+        // consideran en las fases siguientes. Sin esta distincion, un
+        // historico marcado ambiguo por la fase 2 (subconjunto, split real)
+        // podia volver a evaluarse en la fase 3 (overlap, umbral mas laxo)
+        // y matchear por casualidad con SOLO UNO de sus varios candidatos si
+        // el overlap resultaba asimetrico -- exactamente el "adivinar"
+        // prohibido. Una vez que una fase encuentra ambiguedad real, ese
+        // patron (de cualquier lado) queda excluido de fases posteriores,
+        // nunca "se resuelve solo" con un criterio mas laxo.
+        $excludedHist = [];
+        $excludedLive = [];
+
+        // Fase 1: coincidencia exacta.
+        foreach ($liveRowSets as $liveId => $liveRows) {
+            if (empty($liveRows)) {
+                continue;
+            }
+            foreach ($histRowSets as $pid => $histRows) {
+                if (isset($excludedHist[$pid])) {
+                    continue;
+                }
+                if ($liveRows === $histRows) {
+                    $matches[$liveId] = $pid;
+                    $usedHist[$pid] = true;
+                    $usedLive[$liveId] = true;
+                    $excludedHist[$pid] = true;
+                    $excludedLive[$liveId] = true;
+
+                    break;
+                }
+            }
+        }
+
+        // Fase 2: subconjunto/superconjunto, solo si es inequivoco en ambos sentidos.
+        $this->matchByCandidateRule(
+            $liveRowSets, $histRowSets, $excludedLive, $excludedHist, $usedLive, $usedHist, $matches,
+            fn (array $liveRows, array $histRows) => $this->isSubsetOrSuperset($liveRows, $histRows)
+        );
+
+        // Fase 3: overlap Jaccard >=50%, solo si es inequivoco en ambos sentidos.
+        // Los patrones que la fase 2 marco ambiguos (split/merge real) ya
+        // estan en $excludedLive/$excludedHist y NUNCA vuelven a
+        // considerarse aqui, aunque el overlap parezca resolverlos.
+        $this->matchByCandidateRule(
+            $liveRowSets, $histRowSets, $excludedLive, $excludedHist, $usedLive, $usedHist, $matches,
+            fn (array $liveRows, array $histRows) => $this->jaccardOverlap($liveRows, $histRows) >= 0.5
+        );
+
+        $orphanedHistorical = array_values(array_diff(array_keys($histRowSets), array_keys($usedHist)));
+
+        return [
+            'matches' => $matches,
+            'orphaned_historical_pattern_ids' => $orphanedHistorical,
+        ];
+    }
+
+    /**
+     * Aplica una regla de candidatura (subconjunto/superconjunto u overlap)
+     * y compromete SOLO los pares inequivocos (un candidato en cada
+     * sentido) -- mutación in-place de $usedLive/$usedHist/$matches (pares
+     * REALMENTE comprometidos) y $excludedLive/$excludedHist (comprometidos
+     * + ambiguos, para que fases posteriores nunca reconsideren un caso que
+     * esta fase ya determino ambiguo). Mismo patron usado por las fases 2 y
+     * 3 de matchLivePatternsToHistorical().
+     */
+    private function matchByCandidateRule(array $liveRowSets, array $histRowSets, array &$excludedLive, array &$excludedHist, array &$usedLive, array &$usedHist, array &$matches, callable $isCandidate): void
+    {
+        $candidatesByLive = [];
+        $candidatesByHist = [];
+        foreach ($liveRowSets as $liveId => $liveRows) {
+            if (isset($excludedLive[$liveId]) || empty($liveRows)) {
+                continue;
+            }
+            foreach ($histRowSets as $pid => $histRows) {
+                if (isset($excludedHist[$pid])) {
+                    continue;
+                }
+                if ($isCandidate($liveRows, $histRows)) {
+                    $candidatesByLive[$liveId][] = $pid;
+                    $candidatesByHist[$pid][] = $liveId;
+                }
+            }
+        }
+
+        foreach ($candidatesByLive as $liveId => $pids) {
+            if (count($pids) !== 1) {
+                // ambiguo del lado vivo (un patron vivo que superpone a mas de
+                // un historico) -- excluido de aqui en adelante, nunca matcheado.
+                $excludedLive[$liveId] = true;
+                foreach ($pids as $pid) {
+                    $excludedHist[$pid] = true;
+                }
+
+                continue;
+            }
+            $pid = $pids[0];
+            if (count($candidatesByHist[$pid] ?? []) !== 1) {
+                // ambiguo del lado historico (split: mas de un vivo candidatea
+                // al mismo historico) -- excluido de aqui en adelante.
+                $excludedHist[$pid] = true;
+                foreach ($candidatesByHist[$pid] as $otherLiveId) {
+                    $excludedLive[$otherLiveId] = true;
+                }
+
+                continue;
+            }
+            $matches[$liveId] = $pid;
+            $usedHist[$pid] = true;
+            $usedLive[$liveId] = true;
+            $excludedHist[$pid] = true;
+            $excludedLive[$liveId] = true;
+        }
+    }
+
+    private function normalizeRows(array $rows): array
+    {
+        $normalized = array_values(array_unique(array_map('intval', $rows)));
+        sort($normalized, SORT_NUMERIC);
+
+        return $normalized;
+    }
+
+    private function isSubsetOrSuperset(array $a, array $b): bool
+    {
+        if (empty($a) || empty($b)) {
+            return false;
+        }
+
+        return empty(array_diff($a, $b)) || empty(array_diff($b, $a));
+    }
+
+    private function jaccardOverlap(array $a, array $b): float
+    {
+        if (empty($a) || empty($b)) {
+            return 0.0;
+        }
+
+        $intersection = count(array_intersect($a, $b));
+        $union = count(array_unique(array_merge($a, $b)));
+
+        return $union > 0 ? $intersection / $union : 0.0;
+    }
+
+    /**
+     * Filas de un patron historico a partir de su grupo de preguntas --
+     * prioriza el campo v2 canonico pattern_rows (ya normalizado, la fuente
+     * mas confiable); cae a extractRowsFromQuestionText() (parseo del texto
+     * "Patron N: 12,13,14") solo si ninguna pregunta v2 lo tiene, mismo
+     * fallback ya usado en el resto de esta clase para preguntas legacy.
+     */
+    private function historicalRowsForPatternQuestions(array $questions): ?array
+    {
+        foreach ($questions as $q) {
+            if (! empty($q['pattern_rows'])) {
+                return $q['pattern_rows'];
+            }
+        }
+
+        foreach ($questions as $q) {
+            $rows = $this->extractRowsFromQuestionText($q['question'] ?? '');
+            if ($rows !== null) {
+                return $rows;
+            }
+        }
+
+        return null;
     }
 
     /**
