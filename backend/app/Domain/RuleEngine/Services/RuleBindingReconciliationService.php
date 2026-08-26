@@ -145,7 +145,18 @@ class RuleBindingReconciliationService
         $missingColumns = array_values(array_diff($columnas, $current['fields']));
         $rowsOk = true;
         $rowsNote = '';
-        if ($rowRange) {
+        // {"from":0,"to":0} es el placeholder que usan las reglas sum_equals
+        // horizontales (formula dentro de la misma fila, ej. "Suma(E+G+I+K) =
+        // Columna C") -- estas reglas nunca tuvieron un rango vertical real,
+        // asi que {0,0} equivale a row_range ausente/null, no a un rango
+        // invalido. Auditado contra las 753 reglas activas (2026-08-26): el
+        // unico patron fuera de "normal" (from>0) es exactamente {0,0} --
+        // no existen {0,N}/{N,0}/negativos/invertidos en los datos reales,
+        // asi que esta excepcion no abre la puerta a ningun rango
+        // parcialmente invalido.
+        $hasRealRowRange = $rowRange !== null
+            && !((int) ($rowRange['from'] ?? -1) === 0 && (int) ($rowRange['to'] ?? -1) === 0);
+        if ($hasRealRowRange) {
             $from = (int) ($rowRange['from'] ?? -1);
             $to = (int) ($rowRange['to'] ?? -1);
             if ($current['inicio'] !== null && $current['fin'] !== null) {

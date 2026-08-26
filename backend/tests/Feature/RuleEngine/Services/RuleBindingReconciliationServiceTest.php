@@ -122,7 +122,16 @@ class RuleBindingReconciliationServiceTest extends TestCase
         $this->assertStringContainsString('CO', $row['motivo']);
     }
 
-    public function test_zero_zero_row_range_placeholder_is_requires_remap(): void
+    /**
+     * 2026-08-26: corregido -- {"from":0,"to":0} es el placeholder que usan
+     * las reglas sum_equals horizontales (formula dentro de la misma fila,
+     * sin rango vertical real). Antes de este fix, el guard $from<=0 lo
+     * trataba como un rango invalido y clasificaba REQUIRES_REMAP aunque
+     * todas las columnas de la regla existieran intactas en la seccion
+     * destino -- falso positivo verificado en 30 de las 66 reglas reales
+     * REQUIRES_REMAP contra estructura 67/v35 (auditoria 2026-08-26).
+     */
+    public function test_zero_zero_row_range_placeholder_with_valid_columns_is_safe_1_to_1(): void
     {
         $target = $this->targetStructure([
             ['sheetName' => 'A04', 'sections' => [[
@@ -140,7 +149,108 @@ class RuleBindingReconciliationServiceTest extends TestCase
         $svc = app(RuleBindingReconciliationService::class);
         $row = $svc->classifyAllActiveRules($target)->firstWhere('rule_id', $rule->id);
 
+        $this->assertSame(RuleBindingReconciliationService::SAFE_1_TO_1, $row['clasificacion']);
+        $this->assertCount(1, $svc->findSafeCandidatesForStructure($target));
+    }
+
+    public function test_zero_zero_row_range_placeholder_with_missing_column_is_still_requires_remap(): void
+    {
+        $target = $this->targetStructure([
+            ['sheetName' => 'A04', 'sections' => [[
+                'codigo' => 'C', 'titulo' => 'C', 'filaHeader' => 40, 'filaInicioDatos' => 51, 'filaFinDatos' => 54,
+                'fields' => [$this->dummyField('C'), $this->dummyField('E')],
+            ]]],
+        ]);
+
+        $rule = $this->rule('a04_c_c_sum_equals', 'sum_equals', [
+            'sheet' => 'A04', 'section' => 'C', 'column' => 'C',
+            'row_range' => ['from' => 0, 'to' => 0], 'rule_logic' => 'Suma(E + G) = Columna C',
+        ]);
+        $this->bindStructure($rule, 19);
+
+        $svc = app(RuleBindingReconciliationService::class);
+        $row = $svc->classifyAllActiveRules($target)->firstWhere('rule_id', $rule->id);
+
         $this->assertSame(RuleBindingReconciliationService::REQUIRES_REMAP, $row['clasificacion']);
+        $this->assertStringContainsString('G', $row['motivo']);
+    }
+
+    /**
+     * Verifica explicitamente que el fix del {0,0} NO relaja el camino de
+     * validacion de rangos verticales reales: una regla sum_equals vertical
+     * (una sola columna origen == columna destino) que ademas trae
+     * row_range={0,0} debe seguir bloqueada -- pero ahora por
+     * BLOCKED_BY_ENGINE_GAP (falta total_row, el gap ya documentado como
+     * deuda tecnica #5), nunca por SAFE_1_TO_1. Corresponde exactamente a
+     * 13 de las 30 reglas reales del hallazgo (A03/D.7, A09/F.1 x2, A09/I
+     * x9, A25/B) -- confirmado en la auditoria 2026-08-26 que estas 13 NO
+     * pasan a SAFE_1_TO_1 tras el fix, sino a BLOCKED_BY_ENGINE_GAP.
+     */
+    public function test_vertical_pattern_with_zero_zero_row_range_is_blocked_not_safe(): void
+    {
+        $target = $this->targetStructure([
+            ['sheetName' => 'A09', 'sections' => [[
+                'codigo' => 'F.1', 'titulo' => 'F.1', 'filaHeader' => 145, 'filaInicioDatos' => 146, 'filaFinDatos' => 158,
+                'fields' => [$this->dummyField('F')],
+            ]]],
+        ]);
+
+        $rule = $this->rule('a09_f1_f_sum_equals', 'sum_equals', [
+            'sheet' => 'A09', 'section' => 'F.1', 'column' => 'F',
+            'row_range' => ['from' => 0, 'to' => 0], 'rule_logic' => 'Suma(F) = Columna F',
+            'source_letters' => ['F'],
+            // sin total_row -- mismo patron real que las 13 reglas verticales con {0,0}.
+        ]);
+        $this->bindStructure($rule, 19);
+
+        $svc = app(RuleBindingReconciliationService::class);
+        $row = $svc->classifyAllActiveRules($target)->firstWhere('rule_id', $rule->id);
+
+        $this->assertSame(RuleBindingReconciliationService::BLOCKED_BY_ENGINE_GAP, $row['clasificacion']);
+        $this->assertCount(0, $svc->findSafeCandidatesForStructure($target));
+    }
+
+    public function test_zero_to_n_row_range_is_still_requires_remap(): void
+    {
+        $target = $this->targetStructure([
+            ['sheetName' => 'A04', 'sections' => [[
+                'codigo' => 'C', 'titulo' => 'C', 'filaHeader' => 40, 'filaInicioDatos' => 51, 'filaFinDatos' => 54,
+                'fields' => [$this->dummyField('C'), $this->dummyField('E')],
+            ]]],
+        ]);
+
+        $rule = $this->rule('a04_c_c_sum_equals', 'sum_equals', [
+            'sheet' => 'A04', 'section' => 'C', 'column' => 'C',
+            'row_range' => ['from' => 0, 'to' => 20], 'rule_logic' => 'Suma(E) = Columna C',
+        ]);
+        $this->bindStructure($rule, 19);
+
+        $svc = app(RuleBindingReconciliationService::class);
+        $row = $svc->classifyAllActiveRules($target)->firstWhere('rule_id', $rule->id);
+
+        $this->assertSame(RuleBindingReconciliationService::REQUIRES_REMAP, $row['clasificacion']);
+    }
+
+    public function test_rule_without_row_range_key_behaves_as_before(): void
+    {
+        $target = $this->targetStructure([
+            ['sheetName' => 'A04', 'sections' => [[
+                'codigo' => 'C', 'titulo' => 'C', 'filaHeader' => 40, 'filaInicioDatos' => 51, 'filaFinDatos' => 54,
+                'fields' => [$this->dummyField('C'), $this->dummyField('E')],
+            ]]],
+        ]);
+
+        $rule = $this->rule('a04_c_c_sum_equals', 'sum_equals', [
+            'sheet' => 'A04', 'section' => 'C', 'column' => 'C',
+            'rule_logic' => 'Suma(E) = Columna C',
+            // sin clave row_range en absoluto.
+        ]);
+        $this->bindStructure($rule, 19);
+
+        $svc = app(RuleBindingReconciliationService::class);
+        $row = $svc->classifyAllActiveRules($target)->firstWhere('rule_id', $rule->id);
+
+        $this->assertSame(RuleBindingReconciliationService::SAFE_1_TO_1, $row['clasificacion']);
     }
 
     public function test_vertical_sum_without_total_row_is_blocked_by_engine_gap(): void
