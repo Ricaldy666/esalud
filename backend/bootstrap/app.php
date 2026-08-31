@@ -27,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
             StartSession::class,
         ]);
 
+        $middleware->alias([
+            '2fa.verified' => \App\Http\Middleware\EnsureTwoFactorVerified::class,
+        ]);
+
         $middleware->redirectTo(
             guests: fn (Request $request) => $request->is('api/*') ? null : '/login',
         );

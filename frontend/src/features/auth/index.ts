@@ -1,5 +1,7 @@
 export { authService } from './services/authService'
+export { twoFactorService } from './services/twoFactorService'
 export { useLogin } from './hooks/useLogin'
 export { useLogout } from './hooks/useLogout'
 export { useAuthInit } from './hooks/useAuthInit'
-export type { User, LoginCredentials } from './types'
+export { useTwoFactorChallenge } from './hooks/useTwoFactorChallenge'
+export type { User, LoginCredentials, LoginResult } from './types'

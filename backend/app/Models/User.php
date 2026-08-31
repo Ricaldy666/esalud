@@ -29,6 +29,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     protected function casts(): array
@@ -38,7 +40,20 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_active' => 'boolean',
             'last_login_at' => 'datetime',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_recovery_codes' => 'array',
+            'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * 2FA se considera activo unicamente cuando el enrolamiento fue
+     * confirmado con un primer codigo TOTP correcto (nunca al solo generar
+     * el secreto).
+     */
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->two_factor_confirmed_at !== null;
     }
 
     public function healthCenter()

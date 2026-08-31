@@ -25,8 +25,13 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginCredentials) => {
     try {
-      await login.mutateAsync(data)
-      navigate('/')
+      const result = await login.mutateAsync(data)
+      // Si requiere 2FA, authStore.twoFactorPending ya quedo en true (ver
+      // useLogin) -- LoginPage renderiza el challenge automaticamente, no
+      // se navega todavia.
+      if (result.status === 'authenticated') {
+        navigate('/')
+      }
     } catch (err: unknown) {
       const apiError = err as {
         response?: { data?: { errors?: Record<string, string[]> } }

@@ -23,6 +23,8 @@ class UserResource extends JsonResource
                 'type' => $this->healthCenter->type,
             ]),
             'roles' => $this->getRoleNames(),
+            'two_factor_enabled' => $this->hasTwoFactorEnabled(),
+            'must_enroll_two_factor' => !$this->hasTwoFactorEnabled() && $this->hasAnyRole(['Superadmin', 'Administrador']),
             'health_centers' => $this->healthCenters->pluck('id'),
             'last_login_at' => $this->last_login_at ? Carbon::parse($this->last_login_at)->toIso8601String() : null,
             'created_at' => Carbon::parse($this->created_at)->toIso8601String(),

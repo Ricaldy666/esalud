@@ -25,6 +25,7 @@ import {
   X,
   HeartPulse,
   Target,
+  ShieldCheck,
 } from 'lucide-react'
 import { useAuthStore } from '@/app/store/authStore'
 import { useLogout } from '@/features/auth'
@@ -105,6 +106,7 @@ const MENU_ITEMS = [
     roles: ['Administrador', 'Superadmin'],
   },
   { to: '/audit', label: 'Auditoría', icon: FileText, roles: ['Administrador', 'Superadmin'] },
+  { to: '/security', label: 'Seguridad', icon: ShieldCheck, roles: ['all'] },
 ]
 
 function SidebarContent({
@@ -302,6 +304,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
             <span className="font-bold text-slate-900 whitespace-nowrap">ATENEA</span>
           </div>
         </div>
+
+        {user?.must_enroll_two_factor && (
+          <div className="flex items-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 lg:px-8">
+            <ShieldCheck className="size-4 shrink-0" />
+            <span>
+              Por su rol, se recomienda activar la verificación en dos pasos.{' '}
+              <NavLink to="/security" className="font-medium underline underline-offset-2">
+                Activarla ahora
+              </NavLink>
+              .
+            </span>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-4 lg:p-8">{children}</div>
       </main>

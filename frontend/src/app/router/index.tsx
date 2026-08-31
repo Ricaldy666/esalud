@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import LoginPage from '@/pages/LoginPage'
 import DashboardPage from '@/pages/DashboardPage'
+import SecurityPage from '@/pages/SecurityPage'
 import UsersPage from '@/pages/UsersPage'
 import HealthCentersPage from '@/pages/HealthCentersPage'
 import AuditPage from '@/pages/AuditPage'
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
       {
         path: '/rem-uploads',
         element: <RemUploadsPage />,
+      },
+      {
+        path: '/security',
+        element: <SecurityPage />,
       },
       {
         path: '/criterios-funcionales',

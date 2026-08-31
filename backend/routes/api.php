@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Auth\Controllers\AuthController;
+use App\Domain\Auth\Controllers\TwoFactorController;
 use App\Domain\Health\Controllers\HealthController;
 use App\Domain\Users\Controllers\UserController;
 use App\Domain\HealthCenters\Controllers\HealthCenterController;
@@ -22,16 +23,46 @@ Route::prefix('v1')->group(function () {
     Route::get('/health', HealthController::class)->name('health');
 
     Route::prefix('auth')->group(function () {
-        Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+        Route::post('/login', [AuthController::class, 'login'])
+            ->middleware('throttle:login')
+            ->name('auth.login');
 
+        // logout/me/2fa-verify: deliberadamente SIN el middleware 2fa.verified
+        // -- son las 3 unicas rutas que deben seguir siendo alcanzables
+        // mientras un challenge de doble factor esta pendiente (logout para
+        // poder cancelar, me para que el frontend sepa que debe mostrar el
+        // challenge, verify porque es la ruta que lo resuelve).
         Route::middleware('auth:sanctum')->group(function () {
             Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
             Route::get('/me', [AuthController::class, 'me'])->name('auth.me');
+
+            Route::post('/2fa/verify', [TwoFactorController::class, 'verify'])
+                ->middleware('throttle:2fa-verify')
+                ->name('auth.2fa.verify');
+        });
+
+        // Gestion de 2FA de la propia cuenta: exige sesion COMPLETAMENTE
+        // autenticada (2fa.verified) -- nunca alcanzable mientras un
+        // challenge esta pendiente.
+        Route::middleware(['auth:sanctum', '2fa.verified'])->group(function () {
+            Route::post('/2fa/enroll', [TwoFactorController::class, 'enroll'])
+                ->middleware('throttle:sensitive-user-write')
+                ->name('auth.2fa.enroll');
+            Route::post('/2fa/confirm', [TwoFactorController::class, 'confirm'])
+                ->middleware('throttle:2fa-verify')
+                ->name('auth.2fa.confirm');
+            Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])
+                ->middleware('throttle:sensitive-user-write')
+                ->name('auth.2fa.disable');
+            Route::post('/2fa/recovery-codes/regenerate', [TwoFactorController::class, 'regenerateRecoveryCodes'])
+                ->middleware('throttle:sensitive-user-write')
+                ->name('auth.2fa.recovery-codes.regenerate');
         });
     });
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::apiResource('users', UserController::class);
+    Route::middleware(['auth:sanctum', '2fa.verified'])->group(function () {
+        Route::apiResource('users', UserController::class)
+            ->middlewareFor(['store', 'update'], 'throttle:sensitive-user-write');
         Route::apiResource('health-centers', HealthCenterController::class);
         Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
         Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log.index');
