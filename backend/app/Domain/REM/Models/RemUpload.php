@@ -74,6 +74,11 @@ class RemUpload extends Model
         return $this->hasMany(RemData::class);
     }
 
+    public function technicalTotals()
+    {
+        return $this->hasMany(RemTechnicalTotal::class);
+    }
+
     public function validationResults()
     {
         return $this->hasMany(RemValidationResult::class);

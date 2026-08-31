@@ -108,6 +108,8 @@ class SectionCalibrationMatrixService
 
     private RemSheetUsageStatusService $sheetUsageStatus;
 
+    private MergeAnchorResolver $mergeAnchorResolver;
+
     public function __construct(
         private CertificationService $certificationService,
         private FunctionalRuleService $functionalRuleService,
@@ -115,10 +117,12 @@ class SectionCalibrationMatrixService
         private ?ColumnRoleResolverService $columnRoleResolver = null,
         ?PatternReconciliationService $patternReconciliation = null,
         ?RemSheetUsageStatusService $sheetUsageStatus = null,
+        ?MergeAnchorResolver $mergeAnchorResolver = null,
     ) {
         $this->columnRoleResolver = $columnRoleResolver ?? new ColumnRoleResolverService();
         $this->patternReconciliation = $patternReconciliation ?? new PatternReconciliationService();
         $this->sheetUsageStatus = $sheetUsageStatus ?? new RemSheetUsageStatusService();
+        $this->mergeAnchorResolver = $mergeAnchorResolver ?? new MergeAnchorResolver($cellDataStorage);
     }
 
     /**
@@ -2516,8 +2520,14 @@ class SectionCalibrationMatrixService
      * queda automaticamente fuera de la construccion de patrones (ver
      * usos de row_type === 'data' en este archivo) sin necesidad de un
      * mecanismo adicional.
+     *
+     * Publico desde 2026-08-27 (Fase 1 del diseno de auto-discovery de
+     * total_row, RuleBindingReconciliationService): el clasificador
+     * necesita verificar, para un candidato trailing (row_to+1), si esa
+     * fila ya esta excluida de rem_data por este mecanismo -- mismo
+     * precedente que isEmbeddedLeadingTotalRow() (publico desde 2026-08-24).
      */
-    private function isEmbeddedBackwardSubtotalRow(string $sheet, string $section, int $row, array $sectionData): bool
+    public function isEmbeddedBackwardSubtotalRow(string $sheet, string $section, int $row, array $sectionData): bool
     {
         if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
             return false;
@@ -2553,6 +2563,24 @@ class SectionCalibrationMatrixService
         $columnas = array_values(array_unique($columnas));
         usort($columnas, fn(string $a, string $b) => \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($a) <=> \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($b));
 
+        // 2026-08-28 (implementacion del fix de merge, puntos 17.26-17.29):
+        // si la celda propia esta vacia pero pertenece a una fusion VERTICAL
+        // real (es_combinada=true, rango_combinado multi-fila misma
+        // columna), se resuelve la etiqueta desde la celda ANCLA -- pero
+        // SOLO como evidencia POSITIVA adicional (si el ancla dice TOTAL,
+        // esta columna pasa a ser el concepto y se corta la busqueda, igual
+        // que el comportamiento original para texto propio). Si el ancla no
+        // es resolvible o su etiqueta NO es TOTAL, la columna se trata
+        // exactamente como una celda vacia normal (`continue`, seguir
+        // buscando en las columnas siguientes) -- NUNCA como un rechazo
+        // definitivo. Hallazgo real durante la validacion (A33/C fila 56,
+        // reglas 545/546): la columna A esta vacia y pertenece a una fusion
+        // A53:A56 cuya ancla NO dice TOTAL (es la etiqueta de otro bloque),
+        // mientras la etiqueta "Total" real de esta fila vive en la columna
+        // B (sin fusion); tratar el merge irrelevante como un `break`
+        // (rechazo) en vez de `continue` rompia la deteccion de la columna B
+        // real -- corregido para que un merge que NO resuelve a TOTAL nunca
+        // bloquee la busqueda de la etiqueta real en otra columna.
         $columnaConcepto = null;
         foreach ($columnas as $columna) {
             $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
@@ -2560,9 +2588,21 @@ class SectionCalibrationMatrixService
                 continue;
             }
             $valorBruto = $cell['valor_bruto'] ?? null;
-            if ($valorBruto === null || trim((string) $valorBruto) === '') {
+            $esVacio = $valorBruto === null || trim((string) $valorBruto) === '';
+
+            if ($esVacio) {
+                $anchor = $this->mergeAnchorResolver->resolveVerticalMergeAnchor($sheet, $section, $cell);
+                if ($anchor !== null
+                    && ($anchor['es_formula'] ?? false) !== true
+                    && $this->pareceEtiquetaTotalMatrix((string) ($anchor['valor_bruto'] ?? ''))
+                ) {
+                    $columnaConcepto = $columna;
+                    break;
+                }
+
                 continue;
             }
+
             if (($cell['es_formula'] ?? false) === true) {
                 continue;
             }
@@ -2752,6 +2792,78 @@ class SectionCalibrationMatrixService
         }
 
         return $tieneAlgunaFormula;
+    }
+
+    /**
+     * CLAUDE.md punto 17.49. Mecanismo HERMANO de isEmbeddedLeadingTotalRow()
+     * (#6) -- NUNCA modifica su semantica ni lo reemplaza. A diferencia de
+     * #6 (que exige una etiqueta textual "TOTAL"/"AMBOS SEXOS" propia de la
+     * fila), este metodo exige exclusivamente evidencia de formula: al
+     * menos una columna de la seccion, en la fila candidata (SIEMPRE
+     * filaInicioDatos-1, verificado explicitamente aqui aunque el llamador
+     * ya lo garantiza -- mismo patron defensivo que
+     * isLegitimateTrailingTotalBeyondBounds()), tiene una formula que cubre
+     * EXACTA y CONTIGUAMENTE [filaInicioDatos:filaFinDatos] de la propia
+     * seccion, sin huecos y sin referencias a otra columna
+     * (FormulaRangeCoverageAnalyzer::isCompleteContiguous(), reutilizado
+     * sin duplicar heuristica -- ya usado por isLegitimateTrailingTotalBeyondBounds()
+     * para el caso trailing). Ninguna columna de la fila puede ser
+     * genuinamente capturable (es_editable && !esta_bloqueada) -- misma
+     * negativa que #6/#12. Nunca hardcodea hoja/seccion/fila/columna.
+     * Caso real unico confirmado por el barrido exhaustivo de 381
+     * secciones (17.46): A30/F fila 123 (regla 461) -- A30/A,C,D,E
+     * comparten la misma posicion (inicio-1) pero SI tienen etiqueta
+     * textual, por lo que ya las resuelve #6 sin necesitar este metodo.
+     */
+    public function isLeadingFormulaBasedTotalBeyondBounds(string $sheet, string $section, int $row, array $sectionData): bool
+    {
+        $sectionStartRow = (int) ($sectionData['filaInicioDatos'] ?? 0);
+        $sectionEndRow = (int) ($sectionData['filaFinDatos'] ?? 0);
+        if ($sectionStartRow <= 0 || $sectionEndRow <= 0 || $row !== $sectionStartRow - 1) {
+            return false;
+        }
+
+        if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
+            return false;
+        }
+
+        $columnas = [];
+        foreach ($sectionData['fields'] ?? [] as $f) {
+            $letra = $f['letra'] ?? '';
+            if ($letra !== '') {
+                $columnas[] = $letra;
+            }
+        }
+        $columnas = array_values(array_unique($columnas));
+
+        $tieneEvidenciaCompleta = false;
+        foreach ($columnas as $columna) {
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+
+            $esFormula = ($cell['es_formula'] ?? false) === true;
+            if (!$esFormula) {
+                $esCapturableReal = ($cell['es_editable'] ?? false) === true
+                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                if ($esCapturableReal) {
+                    return false;
+                }
+                continue;
+            }
+
+            $formulaTexto = (string) ($cell['formula'] ?? '');
+            if ($formulaTexto === '') {
+                continue;
+            }
+
+            if (FormulaRangeCoverageAnalyzer::isCompleteContiguous($formulaTexto, $columna, $sectionStartRow, $sectionEndRow)) {
+                $tieneEvidenciaCompleta = true;
+            }
+        }
+
+        return $tieneEvidenciaCompleta;
     }
 
     private function pareceEtiquetaTotalMatrix(string $valor): bool

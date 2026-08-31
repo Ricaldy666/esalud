@@ -3,6 +3,7 @@
 namespace App\Domain\REM\Jobs;
 
 use App\Domain\REM\Models\RemData;
+use App\Domain\REM\Models\RemTechnicalTotal;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Services\RemParserService;
 use App\Support\MemoryProbe;
@@ -12,6 +13,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 
 class ProcessRemUploadJob implements ShouldQueue
 {
@@ -72,6 +74,35 @@ class ProcessRemUploadJob implements ShouldQueue
                 'upload_id' => $upload->id,
                 'rows_persisted' => count($result->extractedData),
             ]);
+
+            // Fase 3A (CLAUDE.md punto 17.6): persistencia auditable de las
+            // filas TOTAL tecnicas excluidas de rem_data (deuda tecnica #5).
+            // Aislada en su propia transaccion -- ni todo ni nada de esta
+            // tabla nueva, independiente de rem_data (que no tiene esa
+            // proteccion hoy, ver auditoria de lifecycle en CLAUDE.md). No
+            // conecta con el motor de reglas ni con ninguna otra parte del
+            // sistema (Fase 3B/3C, no implementadas).
+            if (!empty($result->technicalTotals)) {
+                DB::transaction(function () use ($upload, $result) {
+                    foreach ($result->technicalTotals as $tt) {
+                        RemTechnicalTotal::create([
+                            'rem_upload_id' => $upload->id,
+                            'sheet' => $tt['sheet'],
+                            'rem_section_code' => $tt['rem_section_code'],
+                            'row_number' => $tt['row_number'],
+                            'concept' => $tt['concept'],
+                            'total' => $tt['total'],
+                            'values' => $tt['values'],
+                            'exclusion_reason' => $tt['exclusion_reason'],
+                        ]);
+                    }
+                });
+
+                MemoryProbe::log('process_job.despues_persistencia_technical_totals', [
+                    'upload_id' => $upload->id,
+                    'rows_persisted' => count($result->technicalTotals),
+                ]);
+            }
 
             $errorReport = [
                 'summary' => [

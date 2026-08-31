@@ -81,6 +81,20 @@ class PatternMigrationScanner
     }
 
     /**
+     * Expone el mecanismo #12 (subtotal embebido hacia atras,
+     * SectionCalibrationMatrixService::isEmbeddedBackwardSubtotalRow()) a
+     * traves del scanner -- mismo patron exacto que isEmbeddedLeadingTotalRow()
+     * (mecanismo #6) de arriba, agregado para que structural_row_exclusion
+     * (RuleTagMismatchResolutionCommand/CalibrationViewController) pueda
+     * verificar, fila por fila, evidencia real de mecanismo #12 ademas de #6
+     * (2026-08-28, auditoria SAFE_TO_EXTEND_STRUCTURAL_ROW_EXCLUSION_TO_12).
+     */
+    public function isEmbeddedBackwardSubtotalRow(string $sheet, string $section, int $row, array $sectionData): bool
+    {
+        return $this->matrixService->isEmbeddedBackwardSubtotalRow($sheet, $section, $row, $sectionData);
+    }
+
+    /**
      * Reclasifica UNA seccion contra el estado vigente -- usado tanto por
      * el barrido completo como por la reverificacion inmediatamente antes
      * de persistir en el comando de migracion (nunca confia en un

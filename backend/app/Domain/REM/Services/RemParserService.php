@@ -5,6 +5,8 @@ namespace App\Domain\REM\Services;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\RemParser\Models\RemTemplateStructure;
 use App\Domain\RuleEngine\Services\CellDataStorageService;
+use App\Domain\RuleEngine\Services\FormulaRangeCoverageAnalyzer;
+use App\Domain\RuleEngine\Services\MergeAnchorResolver;
 use App\Support\MemoryProbe;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -13,12 +15,16 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class RemParserService
 {
+    private MergeAnchorResolver $mergeAnchorResolver;
+
     public function __construct(
         private ?CellDataStorageService $cellDataStorage = null,
         private ?ColumnRoleResolverService $columnRoleResolver = null,
+        ?MergeAnchorResolver $mergeAnchorResolver = null,
     ) {
         $this->cellDataStorage = $cellDataStorage ?? new CellDataStorageService();
         $this->columnRoleResolver = $columnRoleResolver ?? new ColumnRoleResolverService();
+        $this->mergeAnchorResolver = $mergeAnchorResolver ?? new MergeAnchorResolver($this->cellDataStorage);
     }
 
     public function parse(RemUpload $upload): ParseResult
@@ -54,6 +60,7 @@ class RemParserService
 
         $errors = [];
         $extractedData = [];
+        $technicalTotals = [];
         $totalRowsProcessed = 0;
         $totalCellsParsed = 0;
         $totalErrorCells = 0;
@@ -86,6 +93,7 @@ class RemParserService
             try {
                 $result = $this->parseSheet($worksheet, $sheetConfig, $sectionMaps[$sheetName] ?? []);
                 $extractedData = array_merge($extractedData, $result['data']);
+                $technicalTotals = array_merge($technicalTotals, $result['technical_totals'] ?? []);
                 $errors = array_merge($errors, $result['errors']);
                 $totalRowsProcessed += $result['rows_processed'];
                 $totalCellsParsed += $result['cells_parsed'];
@@ -142,6 +150,7 @@ class RemParserService
             totalRowsProcessed: $totalRowsProcessed,
             totalCellsParsed: $totalCellsParsed,
             totalErrorCells: $totalErrorCells,
+            technicalTotals: $technicalTotals,
         );
     }
 
@@ -168,6 +177,7 @@ class RemParserService
         $maxDataRows = $structure['max_data_rows'] ?? 1500;
 
         $data = [];
+        $technicalTotals = [];
         $errors = [];
         $rowsProcessed = 0;
         $cellsParsed = 0;
@@ -209,6 +219,42 @@ class RemParserService
 
         for ($row = $dataStartRow; $row <= $maxRow; $row++) {
             $sectionContext = $this->findSectionContextForRow($sectionMap, $row);
+
+            // CLAUDE.md punto 17.48: fila fuera de [data_start_row:data_end_row]
+            // de TODA seccion declarada -- ruta 100% aislada de la resolucion
+            // normal de arriba (findSectionContextForRow() no se modifica).
+            // Antes de este punto, la fila se descartaba (comportamiento
+            // preexistente, sin cambios) solo despues de leer/validar sus
+            // celdas con las columnas de fallback de HOJA (nunca las propias
+            // de ninguna seccion), generando ruido real en error_report
+            // (confirmado en upload 186: A33 fila 56 columna B, "Total" leido
+            // como si fuera un entero de captura). Se intercepta aqui, ANTES
+            // de esa lectura, para: (a) descartar en silencio una fila
+            // huerfana genuina (ningun candidato de frontera), sin validar
+            // nada; o (b) si la fila coincide EXACTAMENTE con data_start_row-1
+            // o data_end_row+1 de alguna seccion, evaluar -- con los
+            // mecanismos #8/#12 YA EXISTENTES, sin modificar -- si es un
+            // TOTAL tecnico genuino, y solo entonces capturarla hacia
+            // rem_technical_totals (nunca hacia $data). El reconocimiento
+            // formula-based para el caso leading (regla 461, disenado en
+            // 17.46) NO esta implementado todavia -- ver
+            // captureTechnicalBoundaryRowIfConfirmed().
+            if (!empty($sectionMap) && $sectionContext === null) {
+                $technicalContext = $this->findTechnicalSectionContextForRow($sectionMap, $row);
+                if ($technicalContext !== null) {
+                    $technicalEntry = $this->resolveTechnicalBoundaryCapture(
+                        $worksheet,
+                        $sheetConfig['sheet_name'],
+                        $technicalContext,
+                        $row,
+                    );
+                    if ($technicalEntry !== null) {
+                        $technicalTotals[] = $technicalEntry;
+                    }
+                }
+                continue;
+            }
+
             $effectiveConceptCol = $sectionContext['concept_column'] ?? $conceptCol;
             $effectiveProfessionalCol = $this->resolveEffectiveProfessionalColumn(
                 $sheetConfig['sheet_name'],
@@ -584,6 +630,31 @@ class RemParserService
                 );
 
             if ($esFilaTotalLiderEmbebida || $esFilaTotalFinalEmbebida || $esFilaSubtotalEmbebidoHaciaAtras) {
+                // Fase 3A (CLAUDE.md punto 17.6): la fila TOTAL tecnica ya
+                // esta completamente calculada y validada en memoria en
+                // este punto exacto ($currentConcept/$professional/$total/
+                // $values, mismo shape que el $entry de mas abajo) -- se
+                // captura aqui, antes del continue, hacia un array separado
+                // (nunca hacia $data/rem_data). No redefine ni relaja
+                // ninguno de los 3 mecanismos que ya decidieron excluirla;
+                // solo consume el resultado ya calculado arriba.
+                if ($sectionContext !== null) {
+                    $exclusionReason = $esFilaTotalLiderEmbebida
+                        ? 'embedded_leading_total_row'
+                        : ($esFilaTotalFinalEmbebida
+                            ? 'embedded_trailing_total_row'
+                            : 'embedded_backward_subtotal_row');
+
+                    $technicalTotals[] = [
+                        'sheet' => $sheetConfig['sheet_name'],
+                        'rem_section_code' => $sectionContext['code'],
+                        'row_number' => $row,
+                        'concept' => $currentConcept,
+                        'total' => $total,
+                        'values' => $values,
+                        'exclusion_reason' => $exclusionReason,
+                    ];
+                }
                 continue;
             }
 
@@ -629,6 +700,7 @@ class RemParserService
 
         return [
             'data' => $data,
+            'technical_totals' => $technicalTotals,
             'errors' => $errors,
             'rows_processed' => $rowsProcessed,
             'cells_parsed' => $cellsParsed,
@@ -828,6 +900,239 @@ class RemParserService
         }
 
         return null;
+    }
+
+    /**
+     * CLAUDE.md punto 17.48. Resuelve, EXCLUSIVAMENTE para una fila que
+     * findSectionContextForRow() ya devolvio null, si esa fila coincide
+     * EXACTAMENTE con la posicion "un renglon antes" (candidato leading,
+     * data_start_row-1) o "un renglon despues" (candidato trailing,
+     * data_end_row+1) de alguna seccion declarada -- nunca un rango, nunca
+     * una ventana de varias filas, nunca hardcodeado a ninguna hoja/seccion.
+     * NO modifica findSectionContextForRow() ni su semantica, y el resultado
+     * de este metodo NUNCA debe asignarse a $sectionContext ni usarse para
+     * decidir persistencia de dato normal -- ver el unico call-site en
+     * parseSheet(), que lo consume solo dentro de la rama de captura tecnica.
+     * Ambiguedad (una fila que fuera candidata leading de una seccion Y
+     * trailing de otra al mismo tiempo) se rechaza explicitamente -- nunca
+     * observada en datos reales (el hueco minimo real es de 3 filas), pero
+     * el chequeo es defensivo y no asume que nunca ocurrira.
+     */
+    private function findTechnicalSectionContextForRow(array $sectionMap, int $row): ?array
+    {
+        $leadingMatch = null;
+        $trailingMatch = null;
+
+        foreach ($sectionMap as $section) {
+            if ($row === ((int) $section['data_start_row']) - 1) {
+                $leadingMatch = $section;
+            }
+            if ($row === ((int) $section['data_end_row']) + 1) {
+                $trailingMatch = $section;
+            }
+        }
+
+        if ($leadingMatch !== null && $trailingMatch !== null) {
+            return null;
+        }
+
+        if ($leadingMatch !== null) {
+            return array_merge($leadingMatch, ['technical_boundary_type' => 'leading']);
+        }
+
+        if ($trailingMatch !== null) {
+            return array_merge($trailingMatch, ['technical_boundary_type' => 'trailing']);
+        }
+
+        return null;
+    }
+
+    /**
+     * CLAUDE.md punto 17.48. Dado un candidato de frontera ya resuelto por
+     * findTechnicalSectionContextForRow(), exige evidencia real de TOTAL
+     * tecnico ANTES de leer/validar la fila como si fuera dato normal --
+     * reutiliza EXCLUSIVAMENTE los mecanismos #8 (isTrailingTotalRow) y #12
+     * (isEmbeddedBackwardSubtotalRow) ya existentes, sin modificarlos, para
+     * la direccion 'trailing'. Para la direccion 'leading' (candidato de la
+     * regla 461 y similares), el reconocimiento formula-based disenado en el
+     * punto 17.46 de CLAUDE.md NO esta implementado todavia -- se retorna
+     * explicitamente sin confirmar (null), dejando el contexto tecnico
+     * resuelto pero SIN capturar, tal como exige el alcance autorizado de
+     * esta fase. Si no se confirma nada, retorna null y la fila se descarta
+     * en silencio (mismo resultado final que antes de este cambio), sin
+     * haber leido ninguna celda como si fuera un valor de captura real.
+     */
+    private function resolveTechnicalBoundaryCapture(
+        Worksheet $worksheet,
+        string $sheet,
+        array $technicalContext,
+        int $row,
+    ): ?array {
+        $conceptCol = $technicalContext['concept_column'] ?? null;
+        $conceptValue = $conceptCol !== null
+            ? trim((string) ($worksheet->getCell($conceptCol . $row)->getCalculatedValue() ?? ''))
+            : '';
+        $hasConcept = $conceptValue !== '';
+
+        $columnasValor = array_values(array_unique(array_filter(array_merge(
+            $technicalContext['numeric_columns'] ?? [],
+            [
+                $technicalContext['total_column'] ?? null,
+                $technicalContext['professional_column'] ?? null,
+                $technicalContext['subcategory_column'] ?? null,
+                $technicalContext['detail_column'] ?? null,
+            ],
+            $technicalContext['concept_overflow_columns'] ?? [],
+        ))));
+
+        $mechanism6Confirms = false;
+        $confirmed = false;
+
+        if ($technicalContext['technical_boundary_type'] === 'trailing') {
+            $confirmed = $this->isTrailingTotalRow(
+                $sheet,
+                $technicalContext['code'],
+                $row,
+                $hasConcept && $this->pareceEtiquetaTotal($conceptValue),
+                $columnasValor,
+                (int) $technicalContext['data_start_row'],
+            ) || $this->isEmbeddedBackwardSubtotalRow(
+                $sheet,
+                $technicalContext['code'],
+                $row,
+                $conceptCol,
+                $columnasValor,
+                (int) $technicalContext['data_start_row'],
+            );
+        } elseif ($technicalContext['technical_boundary_type'] === 'leading') {
+            // CLAUDE.md punto 17.49: la direccion leading combina, exactamente
+            // igual que la trailing combina #8/#12, DOS mecanismos
+            // independientes -- #6 (isEmbeddedLeadingTotalRow, sin modificar,
+            // exige etiqueta textual: cubre patrones como A30/A,C,D,E) y el
+            // NUEVO mecanismo hermano isLeadingFormulaBasedTotalBeyondBounds()
+            // (sin etiqueta, evidencia puramente de formula: cubre el patron
+            // de la regla 461). Ninguno de los dos se modifica para lograr
+            // esto -- ambos se invocan tal cual, sin alterar su semantica.
+            $mechanism6Confirms = $this->isEmbeddedLeadingTotalRow(
+                $sheet,
+                $technicalContext['code'],
+                $row,
+                $hasConcept && $this->pareceEtiquetaTotal($conceptValue),
+                $columnasValor,
+            );
+
+            $confirmed = $mechanism6Confirms || $this->isLeadingFormulaBasedTotalBeyondBounds(
+                $sheet,
+                $technicalContext['code'],
+                $row,
+                $columnasValor,
+                (int) $technicalContext['data_start_row'],
+                (int) $technicalContext['data_end_row'],
+            );
+        }
+
+        if (!$confirmed) {
+            return null;
+        }
+
+        $totalCol = $technicalContext['total_column'] ?? null;
+        $totalRaw = $totalCol !== null ? $worksheet->getCell($totalCol . $row)->getCalculatedValue() : null;
+        $total = is_numeric($totalRaw) ? (int) $totalRaw : null;
+
+        $values = [];
+        foreach ($columnasValor as $col) {
+            $raw = $worksheet->getCell($col . $row)->getCalculatedValue();
+            $values[$col] = is_numeric($raw) ? (int) $raw : null;
+        }
+        if ($totalCol !== null) {
+            $values[$totalCol] = $total;
+        }
+
+        $exclusionReason = match (true) {
+            $technicalContext['technical_boundary_type'] === 'trailing' => 'trailing_total_beyond_bounds',
+            $mechanism6Confirms => 'embedded_leading_total_row',
+            default => 'leading_formula_total_beyond_bounds',
+        };
+
+        return [
+            'sheet' => $sheet,
+            'rem_section_code' => $technicalContext['code'],
+            'row_number' => $row,
+            'concept' => $hasConcept ? $conceptValue : null,
+            'total' => $total,
+            'values' => $values,
+            'exclusion_reason' => $exclusionReason,
+        ];
+    }
+
+    /**
+     * CLAUDE.md punto 17.49. Mecanismo HERMANO de isEmbeddedLeadingTotalRow()
+     * (#6) -- NUNCA modifica su semantica ni la reemplaza (metodo
+     * completamente independiente, invocado solo desde
+     * resolveTechnicalBoundaryCapture() para la direccion 'leading'). A
+     * diferencia de #6 (que exige una etiqueta textual "TOTAL"/"AMBOS
+     * SEXOS" propia de la fila), este metodo exige exclusivamente evidencia
+     * de formula: al menos una columna de la seccion, en la fila candidata
+     * (SIEMPRE $sectionStartRow-1, verificado explicitamente aqui aunque el
+     * llamador ya lo garantiza), tiene una formula que cubre EXACTA y
+     * CONTIGUAMENTE [$sectionStartRow:$sectionEndRow] de la propia seccion,
+     * sin huecos y sin referencias a otra columna
+     * (FormulaRangeCoverageAnalyzer::isCompleteContiguous(), reutilizado
+     * sin duplicar heuristica). Ninguna columna de la fila puede ser
+     * genuinamente capturable (es_editable && !esta_bloqueada) -- misma
+     * negativa que #6/#12. Nunca hardcodea hoja/seccion/fila/columna.
+     * Copia independiente de SectionCalibrationMatrixService::isLeadingFormulaBasedTotalBeyondBounds()
+     * (mismo patron de duplicacion deliberada ya usado para #6/#8/#12 entre
+     * parser y clasificador/calibracion, nunca compartido).
+     */
+    private function isLeadingFormulaBasedTotalBeyondBounds(
+        string $sheet,
+        string $section,
+        int $row,
+        array $columnasValor,
+        int $sectionStartRow,
+        int $sectionEndRow,
+    ): bool {
+        if ($row !== $sectionStartRow - 1) {
+            return false;
+        }
+
+        if (!$this->cellDataStorage->hasCellData($sheet, $section)) {
+            return false;
+        }
+
+        $tieneEvidenciaCompleta = false;
+        foreach ($columnasValor as $columna) {
+            if ($columna === null || $columna === '') {
+                continue;
+            }
+
+            $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
+            if ($cell === null) {
+                continue;
+            }
+
+            $esFormula = ($cell['es_formula'] ?? false) === true;
+            if (!$esFormula) {
+                $esCapturableReal = ($cell['es_editable'] ?? false) === true
+                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                if ($esCapturableReal) {
+                    return false;
+                }
+                continue;
+            }
+
+            $formulaTexto = (string) ($cell['formula'] ?? '');
+            if ($formulaTexto === '') {
+                continue;
+            }
+
+            if (FormulaRangeCoverageAnalyzer::isCompleteContiguous($formulaTexto, $columna, $sectionStartRow, $sectionEndRow)) {
+                $tieneEvidenciaCompleta = true;
+            }
+        }
+
+        return $tieneEvidenciaCompleta;
     }
 
     /**
@@ -1064,6 +1369,18 @@ class RemParserService
             $columnasValor,
         )))));
 
+        // 2026-08-28 (implementacion del fix de merge, puntos 17.26-17.29):
+        // si la celda propia esta vacia pero pertenece a una fusion VERTICAL
+        // real (es_combinada=true, rango_combinado multi-fila misma
+        // columna), se resuelve la etiqueta desde la celda ANCLA -- SOLO
+        // como evidencia POSITIVA adicional (si el ancla dice TOTAL, esta
+        // columna pasa a ser el concepto). Si el ancla no es resolvible o su
+        // etiqueta NO es TOTAL, la columna se trata exactamente como una
+        // celda vacia normal (`continue`), NUNCA como rechazo definitivo --
+        // ver el mismo hallazgo/correccion documentado en
+        // SectionCalibrationMatrixService::isEmbeddedBackwardSubtotalRow()
+        // (A33/C fila 56, reglas 545/546: un merge irrelevante en otra
+        // columna no debe bloquear la busqueda de la etiqueta real).
         $columnaConcepto = null;
         foreach ($columnasOrdenadas as $columna) {
             $cell = $this->cellDataStorage->getCellForCoordinate($sheet, $section, $columna . $row);
@@ -1071,9 +1388,18 @@ class RemParserService
                 continue;
             }
             $valorBruto = $cell['valor_bruto'] ?? null;
-            if ($valorBruto === null || trim((string) $valorBruto) === '') {
-                continue;
+            $esVacio = $valorBruto === null || trim((string) $valorBruto) === '';
+
+            if ($esVacio) {
+                $anchor = $this->mergeAnchorResolver->resolveVerticalMergeAnchor($sheet, $section, $cell);
+                if ($anchor === null || ($anchor['es_formula'] ?? false) === true || !$this->pareceEtiquetaTotal((string) ($anchor['valor_bruto'] ?? ''))) {
+                    continue;
+                }
+
+                $columnaConcepto = $columna;
+                break;
             }
+
             if (($cell['es_formula'] ?? false) === true) {
                 continue;
             }

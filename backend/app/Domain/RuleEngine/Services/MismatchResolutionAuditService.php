@@ -57,13 +57,34 @@ class MismatchResolutionAuditService
     public const CATEGORY_STRUCTURAL_ROW_EXCLUSION = 'structural_row_exclusion';
 
     /**
-     * Unico valor valido de 'exclusion_mechanism' para tags
-     * structural_row_exclusion -- constante compartida entre
-     * RuleTagMismatchResolutionCommand (quien la escribe al crear el tag) y
-     * CalibrationViewController::confirmMismatchResolution() (quien la
+     * Valores validos de 'exclusion_mechanism' para tags
+     * structural_row_exclusion -- constantes compartidas entre
+     * RuleTagMismatchResolutionCommand (quien las escribe al crear el tag) y
+     * CalibrationViewController::confirmMismatchResolution() (quien las
      * revalida antes de escribir), para no duplicar el string magico.
      */
     public const EXCLUSION_MECHANISM_EMBEDDED_LEADING_TOTAL = 'embedded_leading_total_mecanismo_6';
+
+    /**
+     * Mecanismo #12 (subtotal embebido hacia atras,
+     * SectionCalibrationMatrixService::isEmbeddedBackwardSubtotalRow()) --
+     * hermana de la constante de arriba, agregada 2026-08-28 tras la
+     * auditoria SAFE_TO_EXTEND_STRUCTURAL_ROW_EXCLUSION_TO_12. Este servicio
+     * (setTag()) ya era agnostico al valor de exclusionMechanism antes de
+     * este cambio -- la validacion de "cual mecanismo es valido" vive
+     * exclusivamente en el comando/controlador, nunca aqui.
+     */
+    public const EXCLUSION_MECHANISM_EMBEDDED_BACKWARD_SUBTOTAL = 'embedded_backward_subtotal_mecanismo_12';
+
+    /**
+     * Lista cerrada de mecanismos estructurales soportados por
+     * structural_row_exclusion -- unica fuente de verdad para el comando y
+     * el controlador, evita que cada uno mantenga su propia lista.
+     */
+    public const ALLOWED_EXCLUSION_MECHANISMS = [
+        self::EXCLUSION_MECHANISM_EMBEDDED_LEADING_TOTAL,
+        self::EXCLUSION_MECHANISM_EMBEDDED_BACKWARD_SUBTOTAL,
+    ];
 
     public const ALLOWED_CATEGORIES = [
         self::CATEGORY_SAFE_RECONFIRM,

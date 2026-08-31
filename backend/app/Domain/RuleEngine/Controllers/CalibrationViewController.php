@@ -485,17 +485,29 @@ class CalibrationViewController extends Controller
         // fresco): existencia y completitud de los 4 campos nuevos del tag,
         // identidad historica sin cambios desde la auditoria, union exacta
         // filas_vivas+excluidas=historicas, sin filas adicionales, y CADA
-        // fila excluida reverificada contra isEmbeddedLeadingTotalRow() en
-        // vivo (nunca se asume que seguir ausente del conjunto vivo implica
-        // que sigue siendo un TOTAL lider legitimo).
+        // fila excluida reverificada EN VIVO contra el mecanismo que el tag
+        // dice haber usado (nunca se asume que seguir ausente del conjunto
+        // vivo implica que sigue siendo un TOTAL/subtotal legitimo).
+        //
+        // 2026-08-28 (SAFE_TO_EXTEND_STRUCTURAL_ROW_EXCLUSION_TO_12):
+        // $tagMechanism ahora puede ser CUALQUIERA de los 2 mecanismos
+        // soportados (ALLOWED_EXCLUSION_MECHANISMS) -- el valor exacto
+        // guardado en el tag (creado por RuleTagMismatchResolutionCommand,
+        // que ya garantiza que las filas excluidas resuelven todas al MISMO
+        // mecanismo) determina cual metodo del scanner se usa para la
+        // re-verificacion mas abajo.
         $tagHistoricalRows = $tag['historical_rows'] ?? null;
         $tagExcludedRows = $tag['excluded_total_rows'] ?? null;
         $tagMechanism = $tag['exclusion_mechanism'] ?? null;
 
-        if ($tagHistoricalRows === null || empty($tagExcludedRows) || $tagMechanism !== MismatchResolutionAuditService::EXCLUSION_MECHANISM_EMBEDDED_LEADING_TOTAL) {
+        if (
+            $tagHistoricalRows === null
+            || empty($tagExcludedRows)
+            || ! in_array($tagMechanism, MismatchResolutionAuditService::ALLOWED_EXCLUSION_MECHANISMS, true)
+        ) {
             return response()->json([
                 'data' => null,
-                'message' => 'El tag de exclusión estructural está incompleto (falta historical_rows, excluded_total_rows, o el mecanismo no es el esperado) -- no puede confirmarse.',
+                'message' => 'El tag de exclusión estructural está incompleto (falta historical_rows, excluded_total_rows, o el mecanismo no es uno de los soportados) -- no puede confirmarse.',
                 'errors' => ['incomplete_structural_exclusion_tag'],
             ], 409);
         }
@@ -548,11 +560,24 @@ class CalibrationViewController extends Controller
             ], 409);
         }
 
+        // Etiquetas EXACTAS preservadas para mecanismo #6 (regresion
+        // existente, StructuralRowExclusionConfirmTest::
+        // test_valid_structural_exclusion_tag_is_confirmed espera el
+        // mensaje de exito literal completo) -- mecanismo #12 usa el mismo
+        // formato de frase, sustituyendo unicamente el nombre del mecanismo.
+        $isMechanism12 = $tagMechanism === MismatchResolutionAuditService::EXCLUSION_MECHANISM_EMBEDDED_BACKWARD_SUBTOTAL;
+        $mechanismLabel = $isMechanism12 ? 'mecanismo #12' : 'mecanismo #6';
+        $exclusionKindLabel = $isMechanism12 ? 'subtotal embebido hacia atrás' : 'fila TOTAL líder';
+
         foreach ($sortedTagExcluded as $excludedRow) {
-            if (! $scanner->isEmbeddedLeadingTotalRow($sheet, $section, $excludedRow, $sectionDecl)) {
+            $cumpleMecanismo = $tagMechanism === MismatchResolutionAuditService::EXCLUSION_MECHANISM_EMBEDDED_BACKWARD_SUBTOTAL
+                ? $scanner->isEmbeddedBackwardSubtotalRow($sheet, $section, $excludedRow, $sectionDecl)
+                : $scanner->isEmbeddedLeadingTotalRow($sheet, $section, $excludedRow, $sectionDecl);
+
+            if (! $cumpleMecanismo) {
                 return response()->json([
                     'data' => null,
-                    'message' => "La fila {$excludedRow} ya no cumple el mecanismo #6 (TOTAL líder embebido) verificado en vivo -- no puede confirmarse vía exclusión estructural.",
+                    'message' => "La fila {$excludedRow} ya no cumple el {$mechanismLabel} ({$exclusionKindLabel}) verificado en vivo -- no puede confirmarse vía exclusión estructural.",
                     'errors' => ['structural_exclusion_mismatch'],
                 ], 409);
             }
@@ -577,7 +602,10 @@ class CalibrationViewController extends Controller
 
         return response()->json([
             'data' => ['questions' => $updated],
-            'message' => 'MISMATCH resuelto (exclusión estructural de fila TOTAL líder, mecanismo #6).',
+            // Texto EXACTO preservado para #6 ("... de fila TOTAL líder,
+            // mecanismo #6.") -- StructuralRowExclusionConfirmTest lo
+            // afirma literal; #12 usa la misma forma de frase.
+            'message' => "MISMATCH resuelto (exclusión estructural de {$exclusionKindLabel}, {$mechanismLabel}).",
             'errors' => null,
         ]);
     }

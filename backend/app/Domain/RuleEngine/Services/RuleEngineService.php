@@ -4,6 +4,7 @@ namespace App\Domain\RuleEngine\Services;
 
 use App\Domain\HealthCenters\Models\HealthCenter;
 use App\Domain\REM\Models\RemData;
+use App\Domain\REM\Models\RemTechnicalTotal;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\REM\Models\RemValidationResult;
 use App\Domain\RemParser\Models\RemTemplateStructure;
@@ -132,6 +133,7 @@ class RuleEngineService
 
         $results = [];
         $cellMetadataCache = [];
+        $sectionBoundsCache = [];
         $rulesProcesadas = 0;
 
         foreach ($rules as $rule) {
@@ -170,11 +172,59 @@ class RuleEngineService
             $totalRow = $this->isVerticalSumEqualsRule($rule->rule_type, $config)
                 ? (isset($config['total_row']) ? (int) $config['total_row'] : null)
                 : null;
+
+            // Fase 3C-3A/3C-3B (CLAUDE.md punto 17.21/17.22): 'source_rows'
+            // -- lista explicita de filas componentes -- solo se consulta
+            // para el mismo flujo vertical estricto que ya protege
+            // 'total_row' arriba (isVerticalSumEqualsRule) -- nunca para
+            // reglas horizontales/per_row, sin importar que el campo este
+            // presente en config. La validacion ESTRICTA (array, enteros
+            // positivos, sin duplicados, dentro de los limites vivos de la
+            // seccion) vive en SumEqualsEvaluator::validateSourceRows() --
+            // aqui solo se decide que filas dejar pasar por el prefiltro
+            // para que el evaluador, ya con $rows completo, pueda validar y
+            // usarlas (o rechazarlas explicitamente, nunca con fallback
+            // silencioso a [row_from:row_to]).
+            $sourceRowsForFilter = ($this->isVerticalSumEqualsRule($rule->rule_type, $config)
+                && isset($config['source_rows'])
+                && is_array($config['source_rows']))
+                ? $config['source_rows']
+                : null;
+
+            if ($sourceRowsForFilter !== null && $sheet !== null) {
+                $boundsCacheKey = strtolower($sheet) . '_' . strtolower($section ?? '');
+                if (!array_key_exists($boundsCacheKey, $sectionBoundsCache)) {
+                    $sectionBoundsCache[$boundsCacheKey] = $this->findSectionBounds($structure, $sheet, $section ?? '');
+                }
+                $config['_section_bounds'] = $sectionBoundsCache[$boundsCacheKey];
+            }
+
             if ($rowFrom !== null) {
                 $rows = $rows->filter(fn($rd) => (
                     ($rd->data['row_number'] >= $rowFrom && $rd->data['row_number'] <= $rowTo)
                     || ($totalRow !== null && (int) $rd->data['row_number'] === $totalRow)
+                    || ($sourceRowsForFilter !== null && in_array((int) $rd->data['row_number'], $sourceRowsForFilter, true))
                 ));
+            }
+
+            // Fase 3B -- PILOTO (CLAUDE.md punto 17.8): si la regla es un
+            // sum_equals vertical genuino con total_row configurado, y esa
+            // fila TOTAL no llego a persistirse en rem_data para ESTA carga
+            // (excluida por mecanismo #6/#8/#11/#12, ver deuda tecnica #5),
+            // se busca en rem_technical_totals (Fase 3A) -- nunca al reves.
+            // rem_data sigue siendo la UNICA fuente para filas normales; esta
+            // consulta solo se activa para esta combinacion exacta y nunca
+            // sustituye una fila que ya vino de rem_data. Sin fallback
+            // silencioso: si tampoco existe en rem_technical_totals (carga
+            // historica anterior a Fase 3A, o la fila realmente no se pudo
+            // calcular), $rows sigue sin la fila total y el evaluador cae en
+            // su comportamiento ya existente y testeado (missing_total_row,
+            // skip/fail_open) -- ningun valor se inventa.
+            if ($totalRow !== null && !$rows->contains(fn($rd) => (int) ($rd->data['row_number'] ?? null) === $totalRow)) {
+                $technicalRow = $this->findTechnicalTotalRow($uploadId, $sheet, $section, $totalRow);
+                if ($technicalRow !== null) {
+                    $rows->push($technicalRow);
+                }
             }
 
             // ── Step 1: Filter functional rules to only include approved decisions ──
@@ -464,6 +514,85 @@ class RuleEngineService
             && strtoupper((string) $sourceLetters[0]) === strtoupper((string) $targetColumn);
     }
 
+    /**
+     * Fase 3C-3A/3C-3B (CLAUDE.md punto 17.21/17.22). Resuelve los limites
+     * vivos (filaInicioDatos/filaFinDatos) de una seccion contra la
+     * estructura activa recibida por execute() -- usado exclusivamente para
+     * inyectar '_section_bounds' en config cuando una regla trae
+     * 'source_rows', de forma que SumEqualsEvaluator::validateSourceRows()
+     * pueda rechazar filas fuera de la seccion "cuando esa informacion este
+     * disponible" (instruccion explicita). Devuelve null si la seccion no
+     * se encuentra (el guard de limites simplemente no se aplica en ese
+     * caso -- el resto de guards de source_rows si). Solo lectura.
+     */
+    private function findSectionBounds(RemTemplateStructure $structure, string $sheet, string $section): ?array
+    {
+        $est = is_string($structure->estructura) ? json_decode($structure->estructura, true) : $structure->estructura;
+        if (!is_array($est)) {
+            return null;
+        }
+
+        foreach ($est['forms'] ?? [] as $form) {
+            if (strtoupper((string) ($form['sheetName'] ?? '')) !== strtoupper($sheet)) {
+                continue;
+            }
+            foreach ($form['sections'] ?? [] as $sec) {
+                if (strtoupper((string) ($sec['codigo'] ?? '')) === strtoupper($section)) {
+                    $inicio = $sec['filaInicioDatos'] ?? null;
+                    $fin = $sec['filaFinDatos'] ?? null;
+                    if ($inicio === null || $fin === null) {
+                        return null;
+                    }
+
+                    return ['inicio' => (int) $inicio, 'fin' => (int) $fin];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Fase 3B -- PILOTO (CLAUDE.md punto 17.8). Busca, para ESTA carga
+     * especifica, el valor tecnico capturado por Fase 3A para una fila
+     * TOTAL excluida de rem_data. Devuelve un RemData NO persistido (mismo
+     * shape que uno real: ->data['row_number'|'values'|'concept'|'total'],
+     * ->id=null) para que SumEqualsEvaluator lo consuma sin cambios -- o
+     * null si no existe (carga anterior a Fase 3A, o fila sin capturar).
+     * Nunca escribe nada; solo lectura.
+     */
+    private function findTechnicalTotalRow(int $uploadId, ?string $sheet, ?string $section, int $rowNumber): ?RemData
+    {
+        if ($sheet === null || $section === null || $section === '') {
+            return null;
+        }
+
+        $technical = RemTechnicalTotal::where('rem_upload_id', $uploadId)
+            ->where('sheet', $sheet)
+            ->where('rem_section_code', $section)
+            ->where('row_number', $rowNumber)
+            ->first();
+
+        if ($technical === null) {
+            return null;
+        }
+
+        $synthetic = new RemData();
+        $synthetic->rem_upload_id = $uploadId;
+        $synthetic->section = $sheet;
+        $synthetic->data = [
+            'row_number' => $technical->row_number,
+            'concept' => $technical->concept,
+            'total' => $technical->total,
+            'values' => $technical->values,
+            'rem_section_code' => $technical->rem_section_code,
+            '_source' => 'rem_technical_totals',
+            '_exclusion_reason' => $technical->exclusion_reason,
+        ];
+
+        return $synthetic;
+    }
+
     private function writeExecutionLog(
         Rule $rule,
         int $uploadId,
@@ -494,7 +623,10 @@ class RuleEngineService
 
     private function determineStatus(RuleEvaluationResult $result): string
     {
-        $skipReasons = ['invalid_config', 'invalid_row_range_configuration', 'missing_total_row', 'empty_range', 'filtered_by_functional_rule'];
+        // 'invalid_source_rows_configuration' agregado en Fase 3C-3A/3C-3B
+        // (CLAUDE.md punto 17.21/17.22) -- mismo tratamiento que
+        // 'invalid_row_range_configuration', al que espeja el shape.
+        $skipReasons = ['invalid_config', 'invalid_row_range_configuration', 'invalid_source_rows_configuration', 'missing_total_row', 'empty_range', 'filtered_by_functional_rule'];
         if (in_array($result->reason, $skipReasons, true)) {
             return 'skipped';
         }

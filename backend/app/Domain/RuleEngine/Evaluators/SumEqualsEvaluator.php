@@ -90,6 +90,43 @@ class SumEqualsEvaluator implements RuleEvaluatorInterface
 
         $totalRowNumber = (int) $totalRowNumber;
 
+        // Fase 3C-3A/3C-3B (CLAUDE.md punto 17.21/17.22): soporte aditivo para
+        // 'source_rows' -- lista explicita de filas componentes que REEMPLAZA
+        // la iteracion implicita de [row_from:row_to] cuando esta presente.
+        // Diseno: B1 (filas dispersas dentro de un bloque) y B4 (rango
+        // contiguo + termino externo) se resuelven con el mismo mecanismo --
+        // "sumar exactamente esta lista", sin distincion de subfamilia aqui.
+        // Ausente (comportamiento de las ~497 reglas restantes): $sourceRows
+        // queda null, el `elseif` de abajo es SIEMPRE verdadero para toda
+        // fila no-total -- IDENTICO al comportamiento previo a este cambio,
+        // por construccion (nunca por prueba empirica unicamente).
+        $sourceRowsError = null;
+        $sourceRows = null;
+        if (array_key_exists('source_rows', $config)) {
+            $sourceRowsError = $this->validateSourceRows($config['source_rows'], $config['_section_bounds'] ?? null);
+            if ($sourceRowsError === null) {
+                $sourceRows = array_map('intval', $config['source_rows']);
+            }
+        }
+
+        if ($sourceRowsError !== null) {
+            return new RuleEvaluationResult(
+                ruleKey: $ruleKey,
+                totalRows: $rows->count(),
+                failedRows: 0,
+                details: [[
+                    'reason' => 'invalid_source_rows_configuration',
+                    'rule_key' => $ruleKey,
+                    'source_letters' => [$column],
+                    'target_column' => $targetColumn,
+                    'source_rows' => $config['source_rows'] ?? null,
+                    'message' => "Campo 'source_rows' invalido en config: {$sourceRowsError}",
+                ]],
+                skippedRows: $rows->count(),
+                reason: 'invalid_source_rows_configuration',
+            );
+        }
+
         if ($rows->isEmpty()) {
             return new RuleEvaluationResult(
                 ruleKey: $ruleKey,
@@ -108,9 +145,15 @@ class SumEqualsEvaluator implements RuleEvaluatorInterface
             $rn = (int) ($rd->data['row_number'] ?? 0);
             if ($rn === $totalRowNumber) {
                 $totalRow = $rd;
-            } else {
+            } elseif ($sourceRows === null || in_array($rn, $sourceRows, true)) {
                 $componentRows[] = $rd;
             }
+            // else: fila presente en $rows (dejada pasar por el prefiltro,
+            // ej. un termino externo de OTRA regla en la misma seccion) pero
+            // fuera de source_rows -- se descarta deliberadamente, nunca se
+            // suma. Esto es lo que permite a B1 ignorar las filas-hueco
+            // (151,152,154,156) que caen dentro del envolvente de row_range
+            // pero no son componentes reales.
         }
 
         if ($totalRow === null) {
@@ -242,6 +285,54 @@ class SumEqualsEvaluator implements RuleEvaluatorInterface
             skippedRows: 0,
             reason: 'failed',
         );
+    }
+
+    /**
+     * Fase 3C-3A/3C-3B (CLAUDE.md punto 17.21/17.22). Valida 'source_rows'
+     * ANTES de usarlo -- nunca se usa un valor parcialmente invalido, nunca
+     * hay fallback silencioso a [row_from:row_to] si algo falla (eso
+     * arrastraria filas-hueco reales, ver B1). Devuelve null si es valido,
+     * o un mensaje de error si no.
+     *
+     * $sectionBounds es opcional (['inicio'=>int,'fin'=>int]|null) -- lo
+     * inyecta RuleEngineService::execute() solo cuando pudo resolver los
+     * limites vivos de la seccion contra la estructura activa; si no esta
+     * disponible, ese guard especifico simplemente no se aplica (el resto
+     * de guards sí, siempre).
+     */
+    private function validateSourceRows(mixed $sourceRows, ?array $sectionBounds): ?string
+    {
+        if (!is_array($sourceRows)) {
+            return 'debe ser un array.';
+        }
+
+        if (empty($sourceRows)) {
+            return 'no puede ser un array vacio.';
+        }
+
+        foreach ($sourceRows as $v) {
+            if (!is_int($v) || $v <= 0) {
+                return 'todos los elementos deben ser enteros positivos (encontrado: ' . get_debug_type($v) . ' ' . json_encode($v) . ').';
+            }
+        }
+
+        if (count($sourceRows) !== count(array_unique($sourceRows))) {
+            return 'no puede contener filas duplicadas.';
+        }
+
+        if ($sectionBounds !== null) {
+            $inicio = $sectionBounds['inicio'] ?? null;
+            $fin = $sectionBounds['fin'] ?? null;
+            if ($inicio !== null && $fin !== null) {
+                foreach ($sourceRows as $v) {
+                    if ($v < $inicio || $v > $fin) {
+                        return "la fila {$v} cae fuera del rango vivo de la seccion [{$inicio}:{$fin}].";
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 
     private function evaluatePerRow(
