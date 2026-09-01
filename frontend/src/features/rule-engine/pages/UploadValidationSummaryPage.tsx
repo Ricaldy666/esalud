@@ -4,7 +4,8 @@ import { useValidationSummary } from '../hooks/useValidationSummary'
 import { ComplianceCard } from '../components/ComplianceCard'
 import { FormBreakdownTable } from '../components/FormBreakdownTable'
 import { SeverityBadge } from '../components/SeverityBadge'
-import { ArrowLeft, CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, XCircle, RefreshCw } from 'lucide-react'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 const statusLabel = (s: string): string => {
   const map: Record<string, string> = {
@@ -52,38 +53,11 @@ const UploadValidationSummaryPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-slate-500">
-        <button
-          onClick={() => navigate('/rem-uploads')}
-          className="hover:text-slate-700 transition-colors"
-        >
-          Cargas REM
-        </button>
-        <span>/</span>
-        <span className="text-slate-700 font-medium">Archivo #{uploadId}</span>
-        <span>/</span>
-        <span className="text-slate-700">Validación</span>
-      </nav>
-
-      {/* Header with back button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/rem-uploads')}
-            className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-            title="Volver a Cargas REM"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Validación REM</h1>
-            <p className="text-sm text-slate-500">
-              {data.upload.serie} · {data.upload.periodo} · {data.upload.centro}
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Validación REM"
+        description={`${data.upload.serie} · ${data.upload.periodo} · ${data.upload.centro}`}
+        breadcrumb={[{ label: 'Cargas REM', onClick: () => navigate('/rem-uploads') }]}
+      />
 
       {/* Status banner */}
       <div className={`rounded-lg border p-4 ${statusBannerStyle}`}>
@@ -154,7 +128,7 @@ const UploadValidationSummaryPage: React.FC = () => {
       </div>
 
       {data.por_severidad.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-700 mb-3">Errores por severidad</h2>
           <div className="flex gap-4">
             {data.por_severidad.map((s) => (
@@ -168,7 +142,7 @@ const UploadValidationSummaryPage: React.FC = () => {
       )}
 
       {data.por_formulario.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-700">Desglose por formulario</h2>
             {data.failed > 0 && (

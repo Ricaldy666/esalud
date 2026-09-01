@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Download, Table as TableIcon, Grid3X3, LayoutGrid } from 'lucide-react'
+import { Download, Table as TableIcon, Grid3X3, LayoutGrid } from 'lucide-react'
+import { PageHeader } from '@/shared/components/PageHeader'
 import { functionalRuleService } from '../services/functional-rule'
 import { useCalibrationMatrix } from '../hooks/useCalibrationMatrix'
 import { SectionRulesTable } from '../components/SectionRulesTable'
@@ -53,35 +54,26 @@ export default function RuleSectionPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/rule-engine/catalog')}
-            className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
+      <PageHeader
+        title={
+          <>
+            <span className="font-mono text-indigo-600">{sheet}</span>
+            <span className="mx-1 text-slate-400">/</span>
+            <span className="font-mono">Sección {section}</span>
+          </>
+        }
+        description={data?.section?.titulo}
+        breadcrumb={[{ label: 'Catálogo', onClick: () => navigate('/rule-engine/catalog') }]}
+        actions={
+          <a
+            href={functionalRuleService.getSectionExportUrl(sheet ?? 'A01', section ?? 'A')}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Catálogo
-          </button>
-          <span className="text-slate-300 text-sm">/</span>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">
-              <span className="font-mono text-indigo-600">{sheet}</span>
-              <span className="text-slate-400 mx-1">/</span>
-              <span className="font-mono">Sección {section}</span>
-            </h1>
-            {data?.section?.titulo && (
-              <p className="text-sm text-slate-500">{data.section.titulo}</p>
-            )}
-          </div>
-        </div>
-        <a
-          href={functionalRuleService.getSectionExportUrl(sheet ?? 'A01', section ?? 'A')}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-        >
-          <Download className="w-4 h-4" />
-          Exportar sección
-        </a>
-      </div>
+            <Download className="w-4 h-4" />
+            Exportar sección
+          </a>
+        }
+      />
 
       <div className="flex gap-1 border-b border-slate-200">
         <TabButton active={tab === 'rules'} onClick={() => setTab('rules')}>

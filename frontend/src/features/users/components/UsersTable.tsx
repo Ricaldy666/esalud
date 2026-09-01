@@ -15,15 +15,11 @@ const ROLE_BADGE_STYLES: Record<string, string> = {
 }
 const DEFAULT_ROLE_BADGE_STYLE = 'bg-slate-100 text-slate-600 border-slate-200'
 
-// El componente <TableHead> compartido no define un color de fondo propio
-// (depende de tokens shadcn que no existen en este proyecto). Este wrapper
-// dibuja el fondo gris del encabezado dentro de la celda sin tocar ese
-// componente compartido -- ver diagnostico entregado al usuario.
+// El fondo del encabezado ya lo aporta TableHeader (compartido). Este wrapper
+// solo controla alineacion/centrado por columna (ej. Estado y Acciones).
 function HeaderCell({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div
-      className={`-mx-2 flex h-10 items-center bg-slate-50 px-2 text-xs font-semibold text-slate-600 ${className}`}
-    >
+    <div className={`flex h-10 items-center text-xs font-semibold text-slate-600 ${className}`}>
       {children}
     </div>
   )

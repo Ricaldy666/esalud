@@ -36,7 +36,7 @@ export const ExecutiveSummaryCard: React.FC<Props> = ({
   const statusStyle = formStatus ? statusConfig[formStatus] : null
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+    <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
           {formFilter ? `Resumen de ${formFilter}` : 'Resumen de validación'}

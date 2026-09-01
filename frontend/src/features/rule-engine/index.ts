@@ -14,8 +14,6 @@ export { default as UploadValidationErrorsPage } from './pages/UploadValidationE
 export { default as RuleCatalogPage } from './pages/RuleCatalogPage'
 export { default as RuleCertificationDetailPage } from './pages/RuleCertificationDetailPage'
 export { default as RuleSectionPage } from './pages/RuleSectionPage'
-export { default as CriteriosFuncionalesPage } from './pages/CriteriosFuncionalesPage'
-export { default as SeccionRevisionPage } from './pages/SeccionRevisionPage'
 export { default as CalibrationDashboardPage } from './pages/CalibrationDashboardPage'
 export { default as CalibrationTemplatePage } from './pages/CalibrationTemplatePage'
 export { default as CalibrationSeriesPage } from './pages/CalibrationSeriesPage'

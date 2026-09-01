@@ -1,4 +1,7 @@
-﻿import type { ComparisonDiff } from '../types/comparison'
+﻿import { useMemo } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
+import { DataTable } from '@/shared/components/DataTable'
+import type { ComparisonDiff } from '../types/comparison'
 import { getStatusLabel, getSeverityLabel, getComparisonStatusLabel } from '../utils/labels'
 
 const STATUS_MATCH_STYLES: Record<string, string> = {
@@ -7,6 +10,118 @@ const STATUS_MATCH_STYLES: Record<string, string> = {
 }
 
 export function ComparisonDiffTable({ differences }: { differences: ComparisonDiff[] }) {
+  const columns = useMemo<ColumnDef<ComparisonDiff>[]>(
+    () => [
+      {
+        header: 'Formulario',
+        accessorKey: 'sheet',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-slate-700">{row.original.sheet}</span>
+        ),
+      },
+      {
+        header: 'Sección',
+        accessorKey: 'section',
+        cell: ({ row }) => <span className="text-xs text-slate-600">{row.original.section}</span>,
+      },
+      {
+        header: 'Código de Regla',
+        accessorKey: 'new_key',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-slate-900">{row.original.new_key}</span>
+        ),
+      },
+      {
+        header: 'Tipo',
+        accessorKey: 'tipo',
+        cell: ({ row }) => <span className="text-xs text-slate-600">{row.original.tipo}</span>,
+      },
+      {
+        header: 'Nivel de importancia',
+        id: 'severity',
+        cell: ({ row }) => (
+          <span
+            className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
+              row.original.severity === 'error'
+                ? 'bg-rose-50 text-rose-600 border-rose-200'
+                : row.original.severity === 'warning'
+                  ? 'bg-amber-50 text-amber-600 border-amber-200'
+                  : 'bg-slate-50 text-slate-500 border-slate-200'
+            }`}
+          >
+            {getSeverityLabel(row.original.severity)}
+          </span>
+        ),
+      },
+      {
+        header: 'Anterior',
+        id: 'legacy_status',
+        cell: ({ row }) => (
+          <span
+            className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
+              row.original.legacy.status === 'passed'
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                : row.original.legacy.status === 'failed'
+                  ? 'bg-rose-50 text-rose-600 border-rose-200'
+                  : 'bg-slate-50 text-slate-500 border-slate-200'
+            }`}
+          >
+            {getStatusLabel(row.original.legacy.status)}
+          </span>
+        ),
+      },
+      {
+        header: 'Actual',
+        id: 'engine_status',
+        cell: ({ row }) => (
+          <span
+            className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
+              row.original.engine.status === 'passed'
+                ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                : row.original.engine.status === 'failed'
+                  ? 'bg-rose-50 text-rose-600 border-rose-200'
+                  : 'bg-slate-50 text-slate-500 border-slate-200'
+            }`}
+          >
+            {getStatusLabel(row.original.engine.status)}
+          </span>
+        ),
+      },
+      {
+        header: 'Resultado',
+        id: 'status_match',
+        cell: ({ row }) => (
+          <span
+            className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
+              STATUS_MATCH_STYLES[String(row.original.status_match)]
+            }`}
+          >
+            {getComparisonStatusLabel(String(row.original.status_match))}
+          </span>
+        ),
+      },
+      {
+        header: 'Filas',
+        id: 'rows',
+        cell: ({ row }) => (
+          <span className="text-xs text-slate-700 tabular-nums">
+            {row.original.legacy.total_rows} vs {row.original.engine.total_rows}
+          </span>
+        ),
+      },
+      {
+        header: 'Observaciones',
+        id: 'failed_rows',
+        cell: ({ row }) => (
+          <span className="text-xs text-slate-700 tabular-nums">
+            {row.original.legacy.failed_rows} vs {row.original.engine.failed_rows}
+          </span>
+        ),
+      },
+    ],
+    []
+  )
+
   if (differences.length === 0) return null
 
   return (
@@ -16,91 +131,7 @@ export function ComparisonDiffTable({ differences }: { differences: ComparisonDi
           Diferencias ({differences.length})
         </h3>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500 uppercase">
-              <th className="px-4 py-3 font-medium">Formulario</th>
-              <th className="px-4 py-3 font-medium">Sección</th>
-              <th className="px-4 py-3 font-medium">Código de Regla</th>
-              <th className="px-4 py-3 font-medium">Tipo</th>
-              <th className="px-4 py-3 font-medium">Nivel de importancia</th>
-              <th className="px-4 py-3 font-medium">Anterior</th>
-              <th className="px-4 py-3 font-medium">Actual</th>
-              <th className="px-4 py-3 font-medium">Resultado</th>
-              <th className="px-4 py-3 font-medium">Filas</th>
-              <th className="px-4 py-3 font-medium">Observaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {differences.map((diff, idx) => (
-              <tr
-                key={diff.comp_key ?? idx}
-                className="border-b border-slate-100 hover:bg-slate-50"
-              >
-                <td className="px-4 py-2.5 font-mono text-xs text-slate-700">{diff.sheet}</td>
-                <td className="px-4 py-2.5 text-xs text-slate-600">{diff.section}</td>
-                <td className="px-4 py-2.5 font-mono text-xs text-slate-900">{diff.new_key}</td>
-                <td className="px-4 py-2.5 text-xs text-slate-600">{diff.tipo}</td>
-                <td className="px-4 py-2.5">
-                  <span
-                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
-                      diff.severity === 'error'
-                        ? 'bg-rose-50 text-rose-600 border-rose-200'
-                        : diff.severity === 'warning'
-                          ? 'bg-amber-50 text-amber-600 border-amber-200'
-                          : 'bg-slate-50 text-slate-500 border-slate-200'
-                    }`}
-                  >
-                    {getSeverityLabel(diff.severity)}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5 text-xs">
-                  <span
-                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
-                      diff.legacy.status === 'passed'
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                        : diff.legacy.status === 'failed'
-                          ? 'bg-rose-50 text-rose-600 border-rose-200'
-                          : 'bg-slate-50 text-slate-500 border-slate-200'
-                    }`}
-                  >
-                    {getStatusLabel(diff.legacy.status)}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5 text-xs">
-                  <span
-                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
-                      diff.engine.status === 'passed'
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                        : diff.engine.status === 'failed'
-                          ? 'bg-rose-50 text-rose-600 border-rose-200'
-                          : 'bg-slate-50 text-slate-500 border-slate-200'
-                    }`}
-                  >
-                    {getStatusLabel(diff.engine.status)}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span
-                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${
-                      STATUS_MATCH_STYLES[String(diff.status_match)]
-                    }`}
-                  >
-                    {getComparisonStatusLabel(String(diff.status_match))}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5 text-xs text-slate-700 tabular-nums">
-                  {diff.legacy.total_rows} vs {diff.engine.total_rows}
-                </td>
-                <td className="px-4 py-2.5 text-xs text-slate-700 tabular-nums">
-                  {diff.legacy.failed_rows} vs {diff.engine.failed_rows}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable columns={columns} data={differences} />
     </div>
   )
 }

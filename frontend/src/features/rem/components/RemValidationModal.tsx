@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
 import {
   Dialog,
   DialogContent,
@@ -7,6 +9,7 @@ import {
 } from '@/shared/components/ui/dialog'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { EmptyState } from '@/shared/components/EmptyState'
+import { DataTable } from '@/shared/components/DataTable'
 import { FileSpreadsheet, AlertCircle, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 import { useRemUploadValidation } from '../hooks/useRemUploads'
 import {
@@ -14,6 +17,7 @@ import {
   getUbicacionLabel,
   getDescripcionLabel,
 } from '../utils/validation-display'
+import type { RemValidationResult } from '../types/rem'
 
 interface RemValidationModalProps {
   uploadId: number
@@ -27,6 +31,59 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
   const failedResults = data?.results.filter((r) => !r.passed) ?? []
   const hasBlockingErrors = failedResults.some((r) => (r.severity ?? 'error') === 'error')
   const hasWarningsOnly = failedResults.length > 0 && !hasBlockingErrors
+
+  const errorColumns = useMemo<ColumnDef<RemValidationResult>[]>(
+    () => [
+      {
+        header: 'Archivo Origen',
+        id: 'archivo',
+        cell: () => <span className="text-sm text-slate-700">REM A</span>,
+      },
+      {
+        header: 'Sección / Pestaña',
+        id: 'seccion',
+        cell: ({ row }) => {
+          const severity = row.original.severity ?? 'error'
+          const isError = severity === 'error'
+          return (
+            <span
+              className={`inline-flex items-center gap-1.5 text-sm font-medium ${isError ? 'text-red-600' : 'text-amber-600'}`}
+            >
+              {isError ? (
+                <XCircle className="w-3.5 h-3.5 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              )}
+              {getSeccionLabel(row.original)}
+            </span>
+          )
+        },
+      },
+      {
+        header: 'Ubicación Celda',
+        id: 'ubicacion',
+        cell: ({ row }) => (
+          <span className="text-sm text-slate-600">{getUbicacionLabel(row.original)}</span>
+        ),
+      },
+      {
+        header: 'Inconsistencia Detectada',
+        id: 'descripcion',
+        cell: ({ row }) => {
+          const severity = row.original.severity ?? 'error'
+          const isError = severity === 'error'
+          return (
+            <span
+              className={`block text-sm whitespace-normal ${isError ? 'text-red-700' : 'text-amber-700'}`}
+            >
+              {getDescripcionLabel(row.original)}
+            </span>
+          )
+        },
+      },
+    ],
+    []
+  )
 
   return (
     <Dialog
@@ -108,55 +165,7 @@ export function RemValidationModal({ uploadId, open, onClose }: RemValidationMod
             {/* Tabla de errores */}
             {failedResults.length > 0 && (
               <div className="mt-4 rounded-md border border-slate-200 overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-100 border-b border-slate-200">
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-28">
-                        Archivo Origen
-                      </th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-32">
-                        Sección / Pestaña
-                      </th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide w-36">
-                        Ubicación Celda
-                      </th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase tracking-wide">
-                        Inconsistencia Detectada
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {failedResults.map((result) => {
-                      const severity = result.severity ?? 'error'
-                      const isError = severity === 'error'
-                      return (
-                        <tr key={result.id} className="bg-white hover:bg-slate-50">
-                          <td className="px-4 py-3 text-sm text-slate-700 align-top">REM A</td>
-                          <td className="px-4 py-3 text-sm font-medium align-top">
-                            <span
-                              className={`inline-flex items-center gap-1.5 ${isError ? 'text-red-600' : 'text-amber-600'}`}
-                            >
-                              {isError ? (
-                                <XCircle className="w-3.5 h-3.5 shrink-0" />
-                              ) : (
-                                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                              )}
-                              {getSeccionLabel(result)}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-600 align-top">
-                            {getUbicacionLabel(result)}
-                          </td>
-                          <td
-                            className={`px-4 py-3 text-sm align-top ${isError ? 'text-red-700' : 'text-amber-700'}`}
-                          >
-                            {getDescripcionLabel(result)}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                <DataTable columns={errorColumns} data={failedResults} />
               </div>
             )}
           </>

@@ -1,5 +1,8 @@
-﻿import { useNavigate } from 'react-router-dom'
+﻿import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import type { ColumnDef } from '@tanstack/react-table'
 import { ChevronRight } from 'lucide-react'
+import { DataTable } from '@/shared/components/DataTable'
 import type { CertificationCard } from '../types/certification'
 import type { SectionStats, FunctionalRule } from '../types/functional-rule'
 import { CertificationStatusBadge } from './CertificationStatusBadge'
@@ -19,6 +22,116 @@ export function SectionRulesTable({
 }: SectionRulesTableProps) {
   const navigate = useNavigate()
 
+  const columns = useMemo<ColumnDef<CertificationCard>[]>(
+    () => [
+      {
+        header: 'Estado',
+        id: 'estado',
+        cell: ({ row }) => <CertificationStatusBadge estado={row.original.estado} />,
+      },
+      {
+        header: 'Fila',
+        accessorKey: 'rango_filas',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-slate-500">
+            {row.original.rango_filas ?? '—'}
+          </span>
+        ),
+      },
+      {
+        header: 'Regla',
+        accessorKey: 'rule_key',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs font-medium text-slate-700">
+            {row.original.rule_key}
+          </span>
+        ),
+      },
+      {
+        header: 'Variable',
+        accessorKey: 'description',
+        cell: ({ row }) => (
+          <span className="block max-w-[160px] truncate text-xs text-slate-600">
+            {row.original.description ?? '—'}
+          </span>
+        ),
+      },
+      {
+        header: 'Fórmula técnica',
+        accessorKey: 'formula_interpretada',
+        cell: ({ row }) => (
+          <span className="block max-w-[200px] font-mono text-xs text-slate-700">
+            {row.original.formula_interpretada}
+          </span>
+        ),
+      },
+      {
+        header: 'Columnas origen',
+        accessorKey: 'columnas_origen',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-slate-500">
+            {row.original.columnas_origen.join(', ') || '—'}
+          </span>
+        ),
+      },
+      {
+        header: 'Destino',
+        accessorKey: 'columna_destino',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs font-medium text-slate-700">
+            {row.original.columna_destino ?? '—'}
+          </span>
+        ),
+      },
+      {
+        header: 'Severidad',
+        accessorKey: 'severity',
+        cell: ({ row }) =>
+          row.original.severity && (
+            <span
+              className={`text-xs uppercase tracking-wider ${row.original.severity === 'error' ? 'text-red-500' : 'text-slate-400'}`}
+            >
+              {row.original.severity}
+            </span>
+          ),
+      },
+      {
+        header: 'Aplica a',
+        id: 'applies_to',
+        cell: ({ row }) => {
+          const fr = funcionalRules[row.original.rule_key]
+          return (
+            <span className="block max-w-[120px] truncate text-xs text-slate-500">
+              {fr?.applies_to_types?.join(', ') || '—'}
+            </span>
+          )
+        },
+      },
+      {
+        header: 'Condición funcional',
+        id: 'functional_condition',
+        cell: ({ row }) => {
+          const fr = funcionalRules[row.original.rule_key]
+          return (
+            <span className="block max-w-[160px] truncate text-xs text-slate-500">
+              {fr?.functional_condition || '—'}
+            </span>
+          )
+        },
+      },
+      {
+        id: 'chevron',
+        header: '',
+        cell: () => (
+          <div className="text-right">
+            <ChevronRight className="w-4 h-4 text-slate-300" />
+          </div>
+        ),
+      },
+    ],
+    [funcionalRules]
+  )
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -36,117 +149,15 @@ export function SectionRulesTable({
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Estado
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Fila
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Regla
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Variable
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Fórmula técnica
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Columnas origen
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Destino
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Severidad
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Aplica a
-                </th>
-                <th className="px-3 py-3 text-left font-semibold text-slate-600 text-xs uppercase">
-                  Condición funcional
-                </th>
-                <th className="px-3 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    {Array.from({ length: 11 }).map((_, j) => (
-                      <td key={j} className="px-3 py-2.5">
-                        <div className="h-4 bg-slate-100 rounded animate-pulse" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : cards.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="px-3 py-8 text-center text-sm text-slate-400">
-                    No se encontraron reglas en esta sección.
-                  </td>
-                </tr>
-              ) : (
-                cards.map((card) => {
-                  const fr = funcionalRules[card.rule_key]
-                  return (
-                    <tr
-                      key={card.rule_key}
-                      className="hover:bg-slate-50 transition-colors cursor-pointer"
-                      onClick={() =>
-                        navigate(`/rule-engine/catalog/${encodeURIComponent(card.rule_key)}`)
-                      }
-                    >
-                      <td className="px-3 py-2.5">
-                        <CertificationStatusBadge estado={card.estado} />
-                      </td>
-                      <td className="px-3 py-2.5 font-mono text-xs text-slate-500">
-                        {card.rango_filas ?? '—'}
-                      </td>
-                      <td className="px-3 py-2.5 font-mono text-xs font-medium text-slate-700">
-                        {card.rule_key}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-600 max-w-[160px] truncate">
-                        {card.description ?? '—'}
-                      </td>
-                      <td className="px-3 py-2.5 font-mono text-xs text-slate-700 max-w-[200px]">
-                        {card.formula_interpretada}
-                      </td>
-                      <td className="px-3 py-2.5 font-mono text-xs text-slate-500">
-                        {card.columnas_origen.join(', ') || '—'}
-                      </td>
-                      <td className="px-3 py-2.5 font-mono text-xs font-medium text-slate-700">
-                        {card.columna_destino ?? '—'}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        {card.severity && (
-                          <span
-                            className={`text-xs uppercase tracking-wider ${card.severity === 'error' ? 'text-red-500' : 'text-slate-400'}`}
-                          >
-                            {card.severity}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-500 max-w-[120px] truncate">
-                        {fr?.applies_to_types?.join(', ') || '—'}
-                      </td>
-                      <td className="px-3 py-2.5 text-xs text-slate-500 max-w-[160px] truncate">
-                        {fr?.functional_condition || '—'}
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <ChevronRight className="w-4 h-4 text-slate-300" />
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={cards}
+          loading={loading}
+          emptyMessage="No se encontraron reglas en esta sección."
+          onRowClick={(card) =>
+            navigate(`/rule-engine/catalog/${encodeURIComponent(card.rule_key)}`)
+          }
+        />
       </div>
     </div>
   )

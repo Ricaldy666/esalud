@@ -17,6 +17,7 @@ import {
 import { Code, AlertTriangle, Info, AlertCircle } from 'lucide-react'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { EmptyState } from '@/shared/components/EmptyState'
+import { PageHeader } from '@/shared/components/PageHeader'
 
 const SEVERIDAD_OPTIONS = ['error', 'warning', 'info']
 
@@ -128,20 +129,18 @@ const UploadValidationErrorsPage: React.FC = () => {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">{title}</h1>
-          <p className="text-sm text-slate-500">Upload #{uploadId}</p>
-        </div>
-        <div className="flex items-center gap-3">
+      <PageHeader
+        title={title}
+        description={`Upload #${uploadId}`}
+        actions={
           <Link
             to={`/rule-engine/uploads/${id}/validation-summary`}
             className="text-sm text-indigo-600 hover:text-indigo-800 underline"
           >
             Volver al resumen
           </Link>
-        </div>
-      </div>
+        }
+      />
 
       <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
         <div className="flex flex-wrap gap-4 items-end">
@@ -322,7 +321,7 @@ const UploadValidationErrorsPage: React.FC = () => {
             )}
           </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <ValidationErrorsTable
               errors={visibleErrors}
               groupFunctionalBySection={errorTab === 'funcional'}

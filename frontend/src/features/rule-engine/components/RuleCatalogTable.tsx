@@ -1,5 +1,8 @@
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { ColumnDef } from '@tanstack/react-table'
 import { ChevronRight, Download } from 'lucide-react'
+import { DataTable } from '@/shared/components/DataTable'
 import type { CertificationCard, CatalogStats } from '../types/certification'
 import { CertificationStatusBadge } from './CertificationStatusBadge'
 import { certificationService } from '../services/certification'
@@ -12,6 +15,85 @@ interface RuleCatalogTableProps {
 
 export function RuleCatalogTable({ cards, loading, stats }: RuleCatalogTableProps) {
   const navigate = useNavigate()
+
+  const columns = useMemo<ColumnDef<CertificationCard>[]>(
+    () => [
+      {
+        header: 'Estado',
+        id: 'estado',
+        cell: ({ row }) => <CertificationStatusBadge estado={row.original.estado} />,
+      },
+      {
+        header: 'Regla',
+        accessorKey: 'rule_key',
+        cell: ({ row }) => (
+          <span className="font-mono text-xs font-medium text-slate-700">
+            {row.original.rule_key}
+          </span>
+        ),
+      },
+      {
+        header: 'Hoja',
+        accessorKey: 'hoja',
+        cell: ({ row }) => (
+          <span className="font-mono font-semibold text-indigo-600">{row.original.hoja}</span>
+        ),
+      },
+      {
+        header: 'Sección',
+        accessorKey: 'seccion',
+        cell: ({ row }) => <span className="text-xs text-slate-500">{row.original.seccion}</span>,
+      },
+      {
+        header: 'Tipo',
+        accessorKey: 'rule_type',
+        cell: ({ row }) => (
+          <span
+            className={`inline-block rounded px-1.5 py-0.5 text-xs font-medium ${
+              row.original.rule_type === 'sum_equals'
+                ? 'text-amber-600 bg-amber-50'
+                : 'text-rose-600 bg-rose-50'
+            }`}
+          >
+            {row.original.rule_type === 'sum_equals' ? 'Sum_Equals' : 'Req ≤ Parent'}
+          </span>
+        ),
+      },
+      {
+        header: 'Severidad',
+        accessorKey: 'severity',
+        cell: ({ row }) =>
+          row.original.severity && (
+            <span
+              className={`text-xs uppercase tracking-wider ${
+                row.original.severity === 'error' ? 'text-red-500' : 'text-slate-400'
+              }`}
+            >
+              {row.original.severity}
+            </span>
+          ),
+      },
+      {
+        header: 'Descripción',
+        accessorKey: 'description',
+        cell: ({ row }) => (
+          <span className="block max-w-[240px] truncate text-xs text-slate-500">
+            {row.original.description ?? '—'}
+          </span>
+        ),
+      },
+      {
+        id: 'chevron',
+        header: '',
+        cell: () => (
+          <div className="text-right">
+            <ChevronRight className="w-4 h-4 text-slate-300" />
+          </div>
+        ),
+      },
+    ],
+    []
+  )
 
   return (
     <div className="space-y-6">
@@ -45,104 +127,15 @@ export function RuleCatalogTable({ cards, loading, stats }: RuleCatalogTableProp
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">
-                  Regla
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">
-                  Hoja
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">
-                  Sección
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">
-                  Tipo
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">
-                  Severidad
-                </th>
-                <th className="px-4 py-3 text-left font-semibold text-slate-600 text-xs uppercase tracking-wider">
-                  Descripción
-                </th>
-                <th className="px-4 py-3"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i}>
-                    {Array.from({ length: 8 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-slate-100 rounded animate-pulse" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : cards.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-sm text-slate-400">
-                    No se encontraron reglas con los filtros seleccionados.
-                  </td>
-                </tr>
-              ) : (
-                cards.map((card) => (
-                  <tr
-                    key={card.rule_key}
-                    className="hover:bg-slate-50 transition-colors cursor-pointer"
-                    onClick={() =>
-                      navigate(`/rule-engine/catalog/${encodeURIComponent(card.rule_key)}`)
-                    }
-                  >
-                    <td className="px-4 py-3">
-                      <CertificationStatusBadge estado={card.estado} />
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs font-medium text-slate-700">
-                      {card.rule_key}
-                    </td>
-                    <td className="px-4 py-3 font-mono font-semibold text-indigo-600">
-                      {card.hoja}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">{card.seccion}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${
-                          card.rule_type === 'sum_equals'
-                            ? 'text-amber-600 bg-amber-50'
-                            : 'text-rose-600 bg-rose-50'
-                        }`}
-                      >
-                        {card.rule_type === 'sum_equals' ? 'Sum_Equals' : 'Req ≤ Parent'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {card.severity && (
-                        <span
-                          className={`text-xs uppercase tracking-wider ${
-                            card.severity === 'error' ? 'text-red-500' : 'text-slate-400'
-                          }`}
-                        >
-                          {card.severity}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500 max-w-[240px] truncate">
-                      {card.description ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <ChevronRight className="w-4 h-4 text-slate-300" />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={cards}
+          loading={loading}
+          emptyMessage="No se encontraron reglas con los filtros seleccionados."
+          onRowClick={(card) =>
+            navigate(`/rule-engine/catalog/${encodeURIComponent(card.rule_key)}`)
+          }
+        />
       </div>
     </div>
   )

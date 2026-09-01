@@ -23,7 +23,7 @@ export const TechnicalInfo: React.FC<Props> = ({ children, title, defaultOpen = 
         ) : (
           <ChevronRight className="h-4 w-4 text-slate-400" />
         )}
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+        <span className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
           {title ?? 'Información técnica'}
         </span>
         <HelpTooltip text={getHelpText('technical-info') ?? 'Información interna del sistema'} />

@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, CheckCircle2, ChevronRight, Layers3 } from 'lucide-react'
+import { CheckCircle2, ChevronRight, Layers3 } from 'lucide-react'
+import { PageHeader } from '@/shared/components/PageHeader'
 import { structuresService } from '../services/structures'
 import { useCalibrationSummary } from '../hooks/useCalibrationSummary'
 import { getStructureStatusLabel } from '../utils/labels'
@@ -20,20 +21,10 @@ export default function CalibrationTemplatePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate('/calibracion')}
-          className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Calibración REM
-        </button>
-        <span className="text-sm text-slate-300">/</span>
-        <h1 className="text-xl font-bold text-slate-900">
-          {structure ? `Plantilla REM ${structure.anio}` : 'Plantilla REM'}
-        </h1>
-      </div>
+      <PageHeader
+        title={structure ? `Plantilla REM ${structure.anio}` : 'Plantilla REM'}
+        breadcrumb={[{ label: 'Calibración REM', onClick: () => navigate('/calibracion') }]}
+      />
 
       {isLoading ? (
         <div className="h-32 rounded-lg border border-slate-200 bg-white p-5 animate-pulse" />

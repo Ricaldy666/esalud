@@ -6,6 +6,7 @@ import UsersPage from '@/pages/UsersPage'
 import HealthCentersPage from '@/pages/HealthCentersPage'
 import AuditPage from '@/pages/AuditPage'
 import ComingSoonPage from '@/pages/ComingSoonPage'
+import NotFoundPage from '@/pages/NotFoundPage'
 import { RemUploadsPage } from '@/features/rem'
 import {
   RuleEngineDashboardPage,
@@ -24,8 +25,6 @@ import {
   RuleCatalogPage,
   RuleCertificationDetailPage,
   RuleSectionPage,
-  CriteriosFuncionalesPage,
-  SeccionRevisionPage,
   CalibrationDashboardPage,
   CalibrationTemplatePage,
   CalibrationSeriesPage,
@@ -54,14 +53,6 @@ const router = createBrowserRouter([
       {
         path: '/security',
         element: <SecurityPage />,
-      },
-      {
-        path: '/criterios-funcionales',
-        element: <CriteriosFuncionalesPage />,
-      },
-      {
-        path: '/criterios-funcionales/:sheet/sections/:section',
-        element: <SeccionRevisionPage />,
       },
       {
         // Accesos de demostracion visual (GES, Metas APS) -- pagina placeholder,
@@ -194,6 +185,10 @@ const router = createBrowserRouter([
             element: <AuditPage />,
           },
         ],
+      },
+      {
+        path: '*',
+        element: <NotFoundPage />,
       },
     ],
   },

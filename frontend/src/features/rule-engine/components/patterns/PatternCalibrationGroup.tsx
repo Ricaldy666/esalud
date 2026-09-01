@@ -1,7 +1,24 @@
 ﻿import { useState } from 'react'
+import type { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
+import { DataTable } from '@/shared/components/DataTable'
 import RowCellMatrix from './RowCellMatrix'
-import type { ColumnGroup, PatternGroup } from '../../types/calibration'
+import type { ColumnGroup, PatternGroup, PatternRow } from '../../types/calibration'
+
+// Solo estos 5 campos se leen realmente en el render (ver el .map() de mas
+// abajo) -- igual que en el original, donde el fallback sintetico cuando no
+// hay functional_rules solo definia estos mismos 5 campos.
+type FunctionalRuleForDisplay = Pick<
+  NonNullable<PatternRow['functional_rules']>[number],
+  'total_column' | 'destino_funcional' | 'origin_columns' | 'descripcion_funcional_origen' | 'label'
+>
+
+type PatternRowWithDerived = PatternRow & {
+  functionalRules: FunctionalRuleForDisplay[]
+  rowTotalColumns: string[]
+  rowOriginColumns: string[]
+  cLabel: { text: string; color: string }
+}
 
 const COBERTURA_LABELS: Record<string, { text: string; color: string }> = {
   'evidencia directa': { text: 'Evidencia directa', color: 'bg-green-100 text-green-700' },
@@ -160,6 +177,213 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
 
   const confirmedEvidence = hasConfirmedEvidence(pattern, warnings)
 
+  // Derivacion identica a la que antes se calculaba en linea dentro del
+  // .map() de filas -- se precalcula una sola vez por fila para que las
+  // columnas de DataTable no dupliquen esta logica en cada cell renderer.
+  const rowsData: PatternRowWithDerived[] = pattern.rows.map((r) => {
+    const cLabel = COBERTURA_LABELS[r.cobertura] ?? {
+      text: r.cobertura,
+      color: 'bg-slate-100 text-slate-600',
+    }
+    const functionalRules = r.functional_rules?.length
+      ? r.functional_rules
+      : [
+          {
+            total_column: pattern.columna_total,
+            destino_funcional:
+              r.destino_funcional ?? 'TOTAL (' + pattern.columna_total + r.fila + ')',
+            origin_columns: originColumns,
+            descripcion_funcional_origen: r.descripcion_funcional_origen ?? '',
+            label: r.regla_funcional_label ?? '',
+          },
+        ]
+    const rowTotalColumns = functionalRules.map((rule) => rule.total_column).filter(Boolean)
+    const rowOriginColumns = Array.from(
+      new Set(functionalRules.flatMap((rule) => rule.origin_columns ?? []))
+    )
+    return { ...r, functionalRules, rowTotalColumns, rowOriginColumns, cLabel }
+  })
+
+  const columns: ColumnDef<PatternRowWithDerived>[] = [
+    {
+      header: 'Fila',
+      accessorKey: 'fila',
+      cell: ({ row }) => (
+        <span className="font-mono font-bold text-slate-700">{row.original.fila}</span>
+      ),
+    },
+    {
+      header: 'Concepto',
+      accessorKey: 'concepto',
+      cell: ({ row }) => (
+        <span className="max-w-[140px] truncate text-slate-600">
+          {row.original.concepto || '—'}
+        </span>
+      ),
+    },
+    {
+      header: 'Profesional',
+      accessorKey: 'profesional',
+      cell: ({ row }) => <span className="text-slate-600">{row.original.profesional || '—'}</span>,
+    },
+    {
+      header: 'Destino',
+      id: 'destino',
+      cell: ({ row }) => (
+        <div className="space-y-1 text-xs">
+          {row.original.functionalRules.map((rule) => (
+            <div
+              key={`${row.original.fila}-${rule.total_column}`}
+              className="font-medium text-slate-800"
+            >
+              {rule.destino_funcional}
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      header: 'Origen',
+      id: 'origen',
+      cell: ({ row }) => (
+        <div className="max-w-[160px] space-y-1 text-xs">
+          {row.original.functionalRules.map((rule) => (
+            <div key={`${row.original.fila}-${rule.total_column}-origin`}>
+              <span className="text-slate-700">{rule.descripcion_funcional_origen || '—'}</span>
+              {rule.origin_columns?.length ? (
+                <div className="mt-0.5 font-mono text-[10px] text-slate-400">
+                  {rule.origin_columns.join(', ')}
+                </div>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      header: 'Regla',
+      id: 'regla',
+      cell: ({ row }) => (
+        <div className="max-w-[160px] text-xs">
+          <div className="space-y-1">
+            {row.original.functionalRules.map((rule) => (
+              <div
+                key={`${row.original.fila}-${rule.total_column}-label`}
+                className="font-medium text-slate-700"
+              >
+                {rule.label || row.original.regla_funcional_label || '—'}
+              </div>
+            ))}
+          </div>
+          <div className="mt-0.5 font-mono text-[10px] text-slate-400">{pattern.nombre}</div>
+        </div>
+      ),
+    },
+    {
+      header: 'Editables',
+      id: 'editables',
+      cell: ({ row }) => (
+        <div>
+          <div className="flex max-w-[100px] flex-wrap gap-0.5">
+            {row.original.editables.slice(0, 8).map((ec) => (
+              <span
+                key={ec.letra}
+                className="inline-block h-3 w-3 rounded-sm"
+                style={{ background: '#FFFFCC' }}
+                title={ec.letra}
+              />
+            ))}
+            {row.original.editables.length > 8 && (
+              <span className="text-[10px] text-slate-400">
+                +{row.original.editables.length - 8}
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 text-[10px] text-slate-400">
+            {row.original.editables.length} cols
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: 'Bloqueadas',
+      id: 'bloqueadas',
+      cell: ({ row }) => (
+        <div>
+          <div className="flex max-w-[100px] flex-wrap gap-0.5">
+            {row.original.bloqueadas.slice(0, 8).map((bc) => (
+              <span
+                key={bc.letra}
+                className="inline-block h-3 w-3 rounded-sm"
+                style={{ background: '#C0C0C0', border: '1px solid #ccc' }}
+                title={bc.letra}
+              />
+            ))}
+            {row.original.bloqueadas.length > 8 && (
+              <span className="text-[10px] text-slate-400">
+                +{row.original.bloqueadas.length - 8}
+              </span>
+            )}
+          </div>
+          <div className="mt-0.5 text-[10px] text-slate-400">
+            {row.original.bloqueadas.length} cols
+          </div>
+        </div>
+      ),
+    },
+    {
+      header: () => <div className="text-center">Mini matriz</div>,
+      id: 'mini_matriz',
+      cell: ({ row }) => (
+        <RowCellMatrix
+          row={row.original}
+          colTotal={pattern.columna_total}
+          totalColumns={row.original.rowTotalColumns}
+          colsOrigen={row.original.rowOriginColumns}
+        />
+      ),
+    },
+    {
+      header: 'Especiales',
+      id: 'especiales',
+      cell: ({ row }) => (
+        <div className="flex max-w-[80px] flex-wrap gap-0.5">
+          {row.original.especiales.map((ec) => (
+            <span
+              key={ec.letra}
+              className="inline-block h-3 w-3 rounded-sm"
+              style={{
+                background: ec.editable ? '#FFFFCC' : '#C0C0C0',
+                border: '1px solid #ccc',
+              }}
+              title={`${ec.letra}: ${ec.tipo_celda}`}
+            />
+          ))}
+        </div>
+      ),
+    },
+    {
+      header: 'Cobertura',
+      id: 'cobertura',
+      cell: ({ row }) => (
+        <span
+          className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${row.original.cLabel.color}`}
+        >
+          {row.original.cLabel.text}
+        </span>
+      ),
+    },
+    {
+      header: 'Estado técnico',
+      id: 'estado_tecnico',
+      cell: ({ row }) => (
+        <span className="text-[10px] text-slate-600">
+          {row.original.estado_tecnico || 'Pendiente'}
+        </span>
+      ),
+    },
+  ]
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <button
@@ -236,177 +460,7 @@ export default function PatternCalibrationGroup({ pattern, columnGroups, warning
             </div>
           )}
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider">
-                  <th className="px-3 py-2 text-left font-mono">Fila</th>
-                  <th className="px-3 py-2 text-left">Concepto</th>
-                  <th className="px-3 py-2 text-left">Profesional</th>
-                  <th className="px-3 py-2 text-left">Destino</th>
-                  <th className="px-3 py-2 text-left">Origen</th>
-                  <th className="px-3 py-2 text-left">Regla</th>
-                  <th className="px-3 py-2 text-left">Editables</th>
-                  <th className="px-3 py-2 text-left">Bloqueadas</th>
-                  <th className="px-3 py-2 text-center">Mini matriz</th>
-                  <th className="px-3 py-2 text-left">Especiales</th>
-                  <th className="px-3 py-2 text-left">Cobertura</th>
-                  <th className="px-3 py-2 text-left">Estado técnico</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {pattern.rows.map((r) => {
-                  const cLabel = COBERTURA_LABELS[r.cobertura] ?? {
-                    text: r.cobertura,
-                    color: 'bg-slate-100 text-slate-600',
-                  }
-                  const functionalRules = r.functional_rules?.length
-                    ? r.functional_rules
-                    : [
-                        {
-                          total_column: pattern.columna_total,
-                          destino_funcional:
-                            r.destino_funcional ?? 'TOTAL (' + pattern.columna_total + r.fila + ')',
-                          origin_columns: originColumns,
-                          descripcion_funcional_origen: r.descripcion_funcional_origen ?? '',
-                          label: r.regla_funcional_label ?? '',
-                        },
-                      ]
-                  const rowTotalColumns = functionalRules
-                    .map((rule) => rule.total_column)
-                    .filter(Boolean)
-                  const rowOriginColumns = Array.from(
-                    new Set(functionalRules.flatMap((rule) => rule.origin_columns ?? []))
-                  )
-                  return (
-                    <tr key={r.fila} className="hover:bg-slate-50">
-                      <td className="px-3 py-2 font-mono font-bold text-slate-700">{r.fila}</td>
-                      <td className="px-3 py-2 text-slate-600 max-w-[140px] truncate">
-                        {r.concepto || '\u2014'}
-                      </td>
-                      <td className="px-3 py-2 text-slate-600">{r.profesional || '\u2014'}</td>
-                      <td className="px-3 py-2 text-xs">
-                        <div className="space-y-1">
-                          {functionalRules.map((rule) => (
-                            <div
-                              key={`${r.fila}-${rule.total_column}`}
-                              className="font-medium text-slate-800"
-                            >
-                              {rule.destino_funcional}
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 text-xs max-w-[160px]">
-                        <div className="space-y-1">
-                          {functionalRules.map((rule) => (
-                            <div key={`${r.fila}-${rule.total_column}-origin`}>
-                              <span className="text-slate-700">
-                                {rule.descripcion_funcional_origen || '\u2014'}
-                              </span>
-                              {rule.origin_columns?.length ? (
-                                <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                                  {rule.origin_columns.join(', ')}
-                                </div>
-                              ) : null}
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 text-xs max-w-[160px]">
-                        <div className="space-y-1">
-                          {functionalRules.map((rule) => (
-                            <div
-                              key={`${r.fila}-${rule.total_column}-label`}
-                              className="font-medium text-slate-700"
-                            >
-                              {rule.label || r.regla_funcional_label || '\u2014'}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                          {pattern.nombre}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex flex-wrap gap-0.5 max-w-[100px]">
-                          {r.editables.slice(0, 8).map((ec) => (
-                            <span
-                              key={ec.letra}
-                              className="inline-block w-3 h-3 rounded-sm"
-                              style={{ background: '#FFFFCC' }}
-                              title={ec.letra}
-                            />
-                          ))}
-                          {r.editables.length > 8 && (
-                            <span className="text-[10px] text-slate-400">
-                              +{r.editables.length - 8}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">
-                          {r.editables.length} cols
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex flex-wrap gap-0.5 max-w-[100px]">
-                          {r.bloqueadas.slice(0, 8).map((bc) => (
-                            <span
-                              key={bc.letra}
-                              className="inline-block w-3 h-3 rounded-sm"
-                              style={{ background: '#C0C0C0', border: '1px solid #ccc' }}
-                              title={bc.letra}
-                            />
-                          ))}
-                          {r.bloqueadas.length > 8 && (
-                            <span className="text-[10px] text-slate-400">
-                              +{r.bloqueadas.length - 8}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">
-                          {r.bloqueadas.length} cols
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <RowCellMatrix
-                          row={r}
-                          colTotal={pattern.columna_total}
-                          totalColumns={rowTotalColumns}
-                          colsOrigen={rowOriginColumns}
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <div className="flex flex-wrap gap-0.5 max-w-[80px]">
-                          {r.especiales.map((ec) => (
-                            <span
-                              key={ec.letra}
-                              className="inline-block w-3 h-3 rounded-sm"
-                              style={{
-                                background: ec.editable ? '#FFFFCC' : '#C0C0C0',
-                                border: '1px solid #ccc',
-                              }}
-                              title={`${ec.letra}: ${ec.tipo_celda}`}
-                            />
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span
-                          className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${cLabel.color}`}
-                        >
-                          {cLabel.text}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2 text-[10px] text-slate-600">
-                        {r.estado_tecnico || 'Pendiente'}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={columns} data={rowsData} />
         </>
       )}
     </div>

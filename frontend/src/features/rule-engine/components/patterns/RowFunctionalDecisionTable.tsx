@@ -1,8 +1,10 @@
 ﻿import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { ColumnDef } from '@tanstack/react-table'
 import { AlertTriangle, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
+import { DataTable } from '@/shared/components/DataTable'
 import { calibrationService } from '../../services/calibration'
 import type { RowFunctionalDecision } from '../../types/calibration'
 
@@ -153,6 +155,153 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
 
   if (rows.length === 0) return null
 
+  // Sin useMemo deliberadamente: las celdas cierran sobre `drafts` y
+  // `saveMutation` (via handleSave), que cambian en cada render -- memoizar
+  // con una lista de dependencias arriesgaria capturar un closure obsoleto.
+  // El comportamiento (recalcular en cada render) es identico al original,
+  // que tampoco memoizaba el mapeo de filas.
+  const columns: ColumnDef<RowFunctionalDecision>[] = [
+    {
+      header: 'Fila',
+      accessorKey: 'row',
+      cell: ({ row }) => (
+        <span className="whitespace-nowrap font-semibold text-slate-800">{row.original.row}</span>
+      ),
+    },
+    {
+      header: 'Concepto',
+      accessorKey: 'concept',
+      cell: ({ row }) => (
+        <div className="min-w-44 text-slate-700">{row.original.concept || '-'}</div>
+      ),
+    },
+    {
+      header: 'Profesional',
+      accessorKey: 'professional',
+      cell: ({ row }) => (
+        <div className="min-w-36 text-slate-700">{row.original.professional || '-'}</div>
+      ),
+    },
+    {
+      header: () => (
+        <span title="Decision propia: configurada manualmente para esa fila.">Decision propia</span>
+      ),
+      id: 'explicit_decision',
+      cell: ({ row }) => (
+        <DecisionBadge
+          value={row.original.explicit_decision}
+          explicit={row.original.has_explicit_decision}
+        />
+      ),
+    },
+    {
+      header: () => (
+        <span title="Hereda de: origen de la decision cuando la fila no tiene una configuracion propia.">
+          Hereda de
+        </span>
+      ),
+      id: 'inherited',
+      cell: ({ row }) => (
+        <>
+          <div className="text-slate-600">{inheritedText(row.original)}</div>
+          {!row.original.has_explicit_decision && row.original.inherited_decision && (
+            <div className="mt-0.5 text-[11px] text-slate-500">
+              {label(row.original.inherited_decision)}
+            </div>
+          )}
+        </>
+      ),
+    },
+    {
+      header: () => (
+        <span title="Regla aplicada: criterio que finalmente utiliza el motor durante la validacion.">
+          Regla aplicada
+        </span>
+      ),
+      id: 'effective_decision',
+      cell: ({ row }) => (
+        <span className="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+          {label(row.original.effective_decision)}
+        </span>
+      ),
+    },
+    {
+      header: 'Origen',
+      accessorKey: 'origin',
+      cell: ({ row }) => (
+        <span className="text-slate-700">
+          {ORIGIN_LABELS[row.original.origin] ?? row.original.origin}
+        </span>
+      ),
+    },
+    {
+      header: 'Estado',
+      accessorKey: 'status',
+      cell: ({ row }) => <span className="text-slate-700">{row.original.status ?? '-'}</span>,
+    },
+    {
+      header: 'Revision',
+      id: 'reviewed',
+      cell: ({ row }) => (
+        <div className="min-w-40 text-slate-600">{reviewedText(row.original)}</div>
+      ),
+    },
+    {
+      header: 'Observacion',
+      id: 'observation',
+      cell: ({ row }) => (
+        <div className="min-w-44 text-slate-600">
+          {row.original.observation || row.original.condition || '-'}
+        </div>
+      ),
+    },
+    ...(!readOnly
+      ? [
+          {
+            header: 'Accion rapida',
+            id: 'accion',
+            cell: ({ row }: { row: { original: RowFunctionalDecision } }) => {
+              const selected = drafts[row.original.row] ?? defaultSelection(row.original)
+              return (
+                <div className="min-w-56">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selected}
+                      onChange={(event) =>
+                        setDrafts((current) => ({
+                          ...current,
+                          [row.original.row]: event.target.value as EditableDecision,
+                        }))
+                      }
+                      className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-300"
+                    >
+                      <option value="debe_registrar_cero">Debe registrar 0</option>
+                      <option value="puede_quedar_vacio">Puede quedar vacio</option>
+                      <option value="heredar_patron">Heredar del patron</option>
+                      <option value="heredar_seccion">Heredar de la seccion</option>
+                      <option value="requiere_revision">Requiere revision</option>
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => handleSave(row.original)}
+                      disabled={saveMutation.isPending}
+                      className="inline-flex h-8 items-center gap-1 rounded-md bg-indigo-600 px-2.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Save className="h-3.5 w-3.5" />
+                      Guardar
+                    </button>
+                  </div>
+                </div>
+              )
+            },
+          } satisfies ColumnDef<RowFunctionalDecision>,
+        ]
+      : []),
+  ]
+
+  const getRowClassName = (row: RowFunctionalDecision) =>
+    row.possible_inconsistency ? 'bg-amber-50/60 hover:bg-amber-50/60' : 'hover:bg-white'
+
   return (
     <section className="rounded-lg border border-slate-200 bg-white">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
@@ -170,113 +319,7 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
         )}
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-100 text-xs">
-          <thead className="bg-slate-50 text-left text-[11px] uppercase text-slate-500">
-            <tr>
-              <th className="px-3 py-2">Fila</th>
-              <th className="px-3 py-2">Concepto</th>
-              <th className="px-3 py-2">Profesional</th>
-              <th
-                className="px-3 py-2"
-                title="Decision propia: configurada manualmente para esa fila."
-              >
-                Decision propia
-              </th>
-              <th
-                className="px-3 py-2"
-                title="Hereda de: origen de la decision cuando la fila no tiene una configuracion propia."
-              >
-                Hereda de
-              </th>
-              <th
-                className="px-3 py-2"
-                title="Regla aplicada: criterio que finalmente utiliza el motor durante la validacion."
-              >
-                Regla aplicada
-              </th>
-              <th className="px-3 py-2">Origen</th>
-              <th className="px-3 py-2">Estado</th>
-              <th className="px-3 py-2">Revision</th>
-              <th className="px-3 py-2">Observacion</th>
-              {!readOnly && <th className="px-3 py-2">Accion rapida</th>}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {rows.map((row) => {
-              const selected = drafts[row.row] ?? defaultSelection(row)
-              return (
-                <tr
-                  key={row.row}
-                  className={row.possible_inconsistency ? 'bg-amber-50/60' : undefined}
-                >
-                  <td className="whitespace-nowrap px-3 py-2 font-semibold text-slate-800">
-                    {row.row}
-                  </td>
-                  <td className="min-w-44 px-3 py-2 text-slate-700">{row.concept || '-'}</td>
-                  <td className="min-w-36 px-3 py-2 text-slate-700">{row.professional || '-'}</td>
-                  <td className="px-3 py-2">
-                    <DecisionBadge
-                      value={row.explicit_decision}
-                      explicit={row.has_explicit_decision}
-                    />
-                  </td>
-                  <td className="px-3 py-2 text-slate-600">
-                    <div>{inheritedText(row)}</div>
-                    {!row.has_explicit_decision && row.inherited_decision && (
-                      <div className="mt-0.5 text-[11px] text-slate-500">
-                        {label(row.inherited_decision)}
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
-                      {label(row.effective_decision)}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2">{ORIGIN_LABELS[row.origin] ?? row.origin}</td>
-                  <td className="px-3 py-2">{row.status ?? '-'}</td>
-                  <td className="min-w-40 px-3 py-2 text-slate-600">{reviewedText(row)}</td>
-                  <td className="min-w-44 px-3 py-2 text-slate-600">
-                    {row.observation || row.condition || '-'}
-                  </td>
-                  {!readOnly && (
-                    <td className="min-w-56 px-3 py-2">
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={selected}
-                          onChange={(event) =>
-                            setDrafts((current) => ({
-                              ...current,
-                              [row.row]: event.target.value as EditableDecision,
-                            }))
-                          }
-                          className="h-8 rounded-md border border-slate-200 bg-white px-2 text-xs text-slate-700 outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-300"
-                        >
-                          <option value="debe_registrar_cero">Debe registrar 0</option>
-                          <option value="puede_quedar_vacio">Puede quedar vacio</option>
-                          <option value="heredar_patron">Heredar del patron</option>
-                          <option value="heredar_seccion">Heredar de la seccion</option>
-                          <option value="requiere_revision">Requiere revision</option>
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => handleSave(row)}
-                          disabled={saveMutation.isPending}
-                          className="inline-flex h-8 items-center gap-1 rounded-md bg-indigo-600 px-2.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          <Save className="h-3.5 w-3.5" />
-                          Guardar
-                        </button>
-                      </div>
-                    </td>
-                  )}
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable columns={columns} data={rows} getRowClassName={getRowClassName} />
     </section>
   )
 }

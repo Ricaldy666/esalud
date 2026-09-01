@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { AlertTriangle, ArrowLeft, Grid3X3, LayoutGrid, ListChecks } from 'lucide-react'
+import { AlertTriangle, Grid3X3, LayoutGrid } from 'lucide-react'
 import { useAuthStore } from '@/app/store/authStore'
+import { PageHeader } from '@/shared/components/PageHeader'
 import { useCalibrationMatrix } from '../hooks/useCalibrationMatrix'
 import { calibrationService } from '../services/calibration'
 import { structuresService } from '../services/structures'
-import SeccionRevisionPage from './SeccionRevisionPage'
 import { SectionCalibrationTable } from '../components/SectionCalibrationTable'
 import PatternCalibrationSummary from '../components/patterns/PatternCalibrationSummary'
 import QuickCalibrationPanel from '../components/patterns/QuickCalibrationPanel'
 import RowFunctionalDecisionTable from '../components/patterns/RowFunctionalDecisionTable'
 import type { CalibrationQuestion, PatternMatrixResponse } from '../types/calibration'
 
-type TabView = 'functional' | 'matrix' | 'patterns'
+type TabView = 'matrix' | 'patterns'
 
 const READ_ONLY_ROLES = ['Revisor', 'Auditor']
 
@@ -29,7 +29,7 @@ export default function CalibrationSectionPage() {
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const isReadOnly = user?.roles.some((role) => READ_ONLY_ROLES.includes(role)) ?? false
-  const [tab, setTab] = useState<TabView>(isReadOnly ? 'matrix' : 'functional')
+  const [tab, setTab] = useState<TabView>('matrix')
   const [showAdvanced, setShowAdvanced] = useState(false)
   const { data: matrixData, isLoading: matrixLoading } = useCalibrationMatrix(sheet, section)
   const structureId = Number(templateId)
@@ -116,20 +116,16 @@ export default function CalibrationSectionPage() {
   if (evidenceMissing && !preliminaryMode) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              navigate(`/calibracion/templates/${templateId}/series/${series}/sheets/${sheet}`)
-            }
-            className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Hoja {sheet}
-          </button>
-          <span className="text-sm text-slate-300">/</span>
-          <h1 className="text-xl font-bold text-slate-900">Seccion {section}</h1>
-        </div>
+        <PageHeader
+          title={`Seccion ${section}`}
+          breadcrumb={[
+            {
+              label: `Hoja ${sheet}`,
+              onClick: () =>
+                navigate(`/calibracion/templates/${templateId}/series/${series}/sheets/${sheet}`),
+            },
+          ]}
+        />
 
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
           <div className="flex gap-3">
@@ -161,34 +157,30 @@ export default function CalibrationSectionPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() =>
-              navigate(`/calibracion/templates/${templateId}/series/${series}/sheets/${sheet}`)
-            }
-            className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Hoja {sheet}
-          </button>
-          <span className="text-sm text-slate-300">/</span>
-          <h1 className="text-xl font-bold text-slate-900">Seccion {section}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {preliminaryMode && evidenceMissing && (
-            <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-              Modo preliminar
-            </span>
-          )}
-          {isReadOnly && (
-            <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-              Solo lectura
-            </span>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title={`Seccion ${section}`}
+        breadcrumb={[
+          {
+            label: `Hoja ${sheet}`,
+            onClick: () =>
+              navigate(`/calibracion/templates/${templateId}/series/${series}/sheets/${sheet}`),
+          },
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            {preliminaryMode && evidenceMissing && (
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                Modo preliminar
+              </span>
+            )}
+            {isReadOnly && (
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+                Solo lectura
+              </span>
+            )}
+          </div>
+        }
+      />
 
       {preliminaryMode && evidenceMissing && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -226,10 +218,8 @@ export default function CalibrationSectionPage() {
 
       {showAdvanced && (
         <>
-          <AdvancedTabs tab={tab} setTab={setTab} isReadOnly={isReadOnly} />
-          {tab === 'functional' && !isReadOnly ? (
-            <SeccionRevisionPage />
-          ) : tab === 'matrix' ? (
+          <AdvancedTabs tab={tab} setTab={setTab} />
+          {tab === 'matrix' ? (
             <div
               className={isReadOnly ? 'pointer-events-none' : undefined}
               aria-disabled={isReadOnly}
@@ -263,23 +253,9 @@ function isSectionReviewed(questions: CalibrationQuestion[]) {
   )
 }
 
-function AdvancedTabs({
-  tab,
-  setTab,
-  isReadOnly,
-}: {
-  tab: TabView
-  setTab: (tab: TabView) => void
-  isReadOnly: boolean
-}) {
+function AdvancedTabs({ tab, setTab }: { tab: TabView; setTab: (tab: TabView) => void }) {
   return (
     <div className="flex gap-1 border-b border-slate-200">
-      {!isReadOnly && (
-        <TabButton active={tab === 'functional'} onClick={() => setTab('functional')}>
-          <ListChecks className="h-4 w-4" />
-          Revision funcional
-        </TabButton>
-      )}
       <TabButton active={tab === 'matrix'} onClick={() => setTab('matrix')}>
         <Grid3X3 className="h-4 w-4" />
         Matriz

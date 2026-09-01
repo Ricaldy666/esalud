@@ -1,4 +1,50 @@
-﻿import type { CalibrationRow, ColumnGroup, PatternGroup } from '../../types/calibration'
+﻿import type { ColumnDef } from '@tanstack/react-table'
+import { DataTable } from '@/shared/components/DataTable'
+import type { CalibrationRow, ColumnGroup, PatternGroup } from '../../types/calibration'
+
+type SpecialColumn = ColumnGroup['columns'][number]
+
+const columnColumns: ColumnDef<SpecialColumn>[] = [
+  {
+    header: 'Col',
+    accessorKey: 'letter',
+    cell: ({ row }) => (
+      <span className="font-mono font-bold text-slate-700">{row.original.letter}</span>
+    ),
+  },
+  {
+    header: 'Encabezado',
+    accessorKey: 'label',
+    cell: ({ row }) => (
+      <span className="max-w-[260px] text-slate-600">
+        {row.original.label || 'Sin encabezado informado'}
+      </span>
+    ),
+  },
+  {
+    header: () => <div className="text-center">Filas editables</div>,
+    accessorKey: 'editable_rows',
+    cell: ({ row }) => (
+      <div className="text-center font-mono text-green-600">{row.original.editable_rows}</div>
+    ),
+  },
+  {
+    header: () => <div className="text-center">Filas bloqueadas</div>,
+    accessorKey: 'blocked_rows',
+    cell: ({ row }) => (
+      <div className="text-center font-mono text-slate-500">{row.original.blocked_rows}</div>
+    ),
+  },
+  {
+    header: 'Estado',
+    id: 'estado',
+    cell: ({ row }) => (
+      <span className="text-slate-500">
+        {statusText(row.original.editable_rows, row.original.blocked_rows)}
+      </span>
+    ),
+  },
+]
 
 interface Props {
   columns: string[]
@@ -146,39 +192,8 @@ export default function SpecialColumnsPanel({ columns, columnGroups, allRows, pa
             ) : null}
           </div>
 
-          <div className="overflow-x-auto p-6">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider">
-                  <th className="px-3 py-2 text-left font-mono">Col</th>
-                  <th className="px-3 py-2 text-left">Encabezado</th>
-                  <th className="px-3 py-2 text-center">Filas editables</th>
-                  <th className="px-3 py-2 text-center">Filas bloqueadas</th>
-                  <th className="px-3 py-2 text-left">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {group.columns.map((column) => (
-                  <tr key={`${group.key}-${column.letter}`} className="hover:bg-slate-50">
-                    <td className="px-3 py-2 font-mono font-bold text-slate-700">
-                      {column.letter}
-                    </td>
-                    <td className="max-w-[260px] px-3 py-2 text-slate-600">
-                      {column.label || 'Sin encabezado informado'}
-                    </td>
-                    <td className="px-3 py-2 text-center font-mono text-green-600">
-                      {column.editable_rows}
-                    </td>
-                    <td className="px-3 py-2 text-center font-mono text-slate-500">
-                      {column.blocked_rows}
-                    </td>
-                    <td className="px-3 py-2 text-slate-500">
-                      {statusText(column.editable_rows, column.blocked_rows)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-6">
+            <DataTable columns={columnColumns} data={group.columns} />
 
             <div className="mt-4 rounded-lg bg-yellow-50 p-3 text-sm text-yellow-700">
               <strong>Pregunta:</strong> {groupQuestion(group)}

@@ -1,7 +1,8 @@
 import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight, Clock } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ChevronRight, Clock } from 'lucide-react'
+import { PageHeader } from '@/shared/components/PageHeader'
 import { structuresService } from '../services/structures'
 import { calibrationService } from '../services/calibration'
 import type { CalibrationQuestion, PatternMatrixResponse } from '../types/calibration'
@@ -59,18 +60,15 @@ export default function CalibrationSheetPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={() => navigate(`/calibracion/templates/${templateId}/series/${series}`)}
-          className="inline-flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-800"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Serie {series}
-        </button>
-        <span className="text-sm text-slate-300">/</span>
-        <h1 className="text-xl font-bold text-slate-900">Hoja {sheet}</h1>
-      </div>
+      <PageHeader
+        title={`Hoja ${sheet}`}
+        breadcrumb={[
+          {
+            label: `Serie ${series}`,
+            onClick: () => navigate(`/calibracion/templates/${templateId}/series/${series}`),
+          },
+        ]}
+      />
 
       {isLoading ? (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">

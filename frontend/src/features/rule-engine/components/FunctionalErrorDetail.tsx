@@ -115,17 +115,6 @@ export const FunctionalErrorDetail: React.FC<FunctionalErrorDetailProps> = ({ er
           </div>
         </div>
       )}
-
-      <div className="border-t border-indigo-200 pt-2">
-        <a
-          href={`/criterios-funcionales/${error.form}/sections/${section}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-600 underline hover:text-indigo-800"
-        >
-          Ver criterio funcional
-        </a>
-      </div>
     </div>
   )
 }

@@ -1,14 +1,15 @@
+import { ShieldCheck } from 'lucide-react'
+import { PageHeader } from '@/shared/components/PageHeader'
 import TwoFactorSettingsPanel from '@/features/auth/components/TwoFactorSettingsPanel'
 
 export default function SecurityPage() {
   return (
-    <div className="space-y-4 p-6">
-      <div>
-        <h1 className="text-xl font-semibold text-slate-900">Seguridad de la cuenta</h1>
-        <p className="text-sm text-slate-500">
-          Administra la verificación en dos pasos de tu cuenta.
-        </p>
-      </div>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <PageHeader
+        title="Seguridad de la cuenta"
+        description="Administra la verificación en dos pasos de tu cuenta."
+        icon={ShieldCheck}
+      />
       <TwoFactorSettingsPanel />
     </div>
   )

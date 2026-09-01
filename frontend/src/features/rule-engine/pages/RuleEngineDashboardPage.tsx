@@ -12,19 +12,92 @@ import {
   UploadCloud,
   XCircle,
 } from 'lucide-react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { ColumnDef } from '@tanstack/react-table'
 import { PageHeader } from '@/shared/components/PageHeader'
+import { DataTable } from '@/shared/components/DataTable'
 import { MetricCard } from '../components/MetricCard'
 import { HelpTooltip } from '../components/HelpTooltip'
 import { useRuleEngineHealth } from '../hooks/useRuleEngineHealth'
 import { useRuleEngineStats } from '../hooks/useRuleEngineStats'
 import { MODE_LABELS } from '../utils/labels'
 import { getHelpText, getTriggerLabel, getStatusLabel } from '../utils/labels'
+import type { StatsData } from '../types/observability'
+
+type LatestUpload = StatsData['last_20_uploads'][number]
 
 export default function RuleEngineDashboardPage() {
   const navigate = useNavigate()
   const { data: health, isLoading: healthLoading, isError: healthError } = useRuleEngineHealth()
   const { data: stats, isLoading: statsLoading, isError: statsError } = useRuleEngineStats()
+
+  const uploadColumns = useMemo<ColumnDef<LatestUpload>[]>(
+    () => [
+      {
+        header: 'Archivo',
+        accessorKey: 'rem_upload_id',
+        cell: ({ row }) => (
+          <span className="font-medium text-slate-900">#{row.original.rem_upload_id}</span>
+        ),
+      },
+      {
+        header: 'Reglas',
+        accessorKey: 'total_rules',
+        cell: ({ row }) => <span className="text-slate-700">{row.original.total_rules}</span>,
+      },
+      {
+        header: 'Correctas',
+        accessorKey: 'passed',
+        cell: ({ row }) => (
+          <span className="font-medium text-emerald-600">{row.original.passed}</span>
+        ),
+      },
+      {
+        header: 'Con observaciones',
+        accessorKey: 'failed',
+        cell: ({ row }) => (
+          <span
+            className={`font-medium ${row.original.failed > 0 ? 'text-rose-600' : 'text-slate-700'}`}
+          >
+            {row.original.failed}
+          </span>
+        ),
+      },
+      {
+        header: 'No aplica',
+        accessorKey: 'skipped',
+        cell: ({ row }) => <span className="text-slate-500">{row.original.skipped}</span>,
+      },
+      {
+        header: 'Tiempo',
+        accessorKey: 'avg_ms',
+        cell: ({ row }) => (
+          <span className="text-slate-700">{row.original.avg_ms.toFixed(1)} ms</span>
+        ),
+      },
+      {
+        header: 'Filas',
+        accessorKey: 'total_rows',
+        cell: ({ row }) => <span className="text-slate-700">{row.original.total_rows}</span>,
+      },
+      {
+        id: 'accion',
+        header: 'Acción',
+        cell: ({ row }) => (
+          <button
+            onClick={() =>
+              navigate(`/rule-engine/uploads/${row.original.rem_upload_id}/validation-summary`)
+            }
+            className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-800"
+          >
+            Validación
+          </button>
+        ),
+      },
+    ],
+    [navigate]
+  )
 
   if (healthLoading || statsLoading) {
     return (
@@ -221,80 +294,11 @@ export default function RuleEngineDashboardPage() {
             Ver historial completo
           </button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Archivo
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Reglas
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Correctas
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Con observaciones
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  No aplica
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Tiempo
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Filas
-                </th>
-                <th className="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Acción
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.last_20_uploads?.length > 0 ? (
-                stats.last_20_uploads.map((u) => (
-                  <tr
-                    key={u.rem_upload_id}
-                    className="border-b border-slate-50 hover:bg-slate-50/50"
-                  >
-                    <td className="px-5 py-3 font-medium text-slate-900">#{u.rem_upload_id}</td>
-                    <td className="px-5 py-3 text-slate-700">{u.total_rules}</td>
-                    <td className="px-5 py-3">
-                      <span className="text-emerald-600 font-medium">{u.passed}</span>
-                    </td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={`font-medium ${u.failed > 0 ? 'text-rose-600' : 'text-slate-700'}`}
-                      >
-                        {u.failed}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-slate-500">{u.skipped}</td>
-                    <td className="px-5 py-3 text-slate-700">{u.avg_ms.toFixed(1)} ms</td>
-                    <td className="px-5 py-3 text-slate-700">{u.total_rows}</td>
-                    <td className="px-5 py-3">
-                      <button
-                        onClick={() =>
-                          navigate(`/rule-engine/uploads/${u.rem_upload_id}/validation-summary`)
-                        }
-                        className="text-xs font-medium text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        Validación
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={8} className="px-5 py-8 text-center text-slate-400">
-                    No hay archivos procesados por el motor
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={uploadColumns}
+          data={stats.last_20_uploads ?? []}
+          emptyMessage="No hay archivos procesados por el motor"
+        />
       </div>
     </div>
   )

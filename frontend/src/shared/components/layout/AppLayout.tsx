@@ -15,7 +15,6 @@ import {
   GitCompareArrows,
   Layers,
   List,
-  ListChecks,
   LogOut,
   Settings,
   ClipboardCheck,
@@ -43,12 +42,6 @@ const MENU_ITEMS = [
     label: 'Calibración REM',
     icon: ClipboardCheck,
     roles: ['Superadmin', 'Analista', 'Revisor', 'Auditor'],
-  },
-  {
-    to: '/criterios-funcionales',
-    label: 'Criterios funcionales',
-    icon: ListChecks,
-    roles: ['all'],
   },
   // GES y Metas APS: accesos de demostracion visual, solo para el rol Analista
   // (mostrado como "Estadistica APS"). No agregan funcionalidad real ni

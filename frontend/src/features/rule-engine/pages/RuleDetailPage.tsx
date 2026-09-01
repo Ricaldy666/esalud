@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import type { ColumnDef } from '@tanstack/react-table'
 import { useRule } from '../hooks/useRule'
 import { RuleStatusBadge } from '../components/RuleStatusBadge'
 import { SeverityBadge } from '../components/SeverityBadge'
@@ -6,6 +7,7 @@ import { HelpTooltip } from '../components/HelpTooltip'
 import { TechnicalInfo } from '../components/TechnicalInfo'
 import { ExecutionStatusBadge } from '../components/ExecutionStatusBadge'
 import { PageHeader } from '@/shared/components/PageHeader'
+import { DataTable } from '@/shared/components/DataTable'
 import { Loader2, ArrowLeft, List, Info, AlertTriangle, Gavel } from 'lucide-react'
 import {
   getRuleTypeLabel,
@@ -14,6 +16,12 @@ import {
   getHelpText,
   getTriggerLabel,
 } from '../utils/labels'
+import type { RuleVersion, RuleBinding, RuleExecutionLog } from '../types/rule'
+
+// Ninguna de las 3 tablas de esta pagina tenia hover propio (solo un
+// border-b como divisor) -- se fija el hover al mismo fondo para que
+// TableRow no le agregue uno nuevo que antes no existia.
+const noHoverRowClassName = () => 'hover:bg-white'
 
 function formatJson(data: unknown): string {
   if (!data) return '—'
@@ -88,6 +96,113 @@ export default function RuleDetailPage() {
   const campo = getCampoLabel(rule)
   const ubicacion = getFormLabel(rule.metadata)
 
+  const versionColumns: ColumnDef<RuleVersion>[] = [
+    {
+      header: 'Versión',
+      accessorKey: 'version',
+      cell: ({ row }) => <span className="font-mono text-slate-900">{row.original.version}</span>,
+    },
+    {
+      header: 'Cambios',
+      accessorKey: 'changelog',
+      cell: ({ row }) => <span className="text-slate-600">{row.original.changelog ?? '—'}</span>,
+    },
+    {
+      header: 'Fecha',
+      accessorKey: 'created_at',
+      cell: ({ row }) => (
+        <span className="text-slate-500 whitespace-nowrap">
+          {new Date(row.original.created_at).toLocaleDateString('es-CL')}
+        </span>
+      ),
+    },
+  ]
+
+  const bindingColumns: ColumnDef<RuleBinding>[] = [
+    {
+      header: 'Tipo',
+      accessorKey: 'bindable_type',
+      cell: ({ row }) => (
+        <span className="text-slate-900">{getBindableTypeLabel(row.original.bindable_type)}</span>
+      ),
+    },
+    {
+      header: 'Serie',
+      accessorKey: 'serie',
+      cell: ({ row }) => <span className="text-slate-600">{row.original.serie ?? '—'}</span>,
+    },
+    {
+      header: 'Año',
+      accessorKey: 'anio',
+      cell: ({ row }) => <span className="text-slate-600">{row.original.anio ?? '—'}</span>,
+    },
+    {
+      header: 'Activo',
+      accessorKey: 'active',
+      cell: ({ row }) =>
+        row.original.active ? (
+          <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-xs font-medium">
+            Sí
+          </span>
+        ) : (
+          <span className="inline-flex items-center rounded-full bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 text-xs font-medium">
+            No
+          </span>
+        ),
+    },
+  ]
+
+  const executionLogColumns: ColumnDef<RuleExecutionLog>[] = [
+    {
+      header: 'Archivo',
+      accessorKey: 'rem_upload_id',
+      cell: ({ row }) => (
+        <span className="text-slate-900 font-mono">#{row.original.rem_upload_id}</span>
+      ),
+    },
+    {
+      header: 'Estado',
+      accessorKey: 'status',
+      cell: ({ row }) => <ExecutionStatusBadge status={row.original.status} />,
+    },
+    {
+      header: 'Filas',
+      accessorKey: 'total_rows',
+      cell: ({ row }) => <span className="text-slate-600">{row.original.total_rows}</span>,
+    },
+    {
+      header: 'Correctas',
+      accessorKey: 'passed_rows',
+      cell: ({ row }) => <span className="text-emerald-600">{row.original.passed_rows}</span>,
+    },
+    {
+      header: 'Con observaciones',
+      accessorKey: 'failed_rows',
+      cell: ({ row }) => <span className="text-rose-600">{row.original.failed_rows}</span>,
+    },
+    {
+      header: 'Duración',
+      accessorKey: 'execution_ms',
+      cell: ({ row }) => <span className="text-slate-600">{row.original.execution_ms} ms</span>,
+    },
+    {
+      header: 'Origen',
+      accessorKey: 'triggered_by',
+      cell: ({ row }) => (
+        <span className="text-slate-600">{getTriggerLabel(row.original.triggered_by)}</span>
+      ),
+    },
+    {
+      header: 'Fecha',
+      accessorKey: 'created_at',
+      cell: ({ row }) => (
+        <span className="text-slate-500 whitespace-nowrap">
+          {new Date(row.original.created_at).toLocaleString('es-CL')}
+        </span>
+      ),
+    },
+  ]
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="flex items-center gap-4">
@@ -112,7 +227,7 @@ export default function RuleDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
             <Info className="h-3.5 w-3.5" />
             ¿Qué valida?
@@ -243,39 +358,22 @@ export default function RuleDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3 shadow-sm">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4 shadow-sm">
           <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
             Versiones ({rule.versions?.length ?? 0})
           </h3>
           {rule.versions && rule.versions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase">
-                    <th className="pb-2 pr-4 font-medium">Versión</th>
-                    <th className="pb-2 pr-4 font-medium">Cambios</th>
-                    <th className="pb-2 font-medium">Fecha</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rule.versions.map((v) => (
-                    <tr key={v.id} className="border-b border-slate-100">
-                      <td className="py-2 pr-4 font-mono text-slate-900">{v.version}</td>
-                      <td className="py-2 pr-4 text-slate-600">{v.changelog ?? '—'}</td>
-                      <td className="py-2 text-slate-500 whitespace-nowrap">
-                        {new Date(v.created_at).toLocaleDateString('es-CL')}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={versionColumns}
+              data={rule.versions}
+              getRowClassName={noHoverRowClassName}
+            />
           ) : (
             <p className="text-sm text-slate-500">Sin versiones registradas.</p>
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-3 shadow-sm">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4 shadow-sm">
           <div className="flex items-center gap-1.5">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
               Relaciones de Reglas ({rule.bindings?.length ?? 0})
@@ -283,40 +381,11 @@ export default function RuleDetailPage() {
             <HelpTooltip text={getHelpText('bindings') ?? ''} />
           </div>
           {rule.bindings && rule.bindings.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase">
-                    <th className="pb-2 pr-4 font-medium">Tipo</th>
-                    <th className="pb-2 pr-4 font-medium">Serie</th>
-                    <th className="pb-2 pr-4 font-medium">Año</th>
-                    <th className="pb-2 font-medium">Activo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rule.bindings.map((b) => (
-                    <tr key={b.id} className="border-b border-slate-100">
-                      <td className="py-2 pr-4 text-slate-900">
-                        {getBindableTypeLabel(b.bindable_type)}
-                      </td>
-                      <td className="py-2 pr-4 text-slate-600">{b.serie ?? '—'}</td>
-                      <td className="py-2 pr-4 text-slate-600">{b.anio ?? '—'}</td>
-                      <td className="py-2">
-                        {b.active ? (
-                          <span className="inline-flex items-center rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-xs font-medium">
-                            Sí
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-slate-100 text-slate-500 border border-slate-200 px-2 py-0.5 text-xs font-medium">
-                            No
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable
+              columns={bindingColumns}
+              data={rule.bindings}
+              getRowClassName={noHoverRowClassName}
+            />
           ) : (
             <p className="text-sm text-slate-500">Sin relaciones de reglas registradas.</p>
           )}
@@ -325,41 +394,12 @@ export default function RuleDetailPage() {
 
       <TechnicalInfo title="Historial de ejecución">
         {rule.execution_logs && rule.execution_logs.length > 0 ? (
-          <div className="overflow-x-auto p-4">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase">
-                  <th className="pb-2 pr-4 font-medium">Archivo</th>
-                  <th className="pb-2 pr-4 font-medium">Estado</th>
-                  <th className="pb-2 pr-4 font-medium">Filas</th>
-                  <th className="pb-2 pr-4 font-medium">Correctas</th>
-                  <th className="pb-2 pr-4 font-medium">Con observaciones</th>
-                  <th className="pb-2 pr-4 font-medium">Duración</th>
-                  <th className="pb-2 pr-4 font-medium">Origen</th>
-                  <th className="pb-2 font-medium">Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rule.execution_logs.map((log) => (
-                  <tr key={log.id} className="border-b border-slate-100">
-                    <td className="py-2 pr-4 text-slate-900 font-mono">#{log.rem_upload_id}</td>
-                    <td className="py-2 pr-4">
-                      <ExecutionStatusBadge status={log.status} />
-                    </td>
-                    <td className="py-2 pr-4 text-slate-600">{log.total_rows}</td>
-                    <td className="py-2 pr-4 text-emerald-600">{log.passed_rows}</td>
-                    <td className="py-2 pr-4 text-rose-600">{log.failed_rows}</td>
-                    <td className="py-2 pr-4 text-slate-600">{log.execution_ms} ms</td>
-                    <td className="py-2 pr-4 text-slate-600">
-                      {getTriggerLabel(log.triggered_by)}
-                    </td>
-                    <td className="py-2 text-slate-500 whitespace-nowrap">
-                      {new Date(log.created_at).toLocaleString('es-CL')}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-4">
+            <DataTable
+              columns={executionLogColumns}
+              data={rule.execution_logs}
+              getRowClassName={noHoverRowClassName}
+            />
           </div>
         ) : (
           <p className="p-4 text-sm text-slate-500">Sin historial de ejecución registrado.</p>

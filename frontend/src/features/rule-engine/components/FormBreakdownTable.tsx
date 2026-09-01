@@ -1,6 +1,8 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import type { ColumnDef } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { DataTable } from '@/shared/components/DataTable'
 import type { FormSummary } from '../types/validation'
 
 interface Props {
@@ -42,6 +44,115 @@ export const FormBreakdownTable: React.FC<Props> = ({ forms, uploadId, activeFor
   const sorted = [...forms].sort(sortForms)
   const formsWithErrors = sorted.filter((f) => sortBucket(f) === 'errores')
   const formsWithoutErrors = sorted.filter((f) => sortBucket(f) !== 'errores')
+  // `sorted` ya agrupa errores primero (ver order en sortForms) -- concatenar
+  // ambos grupos reproduce exactamente el mismo orden que `sorted`.
+  const visibleForms = showCorrectForms ? sorted : formsWithErrors
+
+  const columns = useMemo<ColumnDef<FormSummary>[]>(
+    () => [
+      {
+        header: 'Formulario',
+        accessorKey: 'form',
+        cell: ({ row }) => (
+          <span className="text-sm font-medium text-slate-900">{row.original.form}</span>
+        ),
+      },
+      {
+        header: () => <div className="text-center">Total</div>,
+        accessorKey: 'total',
+        cell: ({ row }) => (
+          <div className="text-center text-sm text-slate-600">{row.original.total}</div>
+        ),
+      },
+      {
+        header: () => <div className="text-center text-green-600">Cumplen</div>,
+        accessorKey: 'passed',
+        cell: ({ row }) => (
+          <div className="text-center text-sm text-green-600">{row.original.passed}</div>
+        ),
+      },
+      {
+        header: () => <div className="text-center text-red-600">Incumplen</div>,
+        id: 'incumplen',
+        cell: ({ row }) => {
+          const f = row.original
+          const isErrorBucket = sortBucket(f) === 'errores'
+          return (
+            <div
+              className={`text-center text-sm ${isErrorBucket ? 'text-red-600 font-medium' : 'text-slate-400'}`}
+            >
+              {isErrorBucket ? f.failed : 0}
+            </div>
+          )
+        },
+      },
+      {
+        header: () => <div className="text-center">No aplica</div>,
+        accessorKey: 'skipped',
+        cell: ({ row }) => (
+          <div className="text-center text-sm text-slate-400">{row.original.skipped}</div>
+        ),
+      },
+      {
+        header: () => <div className="text-center">Cumplimiento</div>,
+        accessorKey: 'cumplimiento',
+        cell: ({ row }) => (
+          <div className="text-center text-sm font-medium">
+            <span className={cumplimientoColor(row.original.cumplimiento)}>
+              {row.original.cumplimiento !== null ? `${row.original.cumplimiento}%` : '—'}
+            </span>
+          </div>
+        ),
+      },
+      {
+        header: () => <div className="text-center">Acción</div>,
+        id: 'accion',
+        cell: ({ row }) => {
+          const f = row.original
+          const isErrorBucket = sortBucket(f) === 'errores'
+          return (
+            <div className="text-center">
+              {isErrorBucket ? (
+                f.failed > 0 ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(`/rule-engine/uploads/${uploadId}/validation-errors?form=${f.form}`)
+                    }}
+                    className="text-xs font-medium text-amber-700 hover:text-amber-900 underline transition-colors"
+                  >
+                    Revisar {f.failed} error(es)
+                  </button>
+                ) : f.passed > 0 ? (
+                  <span className="inline-flex items-center gap-1 text-xs text-green-700">
+                    <CheckCircle2 className="w-3 h-3" /> Correcto
+                  </span>
+                ) : (
+                  <span className="text-xs text-slate-400">Sin reglas aplicables</span>
+                )
+              ) : f.passed > 0 ? (
+                <span className="inline-flex items-center gap-1 text-xs text-green-700">
+                  <CheckCircle2 className="w-3 h-3" /> Correcto
+                </span>
+              ) : (
+                <span className="text-xs text-slate-400">Sin reglas aplicables</span>
+              )}
+            </div>
+          )
+        },
+      },
+    ],
+    [navigate, uploadId]
+  )
+
+  const getRowClassName = (f: FormSummary) => {
+    const isActive = activeForm === f.form
+    const isErrorBucket = sortBucket(f) === 'errores'
+    if (isActive) return 'bg-blue-50 hover:bg-blue-50'
+    // Estas filas nunca tuvieron hover propio -- se fija el hover al mismo
+    // color de fondo para que TableRow no le agregue uno nuevo.
+    return isErrorBucket ? 'bg-amber-50/40 hover:bg-amber-50/40' : 'bg-white hover:bg-white'
+  }
 
   return (
     <div className="space-y-3">
@@ -57,104 +168,7 @@ export const FormBreakdownTable: React.FC<Props> = ({ forms, uploadId, activeFor
         </p>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">
-                Formulario
-              </th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
-                Total
-              </th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-green-600 uppercase">
-                Cumplen
-              </th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-red-600 uppercase">
-                Incumplen
-              </th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
-                No aplica
-              </th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
-                Cumplimiento
-              </th>
-              <th className="px-4 py-2 text-center text-xs font-medium text-slate-500 uppercase">
-                Acción
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-200">
-            {/* Forms with errors first */}
-            {formsWithErrors.map((f) => (
-              <tr
-                key={f.form}
-                className={`bg-amber-50/40 ${activeForm === f.form ? 'bg-blue-50' : ''}`}
-              >
-                <td className="px-4 py-2 text-sm font-medium text-slate-900">{f.form}</td>
-                <td className="px-4 py-2 text-sm text-center text-slate-600">{f.total}</td>
-                <td className="px-4 py-2 text-sm text-center text-green-600">{f.passed}</td>
-                <td className="px-4 py-2 text-sm text-center text-red-600 font-medium">
-                  {f.failed}
-                </td>
-                <td className="px-4 py-2 text-sm text-center text-slate-400">{f.skipped}</td>
-                <td className="px-4 py-2 text-sm text-center font-medium">
-                  <span className={cumplimientoColor(f.cumplimiento)}>
-                    {f.cumplimiento !== null ? `${f.cumplimiento}%` : '—'}
-                  </span>
-                </td>
-                <td className="px-4 py-2 text-center">
-                  {f.failed > 0 ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        navigate(
-                          `/rule-engine/uploads/${uploadId}/validation-errors?form=${f.form}`
-                        )
-                      }}
-                      className="text-xs font-medium text-amber-700 hover:text-amber-900 underline transition-colors"
-                    >
-                      Revisar {f.failed} error(es)
-                    </button>
-                  ) : f.passed > 0 ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-green-700">
-                      <CheckCircle2 className="w-3 h-3" /> Correcto
-                    </span>
-                  ) : (
-                    <span className="text-xs text-slate-400">Sin reglas aplicables</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-
-            {/* Collapsible section for forms without errors */}
-            {showCorrectForms &&
-              formsWithoutErrors.map((f) => (
-                <tr key={f.form} className={activeForm === f.form ? 'bg-blue-50' : 'bg-white'}>
-                  <td className="px-4 py-2 text-sm font-medium text-slate-900">{f.form}</td>
-                  <td className="px-4 py-2 text-sm text-center text-slate-600">{f.total}</td>
-                  <td className="px-4 py-2 text-sm text-center text-green-600">{f.passed}</td>
-                  <td className="px-4 py-2 text-sm text-center text-slate-400">0</td>
-                  <td className="px-4 py-2 text-sm text-center text-slate-400">{f.skipped}</td>
-                  <td className="px-4 py-2 text-sm text-center font-medium">
-                    <span className={cumplimientoColor(f.cumplimiento)}>
-                      {f.cumplimiento !== null ? `${f.cumplimiento}%` : '—'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-2 text-center">
-                    {f.passed > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-700">
-                        <CheckCircle2 className="w-3 h-3" /> Correcto
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">Sin reglas aplicables</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable columns={columns} data={visibleForms} getRowClassName={getRowClassName} />
 
       {/* Toggle for correct forms */}
       {formsWithoutErrors.length > 0 && (

@@ -190,7 +190,7 @@ export default function ComparisonPage() {
 
           {/* Legacy vs Engine stats */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 Sistema Anterior
               </h3>
@@ -215,7 +215,7 @@ export default function ComparisonPage() {
                 ))}
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">
                 Motor Actual
               </h3>

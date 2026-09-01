@@ -1,16 +1,20 @@
 import { Link } from 'react-router-dom'
 import {
+  AlertTriangle,
   ClipboardCheck,
+  Database,
   Gavel,
   LayoutDashboard,
-  ListChecks,
   UploadCloud,
   Users,
 } from 'lucide-react'
 import { useAuthStore } from '@/app/store/authStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { Badge } from '@/shared/components/ui/badge'
+import { PageHeader } from '@/shared/components/PageHeader'
 import { getRoleDisplayLabel } from '@/shared/utils/roleLabels'
+import { MetricCard, useRuleEngineHealth } from '@/features/rule-engine'
+import { useRemUploads } from '@/features/rem'
 
 // Duplicado deliberadamente desde UsersTable.tsx -- el modulo Usuarios ya
 // quedo cerrado y no se toca; este mapa es puramente presentacional.
@@ -20,6 +24,11 @@ const ROLE_BADGE_STYLES: Record<string, string> = {
   Analista: 'bg-indigo-50 text-indigo-700 border-indigo-200',
 }
 const DEFAULT_ROLE_BADGE_STYLE = 'bg-slate-100 text-slate-600 border-slate-200'
+
+// Mismos roles que ya usa el shortcut "Motor de Reglas" mas abajo y el menu
+// lateral (AppLayout.tsx) para /rule-engine -- el resumen del motor solo se
+// pide (y se muestra) a roles que ya tienen acceso a esa seccion.
+const RULE_ENGINE_SUMMARY_ROLES = ['Administrador', 'Superadmin', 'Revisor', 'Auditor']
 
 interface Shortcut {
   to: string
@@ -35,13 +44,6 @@ const SHORTCUTS: Shortcut[] = [
     label: 'Cargas REM',
     description: 'Subir y revisar archivos REM',
     icon: UploadCloud,
-    roles: ['all'],
-  },
-  {
-    to: '/criterios-funcionales',
-    label: 'Criterios funcionales',
-    description: 'Revisar criterios de validación',
-    icon: ListChecks,
     roles: ['all'],
   },
   {
@@ -67,30 +69,86 @@ const SHORTCUTS: Shortcut[] = [
   },
 ]
 
+// Se monta solo para roles con acceso a /rule-engine (ver
+// RULE_ENGINE_SUMMARY_ROLES) -- asi el hook de datos reales del motor nunca
+// se ejecuta para un rol sin ese permiso. Reutiliza useRuleEngineHealth,
+// el mismo hook que ya alimenta RuleEngineDashboardPage -- sin endpoint
+// nuevo, sin logica nueva de backend.
+function RuleEngineSummary() {
+  const { data: health, isLoading, isError } = useRuleEngineHealth()
+
+  if (isLoading || isError || !health) return null
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <MetricCard
+        icon={Gavel}
+        label="Reglas activas"
+        value={health.total_rules_active}
+        variant="info"
+      />
+      <MetricCard
+        icon={Database}
+        label="Bindings activos"
+        value={health.total_bindings_active}
+        variant="default"
+      />
+      <MetricCard
+        icon={UploadCloud}
+        label="Cargas con motor ejecutado"
+        value={health.uploads_with_engine}
+        subtitle={`de ${health.total_uploads} totales`}
+        variant="default"
+      />
+      <MetricCard
+        icon={AlertTriangle}
+        label="Logs con error"
+        value={health.error_logs}
+        variant={health.error_logs > 0 ? 'danger' : 'success'}
+      />
+    </div>
+  )
+}
+
+// Reutiliza useRemUploads (mismo hook de la pantalla Cargas REM) pidiendo
+// solo 1 registro -- el total real ya viene en la paginacion del backend
+// (meta.total), sin traer ni procesar la lista completa.
+function RemUploadsSummary() {
+  const { data, isLoading, isError } = useRemUploads({ per_page: 1 })
+
+  if (isLoading || isError || !data) return null
+
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <MetricCard
+        icon={UploadCloud}
+        label="Cargas REM totales"
+        value={data.meta.total}
+        variant="default"
+      />
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user)
 
   const visibleShortcuts = SHORTCUTS.filter(
     (item) => item.roles.includes('all') || item.roles.some((r) => user?.roles?.includes(r))
   )
+  const showRuleEngineSummary = user?.roles?.some((r) => RULE_ENGINE_SUMMARY_ROLES.includes(r))
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <Card className="border border-slate-200 bg-white px-5 py-5 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">
-            <LayoutDashboard className="size-5" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
-            <p className="text-sm text-slate-500">Panel principal de ATENEA — Estadística APS</p>
-          </div>
-        </div>
-      </Card>
+      <PageHeader
+        title="Dashboard"
+        description="Panel principal de ATENEA — Estadística APS"
+        icon={LayoutDashboard}
+      />
 
-      <Card className="border border-slate-200 bg-white shadow-sm">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-slate-900">Bienvenido{user ? `, ${user.name}` : ''}</CardTitle>
+          <CardTitle>Bienvenido{user ? `, ${user.name}` : ''}</CardTitle>
         </CardHeader>
         <CardContent>
           {user && (
@@ -109,6 +167,9 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      <RemUploadsSummary />
+      {showRuleEngineSummary && <RuleEngineSummary />}
 
       {visibleShortcuts.length > 0 && (
         <div>

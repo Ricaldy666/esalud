@@ -1,4 +1,7 @@
+import { useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import type { ColumnDef } from '@tanstack/react-table'
+import { DataTable } from '@/shared/components/DataTable'
 import { useStructure } from '../hooks/useStructure'
 import { StructureTreeNode } from '../components/StructureTreeNode'
 import { SeverityBadge } from '../components/SeverityBadge'
@@ -8,6 +11,15 @@ import { TechnicalInfo } from '../components/TechnicalInfo'
 import { PageHeader } from '@/shared/components/PageHeader'
 import { Loader2, ArrowLeft, AlertTriangle, FileSpreadsheet, List, Database } from 'lucide-react'
 import { getHelpText, getStructureStatusLabel, getRuleTypeLabel } from '../utils/labels'
+
+type StructureRule = {
+  id: number
+  rule_key: string
+  rule_type: string
+  name: string
+  severity: string
+  status: string
+}
 
 function formatJson(data: unknown): string {
   if (!data) return '—'
@@ -23,6 +35,48 @@ export default function StructureDetailPage() {
   const navigate = useNavigate()
   const structureId = id ? Number(id) : undefined
   const { data: structure, isLoading, isError } = useStructure(structureId)
+
+  const rulesColumns = useMemo<ColumnDef<StructureRule>[]>(
+    () => [
+      {
+        header: 'Código de Regla',
+        accessorKey: 'rule_key',
+        cell: ({ row }) => (
+          <button
+            onClick={() => navigate(`/rule-engine/rules/${row.original.id}`)}
+            className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            {row.original.rule_key}
+          </button>
+        ),
+      },
+      {
+        header: 'Nombre',
+        accessorKey: 'name',
+        cell: ({ row }) => <span className="text-slate-700">{row.original.name}</span>,
+      },
+      {
+        header: 'Tipo',
+        accessorKey: 'rule_type',
+        cell: ({ row }) => (
+          <span className="text-slate-600">{getRuleTypeLabel(row.original.rule_type)}</span>
+        ),
+      },
+      {
+        header: 'Nivel de importancia',
+        accessorKey: 'severity',
+        cell: ({ row }) => <SeverityBadge severity={row.original.severity} />,
+      },
+      {
+        header: 'Estado',
+        accessorKey: 'status',
+        cell: ({ row }) => (
+          <RuleStatusBadge status={row.original.status as 'active' | 'inactive' | 'deprecated'} />
+        ),
+      },
+    ],
+    [navigate]
+  )
 
   if (isLoading) {
     return (
@@ -237,41 +291,7 @@ export default function StructureDetailPage() {
           <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
             Reglas Asociadas ({structure.rules.length})
           </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-xs text-slate-500 uppercase">
-                  <th className="pb-2 pr-4 font-medium">Código de Regla</th>
-                  <th className="pb-2 pr-4 font-medium">Nombre</th>
-                  <th className="pb-2 pr-4 font-medium">Tipo</th>
-                  <th className="pb-2 pr-4 font-medium">Nivel de importancia</th>
-                  <th className="pb-2 font-medium">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {structure.rules.map((r) => (
-                  <tr key={r.id} className="border-b border-slate-100 hover:bg-slate-50">
-                    <td className="py-2 pr-4">
-                      <button
-                        onClick={() => navigate(`/rule-engine/rules/${r.id}`)}
-                        className="font-mono text-blue-600 hover:text-blue-800 transition-colors"
-                      >
-                        {r.rule_key}
-                      </button>
-                    </td>
-                    <td className="py-2 pr-4 text-slate-700">{r.name}</td>
-                    <td className="py-2 pr-4 text-slate-600">{getRuleTypeLabel(r.rule_type)}</td>
-                    <td className="py-2 pr-4">
-                      <SeverityBadge severity={r.severity} />
-                    </td>
-                    <td className="py-2">
-                      <RuleStatusBadge status={r.status as 'active' | 'inactive' | 'deprecated'} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable columns={rulesColumns} data={structure.rules} />
         </div>
       )}
 
