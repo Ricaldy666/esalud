@@ -6,9 +6,13 @@
 > [`docs/handoff/DEPLOYMENT.md`](handoff/DEPLOYMENT.md) y
 > [`docs/CHECKLIST_DESPLIEGUE_PRODUCCION.md`](CHECKLIST_DESPLIEGUE_PRODUCCION.md).
 >
-> **Última actualización:** 2026-08-05.
-> **Último commit estable:** `d02e88e1964f5060bedbb3f289e1a24ed127de15`
-> (rama `main`, sincronizado con `origin/main`).
+> **Última actualización:** 2026-09-01.
+> **Último commit estable:** `e7cda9c4d144d78777e0468a91b1f5028d78e2a4`
+> (rama `main`, sincronizado con `origin/main`). Incluye, además de lo
+> descrito originalmente en este documento (agosto, commit `d02e88e`):
+> el cierre completo de **REM A**, **Seguridad/2FA** y la campaña
+> **UX/UI** (retiro de Prime legacy + manejo visual 404). Ver `CLAUDE.md`
+> para el detalle punto por punto de cada campaña.
 
 ---
 
@@ -27,7 +31,9 @@ Nelson — sin bloqueantes de código.
 |---|---|---|
 | **A09 (Serie A)** | ✅ Certificada funcionalmente | 14 secciones (A, B, C, D, E, F, F.1, F.2, G, G.1, H, I, J, K) aprobadas; catálogo técnico e ingesta completados en sesiones previas |
 | **Parser REM v2** | ✅ Operativo | Jerarquía de overflow con herencia vertical, fixes de `total_column`/`professional_column`, fix de memoria (evicción de `cell_data`) |
-| **RuleEngine (RF-02)** | ✅ Operativo | 764 reglas activas, 859 bindings, estructura activa **v15/id=36** |
+| **RuleEngine (RF-02)** | ✅ Operativo — REM A certificado end-to-end | 798 `rem_rules` (751 activas, 474 `SAFE_1_TO_1`), 1655 bindings totales (451 activos a la estructura), estructura activa **v35/id=67** (reverificado en vivo 2026-09-01) |
+| **Seguridad / 2FA** | ✅ Cerrado | `auth:reset-admin` hardening + rate limiting + TOTP RFC 6238 completo, commit `624519f` |
+| **UX/UI** | ✅ Cerrado | Normalización visual, `DataTable`, retiro de integración Prime legacy, manejo visual de rutas 404, commit `54dc5cd` |
 | **Pipeline Process → Validate → Engine** | ✅ Operativo de punta a punta | `ProcessRemUploadJob` → `ValidateRemUploadJob` → `ValidateWithEngineJob`, verificado contra uploads reales sin quedar atascado en `validating` |
 | **Módulo Usuarios** | ✅ Cerrado (funcional y visual) | Listar/crear/editar/eliminar verificados; rediseño visual completo (commit `d02e88e`) |
 | **Permisos Superadmin/Administrador** | ✅ Corregidos | `UserPolicy`, `ActivityLogPolicy`, `HealthCenterPolicy` aceptan ambos roles; antes solo `Administrador` pasaba pese a que el menú ya mostraba la opción a `Superadmin` |
@@ -55,7 +61,7 @@ Nelson — sin bloqueantes de código.
 
 | Qué | Dónde vive hoy | Tamaño | Plan de transporte |
 |---|---|---|---|
-| Estructura REM activa (v15/id=36), `rem_rules` (764), `rem_rule_bindings` (859), `rem_templates`, `health_centers` | Solo en MySQL local (`esalud_dev`) | — | `mysqldump` selectivo (`DEPLOYMENT.md` §3.1) |
+| Estructura REM activa (**v35/id=67**), `rem_rules` (**798**, 751 activas, 474 `SAFE_1_TO_1`), `rem_rule_bindings` (**1655** totales, 451 a la estructura 67), `rem_templates`, `health_centers` | Solo en MySQL local (`esalud_dev`) | — | `mysqldump` selectivo (`DEPLOYMENT.md` §3.1) — **el dump aún no se ha generado, ver §5 nota abajo** |
 | `cell-data/` + `reglas-funcionales.json` + `serie-a-catalogo.json` | `storage/app/private/certificacion/` (100% gitignorado) | 108MB / 381 archivos + 2.4MB | `tar` de la carpeta (`DEPLOYMENT.md` §3.2) |
 | `rem_uploads` (106) / `rem_data` (260.071 filas) | MySQL local | — | **No llevar** — datos de prueba, producción empieza limpia |
 | `users` (3 cuentas de prueba: admin, demo, Francisco Arcos) | MySQL local | — | **No llevar** — Nelson crea el admin real vía `AdminUserSeeder` |
@@ -64,13 +70,20 @@ Nelson — sin bloqueantes de código.
 
 ## 5. Comandos post-pull (resumen — detalle completo en `DEPLOYMENT.md` §8 y `CHECKLIST_DESPLIEGUE_PRODUCCION.md`)
 
+⚠️ **El dump SQL de calibración referido en §4 no existe generado
+todavía** (el de agosto, contra el estado viejo id=36/764/859, tampoco
+llegó a crearse — quedó solo como plan). Hay que generarlo de nuevo
+contra el estado actual (`DEPLOYMENT.md` §3.1) antes de este paso, y
+respaldar `storage/app/private` antes de cualquier restauración.
+
 ```bash
 cd /var/www/esalud && git pull origin main
 
 cd backend
 composer install --no-dev --optimize-autoloader
 php artisan migrate --force
-# restaurar dump SQL + tar de certificacion/ (ver §4 arriba) antes de seguir
+# restaurar dump SQL + tar de certificacion/ (ver §4 arriba y la nota
+# de arriba) antes de seguir
 php artisan db:seed --force
 php artisan config:cache && php artisan route:cache && php artisan view:cache
 chown -R www-data:www-data storage bootstrap/cache
@@ -96,7 +109,7 @@ Sin `--tries` (cada Job define el suyo: `ProcessRemUploadJob`=1, los otros dos=2
 
 **Nginx**: dos server blocks — backend (PHP-FPM, `client_max_body_size 50M` para los `.xlsm`) y frontend (`dist/` con fallback SPA + proxy de `/api/` al backend). Configuración completa en `DEPLOYMENT.md` §6.
 
-**HTTP/HTTPS**: ⏳ **pendiente de confirmación con Nelson.** Mientras sea HTTP, `SESSION_SECURE_COOKIE=false` (con `true` sobre HTTP el navegador descarta la cookie de sesión en silencio — login parece exitoso pero la sesión nunca persiste). Cambiar a `true` solo cuando haya HTTPS realmente activo.
+**HTTP/HTTPS**: ⏳ **condición previa de despliegue, sigue sin confirmar con Nelson (2026-09-01) — no asumir, preguntar explícitamente.** Mientras sea HTTP, `SESSION_SECURE_COOKIE=false` (con `true` sobre HTTP el navegador descarta la cookie de sesión en silencio — login parece exitoso pero la sesión nunca persiste). Cambiar a `true` solo cuando haya HTTPS realmente activo.
 
 ---
 
@@ -104,14 +117,18 @@ Sin `--tries` (cada Job define el suyo: `ProcessRemUploadJob`=1, los otros dos=2
 
 Antes de dar el despliegue por cerrado, verificar en este orden:
 
-- [ ] `php artisan tinker` → estructura activa = **36**, `rem_rules` = **764**, `rem_rule_bindings` = **859**.
-- [ ] `ls storage/app/private/certificacion/cell-data/ | wc -l` = **381**.
+- [ ] `php artisan tinker` → estructura activa = **67** (v**35**), `rem_rules` = **798** (751 activas), `rem_rule_bindings` = **1655** totales (451 activos a la estructura 67).
+- [ ] `ls storage/app/private/certificacion/cell-data/ | wc -l` = **381** (reconfirmar tamaño real, no asumir el valor de agosto).
 - [ ] Login real con el usuario admin creado en el servidor — la sesión persiste tras recargar (valida HTTP/HTTPS + cookie correctamente configurados).
+- [ ] Si el usuario tiene 2FA activo, el login exige el challenge TOTP/recovery code antes de entrar.
 - [ ] Usuario admin ve Usuarios / Centros de Salud / Auditoría en el menú.
+- [ ] Dashboard, Cargas REM, Calibración REM (tab **Matriz** inicial), Patrones y fórmulas, Motor de Reglas, Catálogo de Reglas y Comparación navegables sin error.
+- [ ] Una ruta inexistente (o `/criterios-funcionales`) muestra la pantalla "Página no encontrada" propia de ATHENEA — nunca el error técnico de React Router.
+- [ ] No existe la entrada "Criterios funcionales" en el menú ni en el Dashboard.
 - [ ] `sudo supervisorctl status esalud-queue-worker:*` → `RUNNING`.
 - [ ] Subir un **archivo REM real** (no de prueba sintética) desde la interfaz.
 - [ ] La carga avanza `pending → processing → validating → success/with_errors` — **nunca queda indefinidamente en `validating`**, nunca queda en `rejected`.
-- [ ] El resumen de validación muestra un número de reglas evaluadas coherente con las 764 restauradas (no un número sospechosamente bajo, que indicaría que solo corrió el seeder base del CSV y no se restauró el dump real).
+- [ ] El resumen de validación muestra un número de reglas evaluadas coherente con las 798 restauradas / 751 activas (no un número sospechosamente bajo como 529, que indicaría que solo corrió el seeder base del CSV y no se restauró el dump real).
 - [ ] `curl -I https://<dominio>` y `curl -I https://<dominio>/api/v1/health` → `200`.
 
 Checklist detallado, con "qué pasa si se omite" y "evidencia" por cada paso: `docs/CHECKLIST_DESPLIEGUE_PRODUCCION.md`.

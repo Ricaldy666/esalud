@@ -10,10 +10,28 @@ Linux limpio con Nginx + PHP-FPM + MySQL/MariaDB + Supervisor. No usar
 
 ---
 
-## 0. ESTADO GENERAL DEL DESPLIEGUE (actualizado 2026-08-05)
+## 0. ESTADO GENERAL DEL DESPLIEGUE (actualizado 2026-09-01)
 
-**Último commit estable: `d02e88e1964f5060bedbb3f289e1a24ed127de15`
-(rama `main`, sincronizado con `origin/main`).**
+**Último commit estable: `e7cda9c4d144d78777e0468a91b1f5028d78e2a4`
+(rama `main`, sincronizado con `origin/main`).** Este commit incluye,
+además de todo lo descrito originalmente en este documento (fechado
+2026-08-04/05, commit `d02e88e`): el cierre completo de **REM A**
+(estructura activa **67/v35**, **798** `rem_rules` — **751** activas,
+**474** `SAFE_1_TO_1`, **1655** `rem_rule_bindings` totales, **451**
+bindings activos a la estructura 67), **Seguridad/2FA** (TOTP RFC 6238
+completo vía `pragmarx/google2fa`) y la campaña **UX/UI** (retiro de la
+integración Prime legacy, manejo visual de rutas 404, normalización de
+tablas/headers). **Todas las cifras de esta sección fueron reverificadas
+en vivo contra la BD local (`esalud_dev`) el 2026-09-01** — donde este
+documento aún diga `36`/`764`/`859`/`v15` más abajo, son valores
+**obsoletos** de la preparación original de agosto, reemplazados por los
+de arriba.
+
+⚠️ **El dump de calibración mencionado en §3 nunca se generó como
+archivo real** — quedó solo como plan. No buscar ni reutilizar
+`esalud_datos_calibracion_2026-08-04.sql`; hay que generar uno nuevo
+contra el estado actual (comando idéntico en §3.1, solo con los nombres
+de tabla y una fecha nueva) antes de cualquier despliegue real.
 
 ### ✅ RESUELTO
 
@@ -25,8 +43,11 @@ Linux limpio con Nginx + PHP-FPM + MySQL/MariaDB + Supervisor. No usar
   vertical, fixes de `total_column`/`professional_column`, certificación
   A01-A09 (las 14 secciones de A09 aprobadas funcionalmente) — verificado
   con `tests/Feature/REM` en verde.
-- **RuleEngine (RF-02)**: operativo — 764 reglas activas, 859 bindings,
-  estructura activa **v15/id=36**.
+- **RuleEngine (RF-02)**: operativo — 798 `rem_rules` (751 activas, 474
+  `SAFE_1_TO_1`), 1655 bindings totales (451 activos a la estructura),
+  estructura activa **v35/id=67** (cifras reverificadas 2026-09-01; el
+  texto histórico de esta sección, escrito en agosto contra `764`/`859`/
+  `v15/id=36`, queda superado — ver §0).
 - **Pipeline de carga**: `ProcessRemUploadJob` → `ValidateRemUploadJob` →
   `ValidateWithEngineJob` verificado de punta a punta contra uploads
   reales, sin quedar atascado en `validating`.
@@ -53,10 +74,12 @@ Linux limpio con Nginx + PHP-FPM + MySQL/MariaDB + Supervisor. No usar
 
 - [ ] Confirmar con Nelson si el servidor sirve por HTTP o HTTPS
       — condiciona `SESSION_SECURE_COOKIE` y `APP_URL` (§11).
-- [ ] Generar y transportar el dump de estructura activa **v15/id=36**,
-      `rem_rules` (764), `rem_rule_bindings` (859), `cell_data`
-      (108MB/381 archivos), `reglas-funcionales.json` (2.4MB) — plan
-      detallado en §3, **no ejecutado todavía**.
+- [ ] Generar y transportar el dump de estructura activa **v35/id=67**,
+      `rem_rules` (798), `rem_rule_bindings` (1655), `cell_data`
+      (108MB/381 archivos — reconfirmar tamaño actual antes de asumirlo),
+      `reglas-funcionales.json` (2.4MB) — plan detallado en §3, **no
+      ejecutado todavía** (el dump de agosto contra el estado viejo
+      tampoco llegó a generarse, ver §0).
 - [ ] Aplicar la configuración de Supervisor/Nginx (§6) en el servidor
       real — la propuesta ya está redactada.
 - [ ] Ejecutar la secuencia de despliegue con Nelson (§8) y el checklist
@@ -115,8 +138,9 @@ producción.
    es una regresión funcional severa frente a lo certificado. Ver §3 para
    el plan de transporte.
 
-4. **La estructura activa (v15/id=36), 764 `rem_rules` y 859
-   `rem_rule_bindings` existen solo en la base de datos MySQL local.** No
+4. **La estructura activa (v15/id=36 en agosto, hoy v35/id=67 — ver §0),
+   764 `rem_rules` (hoy 798) y 859 `rem_rule_bindings` (hoy 1655)
+   existen solo en la base de datos MySQL local.** No
    hay seeder ni migración que los reconstruya desde cero — se armaron a
    lo largo de muchas sesiones con comandos artisan puntuales. La única
    vía reproducible confiable es un dump/restore selectivo de esas tablas
@@ -257,7 +281,7 @@ commitear el borrado (no lo verifiqué archivo por archivo).
 | Ubicación | Contenido | ¿Viaja con `git pull`? |
 |---|---|---|
 | **Código Git** (tras commit) | Lógica del parser (`RemParserService`, `ColumnRoleResolverService`), mecanismo de jerarquía con herencia vertical, fixes de `total_column`/`professional_column`, fix de memoria (`CellDataStorageService`, evicción), toda la lógica de validación y RuleEngine | Sí |
-| **Base de datos local `esalud_dev`** | `rem_template_structures` (15 versiones, activa **v15/id=36** con A09/G y A03/F corregidas), `rem_rules` (764), `rem_rule_bindings` (859), `rem_templates` (5) | **No** |
+| **Base de datos local `esalud_dev`** | `rem_template_structures` (activa **v35/id=67**, certificada end-to-end en REM A), `rem_rules` (798, 751 activas, 474 `SAFE_1_TO_1`), `rem_rule_bindings` (1655 totales, 451 activos a la estructura 67), `rem_templates` | **No** |
 | **Base de datos local `esalud_dev`** (dato de prueba, NO llevar a prod) | `rem_uploads` (106), `rem_data` (260.071 filas) — cargas de prueba de esta y otras sesiones | No (y no debería) |
 | **`storage/app/private/certificacion/`** | `cell-data/` (108MB/381 archivos), `reglas-funcionales.json` (2.4MB), `serie-a-catalogo.json` | **No** (100% gitignorado) |
 | **`storage/app/`** (fuera de `private/`) | `catalogo-reglas-serie-a-2026.csv` (fuente de `RuleCatalogCsvSeeder`), catálogos xlsx/csv de reglas, `storage/app/certificacion/` (copia vieja, no usada — el disco `local` apunta a `storage/app/private/`) | **No** (100% gitignorado) |
@@ -276,7 +300,9 @@ verificable.
 ### 3.1 Base de datos — tablas a exportar
 
 ```bash
-# En este equipo (NO ejecutar todavía):
+# En este equipo (NO ejecutar todavía) -- usar la fecha real del dia
+# del despliegue en el nombre del archivo, no reutilizar el nombre
+# ni el contenido de ningun dump anterior:
 mysqldump -u root esalud_dev \
   rem_template_structures \
   rem_rules \
@@ -284,7 +310,7 @@ mysqldump -u root esalud_dev \
   rem_templates \
   health_centers \
   --no-create-info --complete-insert \
-  > esalud_datos_calibracion_2026-08-04.sql
+  > esalud_datos_calibracion_$(date +%Y-%m-%d).sql
 ```
 
 - **No incluir** `rem_uploads`, `rem_data`, `rem_validation_results`,
@@ -328,10 +354,12 @@ Copiar junto con lo anterior, o mover a una ubicación versionada
 
 ```bash
 php artisan tinker --execute="
-echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->id; // debe ser 36
-echo App\Domain\RuleEngine\Models\Rule::count(); // debe ser 764
+echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->id; // debe ser 67
+echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->version_number; // debe ser 35
+echo App\Domain\RuleEngine\Models\Rule::count(); // debe ser 798
+echo App\Domain\RuleEngine\Models\RuleBinding::count(); // debe ser 1655
 "
-ls backend/storage/app/private/certificacion/cell-data/ | wc -l  # debe ser 381
+ls backend/storage/app/private/certificacion/cell-data/ | wc -l  # debe ser 381 (reconfirmar tamano real antes de asumirlo)
 ```
 
 ---
@@ -516,12 +544,15 @@ command=php /var/www/esalud/backend/artisan queue:work database --queue=default 
       desactiva/retira.
 - [ ] Respaldo de la base de datos de producción si ya existe algo ahí
       (§9).
-- [x] ~~`git add` selectivo~~ — hecho. 4 commits en `main`, sincronizados
-      con `origin/main`: `1ae35bf` (motor de reglas/parser/calibración),
-      `3ab026d` (checklist de despliegue), `abe0751` (fix de permisos
-      Usuarios/Auditoría/Centros de Salud), `d02e88e` (rediseño visual
-      del módulo Usuarios). `cookies.txt`/`test_cookies.txt` confirmados
-      fuera del repositorio (revisados y eliminados, no solo excluidos).
+- [x] ~~`git add` selectivo~~ — hecho, en cada campaña posterior por
+      separado (nunca `git add .`/`-A`), siempre con `tsc`/`lint`/`build`
+      limpios antes de cada commit. Historial relevante en `main`,
+      sincronizado con `origin/main`, hasta el commit vigente
+      `e7cda9c`: los 4 originales de agosto (`1ae35bf`, `3ab026d`,
+      `abe0751`, `d02e88e`), el cierre de **REM A** (`b659a5e`), el
+      cierre de **Seguridad/2FA** (`624519f`), y el cierre de la
+      campaña **UX/UI** (`54dc5cd` + `e7cda9c` documental). Detalle
+      punto por punto de cada campaña en `CLAUDE.md`.
 
 ## 8. Checklist POST-DEPLOY (comandos exactos que ejecuta Nelson)
 
@@ -535,8 +566,11 @@ composer install --no-dev --optimize-autoloader
 cp .env.example .env   # y editar con valores reales de producción — NO usar tal cual
 php artisan key:generate
 php artisan migrate --force
-mysql -u <user> -p <db_prod> < esalud_datos_calibracion_2026-08-04.sql
-tar -xzf certificacion-2026-08-04.tar.gz -C storage/app/private/
+# el dump y el tar de abajo deben generarse de nuevo, contra el estado
+# actual (ver ⚠️ en §0) -- NO existe todavia un archivo real listo, y
+# el nombre "2026-08-04" es solo un ejemplo del dump viejo ya obsoleto:
+mysql -u <user> -p <db_prod> < esalud_datos_calibracion_<fecha_real>.sql
+tar -xzf certificacion-<fecha_real>.tar.gz -C storage/app/private/
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
@@ -558,8 +592,11 @@ php artisan queue:restart   # por si ya existía un worker corriendo con código
 
 ### Verificación post-deploy
 ```bash
-php artisan tinker --execute="echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->id;"
-# debe imprimir 36
+php artisan tinker --execute="
+echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->id;
+echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->version_number;
+"
+# debe imprimir 67 y 35
 
 php artisan test --filter=Rem
 # debe dar 64/64 (requiere esalud_testing configurada si se corre en el servidor)
@@ -572,6 +609,16 @@ curl -I https://atenea.cormudesi.cl/api/v1/health   # o el endpoint de salud que
 ```
 Subir un archivo REM real de prueba desde la interfaz y confirmar que
 termina en `success`/`with_errors` (no se queda en `validating`).
+
+**Adicional, cubriendo lo cerrado desde agosto (2FA + campaña UX/UI) —
+ver el checklist detallado en `docs/CHECKLIST_DESPLIEGUE_PRODUCCION.md`
+punto 19:** login con persistencia de sesión, challenge 2FA/TOTP cuando
+el usuario lo tenga activo, Dashboard/Cargas REM/Calibración
+REM/Matriz/Patrones y fórmulas/Motor de Reglas/Catálogo de
+Reglas/Comparación navegables sin error, una ruta inexistente muestra el
+404 propio de ATHENEA (nunca el error técnico de React Router), y
+ausencia de la entrada "Criterios funcionales"/cualquier rastro
+funcional de la integración Prime legacy retirada.
 
 ## 9. Respaldo previo y rollback
 
@@ -646,10 +693,12 @@ igual, y el de producción es independiente. Mecanismo:
 | `SESSION_SAME_SITE` | `lax` | `lax` |
 | `SANCTUM_STATEFUL_DOMAINS` | `192.168.1.144:5173,localhost:5173,127.0.0.1:5173` | `atenea.cormudesi.cl` |
 
-**Pendiente de confirmar con Nelson antes de fijar `SESSION_SECURE_COOKIE`
-en el `.env` de producción:** si el servidor tendrá HTTPS activo mañana o
-no. `config/cors.php` lista ambos esquemas (`http://` y `https://`) para
-`atenea.cormudesi.cl`, lo que sugiere que todavía no está decidido.
+**Condición previa de despliegue, no una suposición — sigue sin
+confirmar con Nelson (2026-09-01):** si el servidor tendrá HTTPS activo
+el día del despliegue. No fijar `SESSION_SECURE_COOKIE` sin preguntar
+explícitamente antes. `config/cors.php` lista ambos esquemas (`http://` y
+`https://`) para `atenea.cormudesi.cl`, lo que sugiere que todavía no
+está decidido.
 
 `FRONTEND_URL` (presente en el `.env` real local,
 `http://192.168.1.144:5173`) no se referencia en ningún punto del código

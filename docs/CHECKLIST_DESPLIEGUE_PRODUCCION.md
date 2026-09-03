@@ -9,13 +9,23 @@
 > "hecho/no hecho" para cada punto.
 >
 > Repositorio: `https://github.com/Ricaldy666/esalud.git` — **commit
-> estable actual: `d02e88e1964f5060bedbb3f289e1a24ed127de15`** (rama
-> `main`, sincronizado con `origin/main`; actualizado desde el `1ae35bf`
-> original tras sumarse `3ab026d`, `abe0751` y `d02e88e` — ver
-> [`docs/ESTADO_ACTUAL_PROYECTO.md`](ESTADO_ACTUAL_PROYECTO.md) para el
-> detalle de qué agregó cada uno). Los 19 puntos de este checklist siguen
-> vigentes sin cambios — el módulo Usuarios (permisos + rediseño visual)
-> no afecta ningún paso de despliegue del backend/estructura REM.
+> estable actual: `e7cda9c4d144d78777e0468a91b1f5028d78e2a4`** (rama
+> `main`, sincronizado con `origin/main`, verificado 2026-09-01). Este
+> commit incluye, además de todo lo certificado en agosto: el cierre
+> completo de **REM A** (474 reglas `SAFE_1_TO_1`, estructura activa
+> **67/v35**), **Seguridad/2FA** (TOTP completo), y la campaña **UX/UI**
+> (retiro de la integración Prime legacy, manejo visual de rutas 404,
+> normalización de tablas/headers). Las cifras de estructura/reglas/
+> bindings de este checklist fueron **reverificadas en vivo contra la
+> BD local (`esalud_dev`) el 2026-09-01** — ver §7-8 y §20 abajo.
+>
+> ⚠️ **Dos condiciones previas siguen sin confirmar con Nelson y bloquean
+> continuar más allá del punto 3 y del punto 9 respectivamente — ver esos
+> puntos:** (a) si el servidor servirá por HTTP o HTTPS (punto 16), y (b)
+> que el dump de datos de calibración (puntos 7-9) **no existe generado
+> todavía** — hay que crearlo de nuevo contra el estado actual antes de
+> desplegar, el dump histórico de agosto está obsoleto y **no debe
+> reutilizarse**.
 >
 > Convención de cada punto: **Comando(s) exacto(s)** → **⚠️ Si se omite** →
 > **✅ Evidencia para marcar como completado**.
@@ -54,7 +64,7 @@ extensiones listadas aparecen en `php -m`.
 cd /var/www
 git clone https://github.com/Ricaldy666/esalud.git esalud
 cd esalud
-git log -1 --oneline   # debe mostrar 1ae35bf o un commit posterior en main
+git log -1 --oneline   # debe mostrar e7cda9c o un commit posterior en main
 ```
 
 **Actualizaciones posteriores:**
@@ -176,11 +186,32 @@ Usuarios/Centros de Salud/Auditoría/Motor de Reglas en el menú.
 
 ---
 
+## ⚠️ Dump y respaldo — leer antes de los puntos 7-9
+
+**El dump de datos de calibración mencionado en versiones anteriores de
+este checklist (`esalud_datos_calibracion_2026-08-04.sql`) corresponde a
+un estado ya superado (estructura id=36, 764 reglas, 859 bindings) y
+NUNCA se generó como archivo real** — quedó solo como plan. **No debe
+reutilizarse ni buscarse ese archivo.** Antes de este paso hay que generar
+un dump **nuevo**, contra el estado actual verificado (§7-8 abajo: 798
+reglas, 1655 bindings, estructura 67/v35), con el mismo comando de
+`DEPLOYMENT.md` §3.1 pero fechado al día real del despliegue.
+
+**Además, antes de restaurar nada sobre `esalud_prod` (si ya tuviera
+datos de un intento previo) o de tocar `storage/app/private` en el
+servidor, respaldar primero** (ver `DEPLOYMENT.md` §9):
+```bash
+mysqldump -u <user> -p esalud_prod > backup_pre_deploy_$(date +%Y%m%d_%H%M%S).sql
+tar -czf backup_storage_$(date +%Y%m%d_%H%M%S).tar.gz storage/app/private
+```
+
+---
+
 ## ☐ 7. Restauración de estructura REM certificada
 
 Los seeders **no** reconstruyen la estructura REM activa — se transporta
-por dump/restore desde el equipo de desarrollo (dump ya generado o a
-generar antes del despliegue):
+por dump/restore desde el equipo de desarrollo (dump a generar antes del
+despliegue, ver recuadro de arriba):
 
 ```bash
 # En el servidor, después de los seeders:
@@ -196,8 +227,8 @@ período seleccionados"). El sistema es inutilizable para carga real.
 
 **✅ Evidencia:**
 ```bash
-php artisan tinker --execute="echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->id;"
-# debe imprimir: 36
+php artisan tinker --execute="echo App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->id . ' / v' . App\Domain\RemParser\Models\RemTemplateStructure::where('status','active')->first()->version_number;"
+# debe imprimir: 67 / v35
 ```
 
 ---
@@ -212,14 +243,25 @@ que evaluar, aunque la estructura sí esté activa).
 el Motor de Reglas (RF-02) no encuentra reglas de consistencia que evaluar
 — compliance siempre 100% de forma falsa, sin detectar errores reales de
 sumas/subtotales. `RuleCatalogCsvSeeder` (punto 6) solo aporta 529 reglas
-base sin `bindings`; no reemplaza las 764 reglas + 859 bindings
+base sin `bindings`; no reemplaza las 798 reglas + 1655 bindings
 certificadas.
 
 **✅ Evidencia:**
 ```bash
-php artisan tinker --execute="echo App\Domain\RuleEngine\Models\Rule::count() . ' reglas, ' . App\Domain\RuleEngine\Models\RuleBinding::count() . ' bindings';"
-# debe imprimir: 764 reglas, 859 bindings
+php artisan tinker --execute="echo App\Domain\RuleEngine\Models\Rule::count() . ' reglas (' . App\Domain\RuleEngine\Models\Rule::where('status','active')->count() . ' activas), ' . App\Domain\RuleEngine\Models\RuleBinding::count() . ' bindings totales, ' . App\Domain\RuleEngine\Models\RuleBinding::where('bindable_type','structure')->where('bindable_id',67)->count() . ' bindings activos a la estructura 67';"
+# debe imprimir: 798 reglas (751 activas), 1655 bindings totales, 451 bindings activos a la estructura 67
 ```
+No todas las 751 reglas activas evalúan directamente contra la estructura
+67. Clasificación completa (recalculada en vivo, no un valor cacheado):
+**474 `SAFE_1_TO_1`** (candidatas seguras para bindear a 67), **198
+`ALREADY_STRUCTURE_AGNOSTIC`** (no dependen de la estructura), **65
+`BLOCKED_BY_ENGINE_GAP`**, **14 `DUPLICATE`**. Los **451 bindings activos
+a la estructura 67** son los ya materializados (creados en la fase
+`rule:rebind-safe-to-structure` documentada en `CLAUDE.md`) — no es
+necesariamente el mismo número que las 474 `SAFE_1_TO_1` (esa cifra es
+una clasificación recalculable en cualquier momento, no la cuenta de
+bindings ya creados); la diferencia entre ambas cifras no es un error a
+corregir en este checklist. Detalle completo en `CLAUDE.md`.
 
 ---
 
@@ -430,8 +472,11 @@ Subir un archivo de prueba desde la interfaz sin error 500.
 
 ## ☐ 16. Validación HTTP/HTTPS
 
-**Pendiente de confirmación con Nelson** — condiciona una variable crítica
-del `.env`:
+**Condición previa de despliegue, no una suposición** — sigue sin
+confirmar con Nelson si `atenea.cormudesi.cl` tendrá HTTPS activo el día
+del despliegue. No fijar `SESSION_SECURE_COOKIE=true` "por si acaso" ni
+asumir HTTP por defecto — preguntar explícitamente antes de este paso,
+condiciona una variable crítica del `.env`:
 
 | Escenario | `SESSION_SECURE_COOKIE` | `APP_URL` |
 |---|---|---|
@@ -482,22 +527,69 @@ igual no funcionar en conjunto.
 
 **✅ Evidencia:** la carga termina en `success` o `with_errors` (nunca
 `rejected` ni se queda indefinidamente en `validating`); el resumen de
-validación muestra reglas evaluadas coherentes con las 764 reglas
-restauradas (no un número sospechosamente bajo como 529, que indicaría que
-solo corrió el seeder del CSV y no se restauró el dump del punto 7-8).
+validación muestra reglas evaluadas coherentes con las 798 reglas / 751
+activas restauradas (no un número sospechosamente bajo como 529, que
+indicaría que solo corrió el seeder del CSV y no se restauró el dump del
+punto 7-8).
 
 ---
 
-## ☐ 19. Criterios de aceptación final
+## ☐ 19. Validación funcional ampliada — 2FA y campaña UX/UI
+
+Este punto es nuevo respecto al checklist original de agosto — cubre todo
+lo cerrado desde entonces (Seguridad/2FA y la campaña UX/UI completa,
+incluido el retiro de la integración Prime legacy). Hacerlo **desde la
+interfaz real**, con el usuario admin de producción:
+
+- [ ] **Login**: `admin@esalud.cl` (o el admin real creado en el
+      servidor) inicia sesión con password correcta.
+- [ ] **Persistencia de sesión**: recargar la página tras login — la
+      sesión sigue activa (no vuelve a `/login`). Si falla, revisar punto
+      16 (HTTP/HTTPS).
+- [ ] **2FA/TOTP**: si el usuario tiene 2FA activo, el login exige el
+      challenge (código TOTP o recovery code) antes de entrar; si no lo
+      tiene activo, entra directo — ambos casos son correctos según el
+      estado real de ese usuario (2FA es opcional salvo recomendación no
+      bloqueante para `Superadmin`/`Administrador`).
+- [ ] **Dashboard**: carga con KPIs reales (cargas REM, resumen del motor
+      de reglas si el rol tiene acceso), sin errores en consola.
+- [ ] **Cargas REM**: historial visible, filtros funcionando, subida real
+      (ver punto 18).
+- [ ] **Calibración REM**: entrar a una hoja/sección real — **Matriz** es
+      la pestaña inicial (ya no existe "Revisión funcional").
+- [ ] **Patrones y fórmulas**: carga correctamente dentro de la misma
+      sección.
+- [ ] **Motor de Reglas**: dashboard con métricas reales (`/rule-engine`).
+- [ ] **Catálogo de Reglas**: lista y filtra reglas, navega al detalle de
+      una regla sin error.
+- [ ] **Comparación**: ejecuta una comparación real (estructura + upload
+      conocidos), tabla de diferencias sin errores.
+- [ ] **Manejo 404**: navegar a una URL inexistente (o a
+      `/criterios-funcionales`, ruta retirada) muestra la pantalla
+      "Página no encontrada" de ATHENEA — **nunca** el error técnico por
+      defecto de React Router.
+- [ ] **Ausencia de Criterios funcionales/Prime legacy**: confirmar que
+      no existe la entrada "Criterios funcionales" en el menú lateral ni
+      en el Dashboard, y que la ruta `/criterios-funcionales` no resuelve
+      a ninguna pantalla funcional (cae en el 404 de arriba).
+
+**⚠️ Si se omite:** el despliegue podría darse por completo verificando
+solo el flujo REM clásico (puntos 1-18) sin confirmar que 2FA y toda la
+campaña UX/UI — que representan la mayoría del código en el commit
+`e7cda9c` — realmente funcionan en el servidor real.
+
+---
+
+## ☐ 20. Criterios de aceptación final
 
 El despliegue se considera **completo y aceptado** solo si TODOS estos
 puntos son verdaderos simultáneamente:
 
 | # | Criterio | Cómo se verifica |
 |---|---|---|
-| 1 | `git log -1` en el servidor coincide con `main` del repositorio | `git log -1 --oneline` |
-| 2 | Estructura REM activa = id 36 | tinker (punto 7) |
-| 3 | 764 reglas, 859 bindings cargados | tinker (punto 8) |
+| 1 | `git log -1` en el servidor coincide con `main` del repositorio (≥ `e7cda9c`) | `git log -1 --oneline` |
+| 2 | Estructura REM activa = id **67** (v**35**) | tinker (punto 7) |
+| 3 | **798** reglas (**751** activas), **1655** bindings totales, **451** bindings activos a la estructura 67 | tinker (punto 8) |
 | 4 | 381 archivos en `cell-data/` | `ls ... | wc -l` (punto 9) |
 | 5 | `admin@esalud.cl` tiene roles `Superadmin, Administrador` | tinker (punto 6) |
 | 6 | `dist/` del frontend con timestamp del build actual | `ls -la frontend/dist` (punto 10) |
@@ -508,8 +600,12 @@ puntos son verdaderos simultáneamente:
 | 11 | `SESSION_SECURE_COOKIE` coherente con HTTP/HTTPS real | punto 16 |
 | 12 | Login real persiste la sesión | punto 16-17 |
 | 13 | Carga REM real de prueba termina en `success`/`with_errors` | punto 18 |
+| 14 | 2FA/TOTP funciona (challenge cuando corresponde, login directo cuando no) | punto 19 |
+| 15 | Dashboard, Cargas REM, Calibración REM, Matriz, Patrones y fórmulas, Motor de Reglas, Catálogo de Reglas, Comparación — todas navegables sin error | punto 19 |
+| 16 | Ruta inexistente (o `/criterios-funcionales`) muestra el 404 propio de ATHENEA, nunca el error técnico de React Router | punto 19 |
+| 17 | Sin entrada "Criterios funcionales" en menú/Dashboard, sin referencia funcional a Prime legacy | punto 19 |
 
-**Si cualquiera de los 13 falla, el despliegue NO está listo** — no cerrar
+**Si cualquiera de los 17 falla, el despliegue NO está listo** — no cerrar
 el ticket/tarea con Nelson hasta que los 13 estén en verde.
 
 ---
@@ -526,3 +622,5 @@ el ticket/tarea con Nelson hasta que los 13 estén en verde.
 | Error 502 | 11 o 12 (Nginx/PHP-FPM) |
 | Sitio muestra versión vieja del frontend | 10 (build no corrido o `dist/` no actualizado) |
 | Usuario admin no ve Usuarios/Auditoría/Motor de Reglas | 6 (rol `Administrador` no asignado) |
+| Ruta eliminada o inexistente muestra error técnico de React Router | 19 (frontend no incluye el commit `e7cda9c`, revisar punto 10) |
+| Login no pide 2FA para un usuario que sí lo tiene activo | 5/8 (migración `add_two_factor_columns_to_users_table` no aplicada — revisar `php artisan migrate:status`) |
