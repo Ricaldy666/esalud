@@ -26,9 +26,20 @@
 > manualmente en Chrome (login, Dashboard, F5 con sesión persistente,
 > logout, 2FA, carga REM real). Detalle completo en `CLAUDE.md`,
 > checkpoint **"CIERRE DE JORNADA — 2026-09-03, ACTUALIZACIÓN FINAL DEL
-> DÍA"**. Esto **no significa que ATHENEA ni la Serie A estén
-> terminados** — la calibración funcional de Serie A continúa desde A09
-> en adelante, y las series REM BM/BS/D/P todavía no comienzan.
+> DÍA"**. La etapa de calibración de desarrollo de Serie A está
+> **CERRADA**: cobertura medida en vivo el 2026-09-04 contra la estructura
+> activa real 67/v35 = **302/304 secciones (99%)**, **20/22 hojas al
+> 100%**, **A09 = 14/14 (100%), no pendiente**. Los 2 casos restantes
+> (`A05/V`, `A30/C pattern_id=1`) son **ítems congelados por dependencia
+> externa** — a la espera de una decisión funcional de Estadística APS, no
+> trabajo de desarrollo a continuar. Ver `CLAUDE.md`, checkpoint
+> **"CIERRE DE JORNADA — 2026-09-04, DECISIÓN DE ROADMAP"** para la
+> evidencia completa y la decisión de roadmap tomada ese día: **REM A
+> (cerrada) → REM BM → REM BS → REM D → REM P → reglas de consistencia
+> externa/inter-REM → resto del roadmap**, con reutilización versionada
+> del pipeline de Serie A (no copia ciega) para cada serie nueva. Esto
+> **no significa que ATHENEA esté terminado como producto** — las series
+> REM BM/BS/D/P todavía no comienzan.
 
 ---
 
@@ -36,9 +47,13 @@
 
 El backend (parser REM, motor de reglas, pipeline de carga) y el módulo de
 Usuarios están funcional y visualmente cerrados y verificados en local, y
-**ya están desplegados y validados en producción** (2026-09-03). El
-desarrollo funcional continúa: calibración de Serie A desde A09 en
-adelante, y luego las series REM BM/BS/D/P.
+**ya están desplegados y validados en producción** (2026-09-03). La etapa
+de calibración de desarrollo de Serie A está **cerrada** (99%, ver nota
+arriba — los 2 casos restantes son dependencia externa, no desarrollo);
+el siguiente bloque de desarrollo, por decisión de roadmap del
+2026-09-04, es **REM BM** (primero una auditoría READ-ONLY, ver
+`CLAUDE.md`), seguido de BS/D/P y luego las reglas de consistencia
+externa/inter-REM.
 
 ---
 

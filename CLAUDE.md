@@ -195,6 +195,93 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+### CIERRE DE JORNADA — 2026-09-04, DECISIÓN DE ROADMAP (leer esto primero, antes que todo lo de abajo)
+
+Este checkpoint reemplaza como fuente de verdad el punto 5 y el punto 7 del checkpoint "2026-09-03, ACTUALIZACIÓN FINAL DEL DÍA" (más abajo) — esos puntos contenían una afirmación incorrecta ("A09 pendiente, continuar calibración hoja por hoja") ya corregida hoy. El resto de ese checkpoint (bug F5/logout, despliegue, promoción certificada, validación en producción) permanece vigente y verificado, sin cambios.
+
+**1) REM Serie A — hechos comprobados hoy (evidencia, no inferencia):**
+
+- **Etapa de calibración de desarrollo de Serie A: CERRADA.** No hay desarrollo de calibración pendiente en Serie A.
+- Cobertura medida en vivo contra la estructura activa real (67/v35) vía `SectionCalibrationMatrixService::buildStructureCalibrationSummary()`: **302/304 secciones aplicables (99%)**, **20/22 hojas al 100%**.
+- **A09 = 14/14 secciones, 100%, `completada`.** No hay que volver a A09 — no es trabajo pendiente de ningún tipo.
+- No usar la frase "Serie A 100% técnica" — la matriz actual mide **99%**, no 100%, por los 2 casos siguientes.
+
+**2) Ítems congelados por dependencia externa (NO son trabajo de desarrollo/calibración a continuar):**
+
+- **`A05` / sección `V`** — congelada, pendiente de decisión funcional de Estadística APS.
+- **`A30` / sección `C`, `pattern_id=1`** — congelada, único `MISMATCH` de calibración de toda la Serie A, pendiente de decisión funcional de Estadística APS.
+- Ninguno de los dos se resuelve con más trabajo técnico ni se retoma "mañana" como si fuera desarrollo propio — quedan en espera de un tercero (Estadística APS), sin fecha.
+- **`A01`, filas 23/24** (Recién nacido hasta 10 días de vida, Médico/a y Matrona/ón) — **conocimiento/excepción ya incorporada a la calibración certificada**, no pendiente: solo columna TOTAL habilitada, sin heredar `sum_equals` general.
+
+**3) Producción — todo lo cerrado hoy permanece documentado, sin tocar:**
+
+- Serie A certificada y promovida a producción; artefactos de certificación transferidos; **392/392** hashes SHA-256 verificados; estructura productiva promovida (id=19/v33 en producción); carga REM real probada en producción; 2FA probado en producción; bug F5/logout diagnosticado y resuelto; producción **estable**.
+- Commit de código desplegado en el servidor: **`0fc193c`**.
+- Checkpoint documental posterior (previo a esta corrección): **`9e12e4d`**.
+- Nada de esto se modifica en este turno — 100% documental.
+
+**4) Decisión de planificación tomada hoy — orden del roadmap:**
+
+```
+REM A (etapa de calibración/certificación cerrada)
+  ↓
+REM BM
+  ↓
+REM BS
+  ↓
+REM D
+  ↓
+REM P
+  ↓
+Reglas de consistencia externa / inter-REM / saltos
+  ↓
+resto del roadmap funcional (comparativos, metas, GES, YAPS/IAPS,
+paneles/reportes, epidemiología, No REM, biblioteca, auditoría/
+seguridad, automatizaciones)
+```
+
+**Razón arquitectónica (registrada, no solo la decisión):** las reglas de consistencia externa relacionan datos entre hojas y/o series distintas. Es preferible construirlas cuando **todas** las series involucradas ya tengan estructuras conocidas, calibradas, certificadas y **versionadas** — construirlas antes arriesgaría anclarlas a referencias estructurales de series (BM/BS/D/P) todavía inestables/no calibradas, obligando a rehacerlas.
+
+**5) Requisito de versionamiento para las series nuevas (BM/BS/D/P) — no copiar Serie A "a ciegas":**
+
+Cada serie nueva reutiliza el **pipeline y arquitectura ya maduros de Serie A**, pero pasando por las mismas etapas reales, no por copia mecánica de datos/reglas:
+
+```
+plantilla oficial
+  → detección/interpretación estructural
+  → calibración
+  → patrones/excepciones
+  → reglas internas
+  → análisis de mismatches
+  → resolución
+  → tests
+  → certificación
+  → artefactos/manifest
+  → versionamiento
+  → promoción controlada (cuando corresponda, con autorización explícita)
+```
+
+Trazabilidad obligatoria a preservar en el diseño, para cada serie: **año**, **serie**, **versión de plantilla**, **versión de estructura**, **reglas/versiones** (`rem_rule_versions`), **bindings**, **certificación**. Una plantilla futura (p. ej. 2027) **no debe destruir ni sobrescribir** la interpretación/reglas certificadas de una plantilla anterior (p. ej. 2026) — el mismo principio "append-only para estructuras" ya usado en `CertifiedStructurePromotionService` (ver checkpoint 2026-09-03 más abajo) es el patrón de referencia, no algo a reinventar por serie.
+
+**6) Punto exacto de reanudación mañana:**
+
+**Mañana NO:**
+- investigar el servidor de nuevo;
+- volver a A09;
+- reabrir la calibración de Serie A;
+- implementar todavía reglas de consistencia externa/inter-REM;
+- hacer experimentos en producción.
+
+**Mañana SÍ — primer bloque: REM BM.** Antes de tocar código, la primera tarea es una **auditoría READ-ONLY**:
+
+> **"Auditoría inicial REM BM y plan de calibración/versionamiento reutilizando el pipeline certificado de Serie A."**
+
+Objetivo de esa auditoría: entender qué soporte existe hoy en el repositorio para la Serie BM (plantillas, parser, estructuras, reglas, calibración si la hay) y qué piezas de la arquitectura de Serie A son reutilizables tal cual, cuáles requieren adaptación, y cuáles no aplican — **primero entender BM, después implementar.** Ningún cambio de código, BD, ni servidor en esa auditoría sin autorización explícita posterior.
+
+Secuencia general al abrir la sesión de mañana (ya vigente, sin cambios): leer `CLAUDE.md` + `docs/ESTADO_ACTUAL_PROYECTO.md` → `git status --short` → verificar rama/`HEAD`/`origin/main` → recordar los 4 archivos locales excluidos (`vite.config.ts`, 2 `Diag*Command.php`, `backend/demo/`) → levantar entorno local → smoke test corto si hace falta → **auditoría READ-ONLY de REM BM** (arriba) → no tocar producción → commit/push/deploy solo tras terminar/probar/certificar un bloque, con autorización explícita turno a turno.
+
+---
+
 ### CIERRE DE JORNADA — 2026-09-03, ACTUALIZACIÓN FINAL DEL DÍA (leer esto primero, antes que el checkpoint de más abajo)
 
 **Veredicto: `F5_LOGOUT_BUG_RESOLVED_AND_DEPLOYED` + `PRODUCTION_UPDATED_AND_VALIDATED`.** Después del checkpoint de sesión/2FA de más abajo (mismo día), se investigó y cerró un bug crítico adicional, y **el servidor de producción fue actualizado y validado** — la primera actualización real de producción desde el cierre de REM A el 31 de agosto.
@@ -242,32 +329,24 @@ Estado post-promoción confirmado en producción (mecanismo `rem:promote-certifi
 
 **4) Elementos locales del servidor — NO tocar sin revisar antes.** `git status` en el servidor muestra sin rastrear: `.dockerignore`, `backend/esalud_dev`, `frontend/dist_predeploy_20260813_081741/`, `frontend/node_modules_predeploy_20260812_181301/`. **No borrarlos automáticamente, no agregarlos a Git automáticamente** — revisar su propósito primero si alguna vez se decide limpiarlos.
 
-**5) Aclaración de estado funcional — importante, no sobre-interpretar el cierre de hoy.** Que producción esté desplegada y funcionando **no significa que ATHENEA esté terminado**, ni que **toda la Serie A esté calibrada**. A01–A08 ya estaban calibradas/certificadas; el trabajo de calibración quedó en **A09** y debe continuar progresivamente, hoja por hoja / sección por sección. "Serie A desplegada" **≠** "Serie A completamente calibrada" — el desarrollo funcional continúa.
+**5) Aclaración de estado funcional — CORREGIDA el 2026-09-04 tras detectar una afirmación errónea agregada en la primera versión de este checkpoint (ver nota de corrección al final del archivo).** Que producción esté desplegada y funcionando **no significa que ATHENEA esté terminado como producto** — persisten items funcionales puntuales sin resolver (ver abajo) y las demás series REM (BM/BS/D/P) no han comenzado. Pero **la calibración funcional de la Serie A SÍ está terminada**, no es trabajo pendiente:
 
-**Excepción estructural a recordar en A01** (para cuando se retome cualquier trabajo de calibración que toque esa hoja): las filas **23** y **24** (**Recién nacido hasta 10 días de vida**, **Médico/a y Matrona/ón**) tienen un patrón distinto al resto — solo la columna **TOTAL** está habilitada; las columnas de rangos etarios/no aplicables están bloqueadas. **No deben heredar la regla general `sum_equals`** de las filas anteriores — la calibración debe detectar este patrón y sus excepciones reales por fila/sección, nunca asumir uniformidad entre filas de una misma sección.
+- Cerrada al 100% (303/303 secciones aplicables) el 2026-08-11, commit `f91bae8` (`docs/handoffs/rem-a-mismatch-y-calibracion-2026-08-11-a-2026-08-26.md`).
+- **Reverificado en vivo hoy (2026-09-04) contra la estructura activa real (67/v35)**, no solo citado del histórico: `SectionCalibrationMatrixService::buildStructureCalibrationSummary()` da **302/304 secciones aplicables completadas (99%)** — 22 hojas, de las cuales **20 están al 100%** (incluida **A09: 14/14 secciones, 100%, `completada`** — A09 NO está pendiente, fue certificada como el resto), y solo **2 hojas en `en_revision`** con exactamente **1 sección pendiente cada una**: **A05** (sección `V`) y **A30** (sección `C`, `pattern_id=1`, el único `MISMATCH` de calibración de toda la Serie A) — ambas **ya documentadas desde antes** en "Pendientes conocidos" arriba, congeladas porque requieren una decisión funcional de Estadística APS, no desarrollo técnico. 5 hojas (`A21,A24,A25,A30AR,A34`, 75 secciones) siguen `no_utilizada` por decisión de Estadística APS, fuera de alcance.
+- **No existe ninguna hoja de Serie A sin calibrar o "en progreso" en el sentido de desarrollo pendiente** — todo lo que no está al 100% son exactamente esos 2 casos puntuales, congelados a la espera de un tercero, ya conocidos.
+- El catálogo certificado, `reglas-funcionales.json`, `mismatch-resolution-audit.json`, `serie-a-catalogo.json` y `cell-data/` (392 archivos) son precisamente los artefactos de este cierre — los mismos que se promovieron y verificaron por checksum en producción hoy (ver punto 3).
+
+**Terminado, en orden**: (1) calibración/certificación funcional de Serie A — 2026-08-11; (2) certificación end-to-end del motor de reglas sobre esa calibración (REM A) — 2026-08-31; (3) promoción de la Serie A certificada a producción — 2026-09-03/04 (punto 3 arriba); (4) corrección del bug de sesión/F5 y su despliegue — 2026-09-03/04 (punto 1 arriba).
+
+**Excepción de A01, filas 23 y 24** (**Recién nacido hasta 10 días de vida**, **Médico/a y Matrona/ón**) — **conocimiento ya incorporado a la calibración certificada, NO trabajo pendiente**: solo la columna **TOTAL** está habilitada para esas dos filas, las columnas de rangos etarios/no aplicables están bloqueadas, y no heredan la regla general `sum_equals` de las filas anteriores. Se documenta aquí como recordatorio de un patrón real ya calibrado correctamente, por si se audita o se toca A01 en el futuro — no como algo por hacer.
 
 **6) Fotografía del dashboard al cierre de hoy** (snapshot puntual, no valores permanentes — cambiarán con cada carga futura): cargas REM totales **28**, reglas activas **751**, bindings activos **1402**, cargas con motor ejecutado **16 de 28**, logs con error **0**.
 
-**7) Punto exacto de reanudación mañana — MUY IMPORTANTE.**
+**7) Punto exacto de reanudación mañana — SUPERSEDIDO por el checkpoint "2026-09-04, DECISIÓN DE ROADMAP" al inicio de esta sección.** Ese checkpoint es ahora la fuente de verdad para la reanudación (incluye la decisión de roadmap REM A→BM→BS→D→P→consistencias externas, el requisito de versionamiento, y la primera tarea exacta de mañana: auditoría READ-ONLY de REM BM). No repetir aquí la secuencia antigua para evitar que quede desactualizada en dos lugares — leer el checkpoint de 2026-09-04.
 
-**No empezar investigando el servidor de nuevo.** La etapa de deploy de hoy queda **cerrada**; producción debe considerarse **base estable validada**. El trabajo de mañana vuelve al **entorno local**.
+**No empezar investigando el servidor de nuevo.** La etapa de deploy de hoy queda **cerrada**; producción debe considerarse **base estable validada**. El trabajo de mañana vuelve al **entorno local**. Recordatorios que siguen vigentes sin cambios: los 4 archivos locales excluidos de siempre (`frontend/vite.config.ts`, los 2 `Diag*Command.php`, `backend/demo/`); no tocar producción para experimentar; commit/push/deploy solo tras terminar/probar/certificar un bloque, con autorización explícita turno a turno.
 
-Secuencia al abrir una nueva sesión:
-1. Leer `CLAUDE.md` completo (este checkpoint primero) + `docs/ESTADO_ACTUAL_PROYECTO.md`.
-2. `git status --short`.
-3. Verificar rama/`HEAD`/`origin/main` antes de modificar nada.
-4. Recordar los 4 archivos locales excluidos de siempre: `frontend/vite.config.ts`, `backend/app/Console/Commands/DiagCheckAdminPasswordCommand.php`, `backend/app/Console/Commands/DiagResetAdminPasswordCommand.php`, `backend/demo/`.
-5. Levantar entorno local.
-6. Un smoke test corto en local si hace falta — nada más.
-7. **Retomar desarrollo funcional REM** — continuar calibración desde el punto pendiente (Serie A, desde A09 en adelante).
-8. No tocar producción para experimentar.
-9. Solo tras terminar/probar/certificar un bloque: commit → push → eventual deploy (siempre con autorización explícita, turno a turno, como en todo este proyecto).
-
-**Prioridad inmediata — continuar calibración REM en local:**
-- **(A)** Terminar la calibración estructural/consistencia interna pendiente de Serie A.
-- **(B)** Por hoja/sección: estructura, celdas habilitadas/bloqueadas, sumatorias, relaciones padre/hijo, excepciones, patrones especiales, comparación con el Excel real, pruebas, certificación.
-- **(C)** Después, avanzar a **reglas de consistencia externa** — distinto de la calibración interna, no confundir ambas etapas.
-- Tras estabilizar el núcleo REM: comparativos → metas → GES → YAPS/IAPS → paneles/reportes → epidemiología → No REM → biblioteca → auditoría/seguridad → automatizaciones posteriores.
+**Corrección 2026-09-04 — nota de continuidad:** una versión anterior de este mismo checkpoint afirmaba erróneamente "A01–A08 calibradas, A09 pendiente, continuar calibración hoja por hoja". Esa afirmación era incorrecta (arrastrada de contexto histórico de una fase de certificación de reglas ya cerrada, no de la calibración funcional) y fue corregida — ver el checkpoint "2026-09-04, DECISIÓN DE ROADMAP" al inicio de esta sección para el estado correcto y la decisión de roadmap vigente.
 
 **Regla de continuidad, válida de aquí en adelante: producción es base estable, el desarrollo nuevo se hace en local.** Nunca desarrollar ni experimentar directamente en producción. Flujo normal: analizar → implementar/calibrar → probar → certificar → revisar diff → commit → push → desplegar cuando corresponda, con autorización explícita en cada etapa.
 
@@ -430,9 +509,10 @@ Riesgos residuales de Seguridad/2FA (documentados, ninguno bloqueante para el ci
 6. ~~Commit/push de UX/UI~~ — **CERRADO** (`54dc5cd`, pusheado a `origin/main`, ahead/behind 0/0).
 7. ~~Despliegue controlado al servidor ATHENEA~~ — **CERRADO Y VALIDADO (2026-09-03)**. Servidor actualizado a `0fc193c` (`git fetch`+`merge --ff-only`, fast-forward), contenedores reconstruidos y en `running`, certificación REM promovida y verificada por checksum (392/392). Ver el checkpoint **"CIERRE DE JORNADA — 2026-09-03, ACTUALIZACIÓN FINAL DEL DÍA"** al inicio de esta sección para el detalle completo. **Producción ya no está pendiente de actualización — es base estable validada.**
 8. ~~Smoke tests en servidor~~ — **CERRADO (2026-09-03)**. Validación manual real en Chrome contra producción: login, Dashboard, F5 (con sesión persistente — el bug que motivó este paso quedó resuelto), logout, 2FA, y una carga REM real completa — todo correcto.
-9. **REM BM** → **REM BS** → **REM D** → **REM P** — en ese orden. **Todavía no iniciado** — antes de esto, retomar y continuar la calibración de la Serie A pendiente (A09 en adelante, ver checkpoint de arriba) en **entorno local**, nunca en producción.
-10. Tras completar las series REM: **versionamiento transversal** → **salto de celdas** → **pruebas integrales / cierre**.
+9. **REM BM** → **REM BS** → **REM D** → **REM P** — en ese orden (decisión de roadmap registrada 2026-09-04, ver checkpoint "DECISIÓN DE ROADMAP" arriba). **Todavía no iniciado; primera tarea: auditoría READ-ONLY de REM BM (ver checkpoint arriba), no implementación directa.** La calibración funcional de Serie A ya está terminada (99%, solo A05/V y A30/C P1 congelados, ver checkpoint arriba) — no es un prerrequisito pendiente para empezar este bloque. Cada serie nueva reutiliza el pipeline maduro de Serie A (plantilla→detección→calibración→patrones→reglas→mismatches→resolución→tests→certificación→artefactos→versionamiento→promoción) preservando trazabilidad por año/serie/versión de plantilla/versión de estructura/reglas-versiones/bindings/certificación — nunca copia ciega de datos/reglas de Serie A. Cuando se autorice, desarrollar en **entorno local**, nunca en producción.
+10. **Reglas de consistencia externa / inter-REM / saltos** — deliberadamente después de completar BM/BS/D/P, no antes (razón arquitectónica: evitar anclar relaciones entre series a estructuras todavía inestables/no calibradas — ver checkpoint "DECISIÓN DE ROADMAP" arriba). **No iniciado.**
+11. Tras eso: **versionamiento transversal** → **salto de celdas** → **pruebas integrales / cierre** → resto del roadmap funcional (comparativos, metas, GES, YAPS/IAPS, paneles/reportes, epidemiología, No REM, biblioteca, auditoría/seguridad, automatizaciones).
 
-**REM A, Seguridad/2FA, y el despliegue a producción quedan cerrados — no reabrirlos salvo defecto comprobado.** Esto **no significa que ATHENEA ni la Serie A estén terminados** — la calibración funcional de Serie A continúa (A09 en adelante) y las demás series REM (BM/BS/D/P) ni siquiera han comenzado. Los 4 cambios locales excluidos (`vite.config.ts`, 2 comandos `Diag*`, `backend/demo/`) deben permanecer separados, sin mezclarse accidentalmente con ninguna campaña posterior.
+**REM A, Seguridad/2FA, y el despliegue a producción quedan cerrados — no reabrirlos salvo defecto comprobado.** La calibración funcional de Serie A también está terminada (ver punto 5 del checkpoint arriba) — no es trabajo en curso. Esto **no significa que ATHENEA esté terminado como producto**: las demás series REM (BM/BS/D/P) ni siquiera han comenzado, y persisten los items puntuales congelados ya documentados (A05/V, A30/C P1, reglas 229/230, `DUPLICATE`, `130`/`133`). Los 4 cambios locales excluidos (`vite.config.ts`, 2 comandos `Diag*`, `backend/demo/`) deben permanecer separados, sin mezclarse accidentalmente con ninguna campaña posterior.
 
 No iniciar ninguna fase futura de esta lista sin instrucción explícita. Si al reanudar el estado real (BD/Git) difiere de lo documentado aquí: **STOP y reportar la discrepancia antes de escribir nada.**
