@@ -1,13 +1,10 @@
 <?php
 
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
-use Illuminate\Session\Middleware\StartSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
@@ -20,11 +17,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Solo EnsureFrontendRequestsAreStateful -- su propio
+        // frontendMiddleware() ya aplica EncryptCookies,
+        // AddQueuedCookiesToResponse, StartSession y CSRF internamente para
+        // requests stateful. Agregarlos tambien aqui (como estaba antes)
+        // los duplicaba: el segundo EncryptCookies intentaba desencriptar
+        // una cookie que el primer paso ya habia desencriptado/mutado en el
+        // propio $request, fallaba, la ponia en null, y el segundo
+        // StartSession -- sin ningun ID de sesion que leer -- creaba una
+        // sesion nueva vacia que pisaba la sesion real ya cargada. Efecto
+        // observado: /auth/session respondia authenticated:false en cada
+        // request posterior al login, aunque la cookie llegara correcta.
         $middleware->api(prepend: [
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-            EncryptCookies::class,
-            AddQueuedCookiesToResponse::class,
-            StartSession::class,
         ]);
 
         $middleware->alias([

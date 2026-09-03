@@ -11,6 +11,18 @@ abstract class TestCase extends BaseTestCase
         $this->guardAgainstProductionDatabase();
         parent::setUp();
         $this->verifyEffectiveConnection();
+
+        // EnsureFrontendRequestsAreStateful::fromFrontend() exige un header
+        // Referer u Origin que matchee SANCTUM_STATEFUL_DOMAINS para aplicar
+        // su pipeline de sesion/cookies -- un navegador real siempre envia
+        // Origin en peticiones fetch/XHR, pero el cliente de test de Laravel
+        // no lo hace por defecto. Sin esto, ningun test ejerceria el camino
+        // real que usa el SPA (quedaria silenciosamente igual de "stateless"
+        // que antes de corregir bootstrap/app.php).
+        $this->withHeaders([
+            'Referer' => 'http://localhost:5173',
+            'Origin' => 'http://localhost:5173',
+        ]);
     }
 
     private function guardAgainstProductionDatabase(): void
