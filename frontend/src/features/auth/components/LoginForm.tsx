@@ -12,9 +12,6 @@ export default function LoginForm() {
   const navigate = useNavigate()
   const login = useLogin()
   const [showPassword, setShowPassword] = useState(false)
-  // Solo visual: el backend siempre mantiene la sesion recordada hoy
-  // (Auth::attempt(..., true) fijo), este checkbox no se envia todavia.
-  const [rememberMe, setRememberMe] = useState(false)
 
   const {
     register,
@@ -99,16 +96,6 @@ export default function LoginForm() {
         </div>
         {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
       </div>
-
-      <label className="flex cursor-pointer items-center gap-2 select-none">
-        <input
-          type="checkbox"
-          checked={rememberMe}
-          onChange={(e) => setRememberMe(e.target.checked)}
-          className="size-4 rounded border-slate-300 text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-500/30"
-        />
-        <span className="text-sm text-slate-600">Recordar sesión</span>
-      </label>
 
       <Button
         type="submit"

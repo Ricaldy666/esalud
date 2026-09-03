@@ -27,6 +27,17 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:login')
             ->name('auth.login');
 
+        // Publica, deliberadamente SIN auth:sanctum -- a diferencia de /me
+        // (401 si no hay sesion), esta ruta existe para consultarse SIN
+        // sesion (useAuthInit al abrir /login) y siempre responde 200 con
+        // authenticated:false/true. Igual pasa por EnsureFrontendRequestsAreStateful/
+        // StartSession/EncryptCookies (prepended al grupo api completo), asi
+        // que una sesion real SI se detecta, y el listener
+        // AuthServiceProvider::preventRememberedReauthentication() sigue
+        // aplicando (esta atado al guard, no a la ruta).
+        Route::get('/session', [AuthController::class, 'session'])
+            ->name('auth.session');
+
         // logout/me/2fa-verify: deliberadamente SIN el middleware 2fa.verified
         // -- son las 3 unicas rutas que deben seguir siendo alcanzables
         // mientras un challenge de doble factor esta pendiente (logout para

@@ -1,4 +1,5 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from 'axios'
+import { useAuthStore } from '@/app/store/authStore'
 
 interface RetryConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
@@ -50,7 +51,13 @@ api.interceptors.response.use(
     }
 
     if (error.response?.status === 401) {
-      console.warn('Sesión expirada o no autenticada')
+      // Solo es una expiracion real si el store ya marcaba al usuario como
+      // autenticado antes de este 401 -- la comprobacion inicial de sesion
+      // (ej. useAuthInit en /login sin cookie previa) tambien responde 401
+      // y es el flujo esperado, no una perdida de sesion.
+      if (useAuthStore.getState().isAuthenticated) {
+        console.warn('Sesión expirada o no autenticada')
+      }
     }
 
     return Promise.reject(error)

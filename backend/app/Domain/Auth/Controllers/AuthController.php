@@ -5,6 +5,7 @@ namespace App\Domain\Auth\Controllers;
 use App\Domain\Auth\Requests\LoginRequest;
 use App\Domain\Auth\Services\TwoFactorSession;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,10 +16,10 @@ class AuthController
     {
         $credentials = $request->validated();
 
-        if (!Auth::attempt(
-            ['email' => $credentials['email'], 'password' => $credentials['password']],
-            true
-        )) {
+        // Politica ATHENEA: "recordar sesion" fue eliminado por completo --
+        // ningun login, de ningun usuario, debe emitir la cookie "recaller"
+        // de Laravel (Auth::attempt() sin segundo argumento => remember=false).
+        if (!Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']])) {
             return response()->json([
                 'data' => null,
                 'message' => 'Credenciales inválidas',
@@ -69,19 +70,17 @@ class AuthController
 
     public function me(Request $request): JsonResponse
     {
-        if (TwoFactorSession::isPending($request)) {
-            if (TwoFactorSession::isExpired($request)) {
-                Auth::guard('web')->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
+        $state = $this->resolveSessionState($request);
 
-                return response()->json([
-                    'data' => null,
-                    'message' => 'No autenticado',
-                    'errors' => ['auth' => ['Debe iniciar sesión para acceder a este recurso.']],
-                ], 401);
-            }
+        if ($state['status'] === 'unauthenticated') {
+            return response()->json([
+                'data' => null,
+                'message' => 'No autenticado',
+                'errors' => ['auth' => ['Debe iniciar sesión para acceder a este recurso.']],
+            ], 401);
+        }
 
+        if ($state['status'] === 'requires_2fa') {
             return response()->json([
                 'data' => ['requires_2fa' => true],
                 'message' => 'Verificación de doble factor pendiente',
@@ -89,11 +88,69 @@ class AuthController
             ]);
         }
 
-        $user = $request->user()->load(['healthCenters']);
         return response()->json([
-            'data' => new UserResource($user),
+            'data' => new UserResource($state['user']),
             'message' => 'Usuario autenticado',
             'errors' => null,
         ]);
+    }
+
+    /**
+     * Estado de sesion, publico -- a diferencia de me() (protegida por
+     * auth:sanctum, 401 si no hay sesion), esta ruta esta pensada para
+     * consultarse SIN sesion (ej. useAuthInit al abrir /login) y por eso
+     * responde SIEMPRE 200, con authenticated:false representando
+     * explicitamente "no hay sesion" en vez de una excepcion HTTP. Nunca
+     * expone el usuario salvo que authenticated sea true -- mismo criterio
+     * que me() para el caso de 2FA pendiente.
+     */
+    public function session(Request $request): JsonResponse
+    {
+        $state = $this->resolveSessionState($request);
+
+        return response()->json([
+            'data' => [
+                'authenticated' => $state['status'] === 'authenticated',
+                'requires_2fa' => $state['status'] === 'requires_2fa',
+                'user' => $state['status'] === 'authenticated' ? new UserResource($state['user']) : null,
+            ],
+            'message' => match ($state['status']) {
+                'authenticated' => 'Sesión activa',
+                'requires_2fa' => 'Verificación de doble factor pendiente',
+                default => 'Sin sesión activa',
+            },
+            'errors' => null,
+        ]);
+    }
+
+    /**
+     * Unico punto que decide el estado de sesion/2FA -- compartido por
+     * me() y session() para que nunca puedan divergir. Un challenge 2FA
+     * vencido se trata como sesion inexistente (invalida lo que quedaba de
+     * ella) en ambos casos.
+     *
+     * @return array{status: 'authenticated'|'requires_2fa'|'unauthenticated', user: ?User}
+     */
+    private function resolveSessionState(Request $request): array
+    {
+        if (TwoFactorSession::isPending($request)) {
+            if (TwoFactorSession::isExpired($request)) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return ['status' => 'unauthenticated', 'user' => null];
+            }
+
+            return ['status' => 'requires_2fa', 'user' => null];
+        }
+
+        $user = $request->user();
+
+        if ($user === null) {
+            return ['status' => 'unauthenticated', 'user' => null];
+        }
+
+        return ['status' => 'authenticated', 'user' => $user->load(['healthCenters'])];
     }
 }

@@ -23,3 +23,10 @@ export interface LoginCredentials {
  * autenticada todavia (ver authStore.twoFactorPending).
  */
 export type LoginResult = { status: 'authenticated'; user: User } | { status: 'requires_2fa' }
+
+/**
+ * Resultado discriminado de GET /auth/session (siempre 200) -- superset de
+ * LoginResult con el tercer estado explicito 'unauthenticated', usado por
+ * useAuthInit para no depender de un 401 esperado en la carga inicial.
+ */
+export type SessionStatus = LoginResult | { status: 'unauthenticated' }
