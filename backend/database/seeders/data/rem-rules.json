@@ -43,7 +43,8 @@
                 "from": 70,
                 "to": 73
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 74
         },
         "status": "active",
         "version": "1.0.0",
@@ -70,7 +71,8 @@
                 "from": 70,
                 "to": 73
             },
-            "rule_logic": "Suma(J) = Columna J"
+            "rule_logic": "Suma(J) = Columna J",
+            "total_row": 74
         },
         "status": "active",
         "version": "1.0.0",
@@ -97,7 +99,8 @@
                 "from": 70,
                 "to": 73
             },
-            "rule_logic": "Suma(K) = Columna K"
+            "rule_logic": "Suma(K) = Columna K",
+            "total_row": 74
         },
         "status": "active",
         "version": "1.0.0",
@@ -124,7 +127,8 @@
                 "from": 70,
                 "to": 73
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 74
         },
         "status": "active",
         "version": "1.0.0",
@@ -178,7 +182,8 @@
                 "from": 98,
                 "to": 110
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 111
         },
         "status": "active",
         "version": "1.0.0",
@@ -205,7 +210,8 @@
                 "from": 117,
                 "to": 129
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 130
         },
         "status": "active",
         "version": "1.0.0",
@@ -232,7 +238,8 @@
                 "from": 136,
                 "to": 148
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 149
         },
         "status": "active",
         "version": "1.0.0",
@@ -259,7 +266,8 @@
                 "from": 155,
                 "to": 165
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 166
         },
         "status": "active",
         "version": "1.0.0",
@@ -286,7 +294,8 @@
                 "from": 155,
                 "to": 165
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 166
         },
         "status": "active",
         "version": "1.0.0",
@@ -313,7 +322,8 @@
                 "from": 155,
                 "to": 165
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 166
         },
         "status": "active",
         "version": "1.0.0",
@@ -340,7 +350,8 @@
                 "from": 155,
                 "to": 165
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 166
         },
         "status": "active",
         "version": "1.0.0",
@@ -367,7 +378,8 @@
                 "from": 155,
                 "to": 165
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 166
         },
         "status": "active",
         "version": "1.0.0",
@@ -394,7 +406,8 @@
                 "from": 172,
                 "to": 182
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 183
         },
         "status": "active",
         "version": "1.0.0",
@@ -421,7 +434,8 @@
                 "from": 172,
                 "to": 182
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 183
         },
         "status": "active",
         "version": "1.0.0",
@@ -448,7 +462,8 @@
                 "from": 172,
                 "to": 182
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 183
         },
         "status": "active",
         "version": "1.0.0",
@@ -475,7 +490,8 @@
                 "from": 172,
                 "to": 182
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 183
         },
         "status": "active",
         "version": "1.0.0",
@@ -502,7 +518,8 @@
                 "from": 189,
                 "to": 199
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 200
         },
         "status": "active",
         "version": "1.0.0",
@@ -529,7 +546,8 @@
                 "from": 189,
                 "to": 199
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 200
         },
         "status": "active",
         "version": "1.0.0",
@@ -556,7 +574,8 @@
                 "from": 189,
                 "to": 199
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 200
         },
         "status": "active",
         "version": "1.0.0",
@@ -583,7 +602,8 @@
                 "from": 189,
                 "to": 199
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 200
         },
         "status": "active",
         "version": "1.0.0",
@@ -610,7 +630,8 @@
                 "from": 12,
                 "to": 17
             },
-            "rule_logic": "Suma(AG) = Columna AG"
+            "rule_logic": "Suma(AG) = Columna AG",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -637,7 +658,8 @@
                 "from": 12,
                 "to": 17
             },
-            "rule_logic": "Suma(AH) = Columna AH"
+            "rule_logic": "Suma(AH) = Columna AH",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -664,7 +686,8 @@
                 "from": 22,
                 "to": 25
             },
-            "rule_logic": "Suma(AG) = Columna AG"
+            "rule_logic": "Suma(AG) = Columna AG",
+            "total_row": 21
         },
         "status": "active",
         "version": "1.0.0",
@@ -691,7 +714,8 @@
                 "from": 22,
                 "to": 25
             },
-            "rule_logic": "Suma(AH) = Columna AH"
+            "rule_logic": "Suma(AH) = Columna AH",
+            "total_row": 21
         },
         "status": "active",
         "version": "1.0.0",
@@ -718,7 +742,8 @@
                 "from": 55,
                 "to": 57
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 54
         },
         "status": "active",
         "version": "1.0.0",
@@ -745,7 +770,8 @@
                 "from": 55,
                 "to": 57
             },
-            "rule_logic": "Suma(J) = Columna J"
+            "rule_logic": "Suma(J) = Columna J",
+            "total_row": 54
         },
         "status": "active",
         "version": "1.0.0",
@@ -799,7 +825,8 @@
                 "from": 80,
                 "to": 83
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 79
         },
         "status": "active",
         "version": "1.0.0",
@@ -826,7 +853,8 @@
                 "from": 122,
                 "to": 151
             },
-            "rule_logic": "Suma(AB) = Columna AB"
+            "rule_logic": "Suma(AB) = Columna AB",
+            "total_row": 152
         },
         "status": "active",
         "version": "1.0.0",
@@ -853,7 +881,8 @@
                 "from": 122,
                 "to": 151
             },
-            "rule_logic": "Suma(AC) = Columna AC"
+            "rule_logic": "Suma(AC) = Columna AC",
+            "total_row": 152
         },
         "status": "active",
         "version": "1.0.0",
@@ -877,10 +906,11 @@
             "section": "D.7",
             "column": "AH",
             "row_range": {
-                "from": 0,
-                "to": 0
+                "from": 206,
+                "to": 207
             },
-            "rule_logic": "Suma(AH) = Columna AH"
+            "rule_logic": "Suma(AH) = Columna AH",
+            "total_row": 208
         },
         "status": "active",
         "version": "1.0.0",
@@ -907,7 +937,8 @@
                 "from": 230,
                 "to": 231
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 232
         },
         "status": "active",
         "version": "1.0.0",
@@ -934,7 +965,8 @@
                 "from": 230,
                 "to": 231
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 232
         },
         "status": "active",
         "version": "1.0.0",
@@ -961,7 +993,8 @@
                 "from": 230,
                 "to": 231
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 232
         },
         "status": "active",
         "version": "1.0.0",
@@ -988,7 +1021,8 @@
                 "from": 230,
                 "to": 231
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 232
         },
         "status": "active",
         "version": "1.0.0",
@@ -1015,7 +1049,8 @@
                 "from": 13,
                 "to": 26
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 12
         },
         "status": "active",
         "version": "1.0.0",
@@ -1042,7 +1077,8 @@
                 "from": 13,
                 "to": 26
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 12
         },
         "status": "active",
         "version": "1.0.0",
@@ -1069,7 +1105,8 @@
                 "from": 13,
                 "to": 26
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 12
         },
         "status": "active",
         "version": "1.0.0",
@@ -1096,7 +1133,8 @@
                 "from": 13,
                 "to": 26
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 12
         },
         "status": "active",
         "version": "1.0.0",
@@ -1123,7 +1161,8 @@
                 "from": 13,
                 "to": 26
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 12
         },
         "status": "active",
         "version": "1.0.0",
@@ -1312,7 +1351,8 @@
                 "from": 60,
                 "to": 61
             },
-            "rule_logic": "Suma(W) = Columna W"
+            "rule_logic": "Suma(W) = Columna W",
+            "total_row": 59
         },
         "status": "active",
         "version": "1.0.0",
@@ -1339,7 +1379,8 @@
                 "from": 60,
                 "to": 61
             },
-            "rule_logic": "Suma(X) = Columna X"
+            "rule_logic": "Suma(X) = Columna X",
+            "total_row": 59
         },
         "status": "active",
         "version": "1.0.0",
@@ -1393,7 +1434,8 @@
                 "from": 114,
                 "to": 116
             },
-            "rule_logic": "Suma(K) = Columna K"
+            "rule_logic": "Suma(K) = Columna K",
+            "total_row": 117
         },
         "status": "active",
         "version": "1.0.0",
@@ -1717,7 +1759,8 @@
                 "from": 36,
                 "to": 49
             },
-            "rule_logic": "Suma(AA) = Columna AA"
+            "rule_logic": "Suma(AA) = Columna AA",
+            "total_row": 35
         },
         "status": "active",
         "version": "1.0.0",
@@ -1771,7 +1814,8 @@
                 "from": 36,
                 "to": 49
             },
-            "rule_logic": "Suma(Q) = Columna Q"
+            "rule_logic": "Suma(Q) = Columna Q",
+            "total_row": 35
         },
         "status": "active",
         "version": "1.0.0",
@@ -1798,7 +1842,8 @@
                 "from": 36,
                 "to": 49
             },
-            "rule_logic": "Suma(R) = Columna R"
+            "rule_logic": "Suma(R) = Columna R",
+            "total_row": 35
         },
         "status": "active",
         "version": "1.0.0",
@@ -1825,7 +1870,8 @@
                 "from": 36,
                 "to": 49
             },
-            "rule_logic": "Suma(S) = Columna S"
+            "rule_logic": "Suma(S) = Columna S",
+            "total_row": 35
         },
         "status": "active",
         "version": "1.0.0",
@@ -1852,7 +1898,8 @@
                 "from": 36,
                 "to": 49
             },
-            "rule_logic": "Suma(V) = Columna V"
+            "rule_logic": "Suma(V) = Columna V",
+            "total_row": 35
         },
         "status": "active",
         "version": "1.0.0",
@@ -1879,7 +1926,8 @@
                 "from": 36,
                 "to": 49
             },
-            "rule_logic": "Suma(W) = Columna W"
+            "rule_logic": "Suma(W) = Columna W",
+            "total_row": 35
         },
         "status": "active",
         "version": "1.0.0",
@@ -1960,7 +2008,8 @@
                 "from": 64,
                 "to": 76
             },
-            "rule_logic": "Suma(Q) = Columna Q"
+            "rule_logic": "Suma(Q) = Columna Q",
+            "total_row": 63
         },
         "status": "active",
         "version": "1.0.0",
@@ -1987,7 +2036,8 @@
                 "from": 64,
                 "to": 76
             },
-            "rule_logic": "Suma(R) = Columna R"
+            "rule_logic": "Suma(R) = Columna R",
+            "total_row": 63
         },
         "status": "active",
         "version": "1.0.0",
@@ -2041,7 +2091,8 @@
                 "from": 154,
                 "to": 156
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 157
         },
         "status": "active",
         "version": "1.0.0",
@@ -2068,7 +2119,8 @@
                 "from": 154,
                 "to": 156
             },
-            "rule_logic": "Suma(O) = Columna O"
+            "rule_logic": "Suma(O) = Columna O",
+            "total_row": 157
         },
         "status": "active",
         "version": "1.0.0",
@@ -2095,7 +2147,8 @@
                 "from": 167,
                 "to": 169
             },
-            "rule_logic": "Suma(Q) = Columna Q"
+            "rule_logic": "Suma(Q) = Columna Q",
+            "total_row": 170
         },
         "status": "active",
         "version": "1.0.0",
@@ -2122,7 +2175,8 @@
                 "from": 167,
                 "to": 169
             },
-            "rule_logic": "Suma(R) = Columna R"
+            "rule_logic": "Suma(R) = Columna R",
+            "total_row": 170
         },
         "status": "active",
         "version": "1.0.0",
@@ -2149,7 +2203,8 @@
                 "from": 180,
                 "to": 182
             },
-            "rule_logic": "Suma(P) = Columna P"
+            "rule_logic": "Suma(P) = Columna P",
+            "total_row": 183
         },
         "status": "active",
         "version": "1.0.0",
@@ -2176,7 +2231,8 @@
                 "from": 180,
                 "to": 182
             },
-            "rule_logic": "Suma(Q) = Columna Q"
+            "rule_logic": "Suma(Q) = Columna Q",
+            "total_row": 183
         },
         "status": "active",
         "version": "1.0.0",
@@ -2203,7 +2259,8 @@
                 "from": 307,
                 "to": 324
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 306
         },
         "status": "active",
         "version": "1.0.0",
@@ -2230,7 +2287,8 @@
                 "from": 307,
                 "to": 324
             },
-            "rule_logic": "Suma(AT) = Columna AT"
+            "rule_logic": "Suma(AT) = Columna AT",
+            "total_row": 306
         },
         "status": "active",
         "version": "1.0.0",
@@ -2257,7 +2315,8 @@
                 "from": 307,
                 "to": 324
             },
-            "rule_logic": "Suma(AU) = Columna AU"
+            "rule_logic": "Suma(AU) = Columna AU",
+            "total_row": 306
         },
         "status": "active",
         "version": "1.0.0",
@@ -2284,7 +2343,8 @@
                 "from": 307,
                 "to": 324
             },
-            "rule_logic": "Suma(AV) = Columna AV"
+            "rule_logic": "Suma(AV) = Columna AV",
+            "total_row": 306
         },
         "status": "active",
         "version": "1.0.0",
@@ -2338,7 +2398,8 @@
                 "from": 396,
                 "to": 398
             },
-            "rule_logic": "Suma(K) = Columna K"
+            "rule_logic": "Suma(K) = Columna K",
+            "total_row": 395
         },
         "status": "active",
         "version": "1.0.0",
@@ -2365,7 +2426,8 @@
                 "from": 396,
                 "to": 398
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 395
         },
         "status": "active",
         "version": "1.0.0",
@@ -3256,7 +3318,8 @@
                 "from": 71,
                 "to": 125
             },
-            "rule_logic": "Suma(AD) = Columna AD"
+            "rule_logic": "Suma(AD) = Columna AD",
+            "total_row": 126
         },
         "status": "active",
         "version": "1.0.0",
@@ -3283,7 +3346,8 @@
                 "from": 71,
                 "to": 125
             },
-            "rule_logic": "Suma(W) = Columna W"
+            "rule_logic": "Suma(W) = Columna W",
+            "total_row": 126
         },
         "status": "active",
         "version": "1.0.0",
@@ -3337,7 +3401,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3364,7 +3429,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3391,7 +3457,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3418,7 +3485,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3445,7 +3513,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3472,7 +3541,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3499,7 +3569,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3526,7 +3597,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(J) = Columna J"
+            "rule_logic": "Suma(J) = Columna J",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3553,7 +3625,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(K) = Columna K"
+            "rule_logic": "Suma(K) = Columna K",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3580,7 +3653,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3607,7 +3681,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3634,7 +3709,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3661,7 +3737,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(O) = Columna O"
+            "rule_logic": "Suma(O) = Columna O",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3688,7 +3765,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(P) = Columna P"
+            "rule_logic": "Suma(P) = Columna P",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3715,7 +3793,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(Q) = Columna Q"
+            "rule_logic": "Suma(Q) = Columna Q",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3742,7 +3821,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(R) = Columna R"
+            "rule_logic": "Suma(R) = Columna R",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3769,7 +3849,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(S) = Columna S"
+            "rule_logic": "Suma(S) = Columna S",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3796,7 +3877,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(T) = Columna T"
+            "rule_logic": "Suma(T) = Columna T",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3823,7 +3905,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(U) = Columna U"
+            "rule_logic": "Suma(U) = Columna U",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3850,7 +3933,8 @@
                 "from": 129,
                 "to": 145
             },
-            "rule_logic": "Suma(V) = Columna V"
+            "rule_logic": "Suma(V) = Columna V",
+            "total_row": 146
         },
         "status": "active",
         "version": "1.0.0",
@@ -3877,7 +3961,8 @@
                 "from": 151,
                 "to": 161
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 162
         },
         "status": "active",
         "version": "1.0.0",
@@ -3904,7 +3989,8 @@
                 "from": 151,
                 "to": 161
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 162
         },
         "status": "active",
         "version": "1.0.0",
@@ -3931,7 +4017,8 @@
                 "from": 151,
                 "to": 161
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 162
         },
         "status": "active",
         "version": "1.0.0",
@@ -3958,7 +4045,8 @@
                 "from": 151,
                 "to": 161
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 162
         },
         "status": "active",
         "version": "1.0.0",
@@ -4201,7 +4289,8 @@
                 "from": 81,
                 "to": 100
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 101
         },
         "status": "active",
         "version": "1.0.0",
@@ -4228,7 +4317,8 @@
                 "from": 81,
                 "to": 100
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 101
         },
         "status": "active",
         "version": "1.0.0",
@@ -4255,7 +4345,8 @@
                 "from": 81,
                 "to": 100
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 101
         },
         "status": "active",
         "version": "1.0.0",
@@ -4282,7 +4373,8 @@
                 "from": 107,
                 "to": 113
             },
-            "rule_logic": "Suma(AN) = Columna AN"
+            "rule_logic": "Suma(AN) = Columna AN",
+            "total_row": 106
         },
         "status": "active",
         "version": "1.0.0",
@@ -4309,7 +4401,8 @@
                 "from": 107,
                 "to": 109
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 106
         },
         "status": "active",
         "version": "1.0.0",
@@ -4363,7 +4456,8 @@
                 "from": 146,
                 "to": 157
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -4417,7 +4511,8 @@
                 "from": 211,
                 "to": 215
             },
-            "rule_logic": "Suma(O) = Columna O"
+            "rule_logic": "Suma(O) = Columna O",
+            "total_row": 210
         },
         "status": "active",
         "version": "1.0.0",
@@ -4444,7 +4539,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4471,7 +4567,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4498,7 +4595,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4525,7 +4623,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AT) = Columna AT"
+            "rule_logic": "Suma(AT) = Columna AT",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4552,7 +4651,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AU) = Columna AU"
+            "rule_logic": "Suma(AU) = Columna AU",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4579,7 +4679,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AV) = Columna AV"
+            "rule_logic": "Suma(AV) = Columna AV",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4606,7 +4707,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AW) = Columna AW"
+            "rule_logic": "Suma(AW) = Columna AW",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4633,7 +4735,8 @@
                 "from": 21,
                 "to": 38
             },
-            "rule_logic": "Suma(AX) = Columna AX"
+            "rule_logic": "Suma(AX) = Columna AX",
+            "total_row": 39
         },
         "status": "active",
         "version": "1.0.0",
@@ -4660,7 +4763,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4687,7 +4791,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4714,7 +4819,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4741,7 +4847,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AT) = Columna AT"
+            "rule_logic": "Suma(AT) = Columna AT",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4768,7 +4875,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AU) = Columna AU"
+            "rule_logic": "Suma(AU) = Columna AU",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4795,7 +4903,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AV) = Columna AV"
+            "rule_logic": "Suma(AV) = Columna AV",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4822,7 +4931,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AW) = Columna AW"
+            "rule_logic": "Suma(AW) = Columna AW",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4849,7 +4959,8 @@
                 "from": 51,
                 "to": 56
             },
-            "rule_logic": "Suma(AX) = Columna AX"
+            "rule_logic": "Suma(AX) = Columna AX",
+            "total_row": 57
         },
         "status": "active",
         "version": "1.0.0",
@@ -4903,7 +5014,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -4930,7 +5042,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -4957,7 +5070,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -4981,10 +5095,18 @@
             "section": "F.1",
             "column": "F",
             "row_range": {
-                "from": 0,
-                "to": 0
+                "from": 149,
+                "to": 157
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 158,
+            "source_rows": [
+                149,
+                150,
+                153,
+                155,
+                157
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -5011,7 +5133,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -5038,7 +5161,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -5092,7 +5216,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(J) = Columna J"
+            "rule_logic": "Suma(J) = Columna J",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -5119,7 +5244,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(K) = Columna K"
+            "rule_logic": "Suma(K) = Columna K",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -5143,10 +5269,18 @@
             "section": "F.1",
             "column": "L",
             "row_range": {
-                "from": 0,
-                "to": 0
+                "from": 149,
+                "to": 157
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 158,
+            "source_rows": [
+                149,
+                150,
+                153,
+                155,
+                157
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -5173,7 +5307,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -5200,7 +5335,8 @@
                 "from": 148,
                 "to": 157
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 158
         },
         "status": "active",
         "version": "1.0.0",
@@ -5227,7 +5363,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5254,7 +5391,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5281,7 +5419,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5308,7 +5447,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AT) = Columna AT"
+            "rule_logic": "Suma(AT) = Columna AT",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5335,7 +5475,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AU) = Columna AU"
+            "rule_logic": "Suma(AU) = Columna AU",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5362,7 +5503,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AV) = Columna AV"
+            "rule_logic": "Suma(AV) = Columna AV",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5389,7 +5531,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AW) = Columna AW"
+            "rule_logic": "Suma(AW) = Columna AW",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5416,7 +5559,8 @@
                 "from": 163,
                 "to": 173
             },
-            "rule_logic": "Suma(AX) = Columna AX"
+            "rule_logic": "Suma(AX) = Columna AX",
+            "total_row": 174
         },
         "status": "active",
         "version": "1.0.0",
@@ -5715,7 +5859,7 @@
             },
             "rule_logic": "Suma(CO + CP + CQ + CR + CS + CT + CU + CV + CW + CX + CY + CZ) = Columna B"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5743,7 +5887,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B22>0,C22=),\" * No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(C22>B22, \" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5771,7 +5915,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B22>0,D22=),\" * No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(D22>B22, \" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5799,7 +5943,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B22>0,C22=),1,IF(C22>B22,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5827,7 +5971,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B22>0,D22=),1,IF(D22>B22,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5883,7 +6027,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B27>0,L27=),\" No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(L27>B27,\" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5911,7 +6055,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B27>0,M27=),\" No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(M27>B27,\" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5939,7 +6083,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B27>0,L27=),1,IF(L27>B27,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5967,7 +6111,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B27>0,M27=),1,IF(M27>B27,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -5995,7 +6139,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B35>0,C35=),\" No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(C35>B35,\" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6023,7 +6167,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B35>0,D35=),\" No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(D35>B35,\" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6051,7 +6195,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B35>0,C35=),1,IF(C35>B35,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6079,7 +6223,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B35>0,D35=),1,IF(D35>B35,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6135,7 +6279,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B40>0,L40=),\" No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(L40>B40,\" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6163,7 +6307,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B40>0,M40=),\" No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(M40>B40,\" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6191,7 +6335,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B40>0,L40=),1,IF(L40>B40,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6219,7 +6363,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B40>0,M40=),1,IF(M40>B40,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6247,7 +6391,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B50>0,C50=),\" No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(C50>B50,\" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6275,7 +6419,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B50>0,D50=),\" No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(D50>B50,\" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6303,7 +6447,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B50>0,C50=),1,IF(C50>B50,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6331,7 +6475,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B50>0,D50=),1,IF(D50>B50,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6359,7 +6503,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B56>0,C56=),\" No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(C56>B56,\" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6387,7 +6531,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B56>0,D56=),\" No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(D56>B56,\" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6415,7 +6559,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B56>0,C56=),1,IF(C56>B56,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6443,7 +6587,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B56>0,D56=),1,IF(D56>B56,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6471,7 +6615,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B91>0,C91=),\" No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(C91>B91,\" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6499,7 +6643,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B91>0,D91=),\" No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(D91>B91,\" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6527,7 +6671,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B91>0,C91=),1,IF(C91>B91,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6555,7 +6699,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B91>0,D91=),1,IF(D91>B91,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6583,7 +6727,7 @@
             "rule_logic": "Columna B > 0 AND Pueblos Originarios debe existir AND Pueblos Originarios <= Columna B",
             "formula": "=IF(AND(B95>0,C95=),\" No olvide digitar la variable Pueblos Originarios. Digite cero si no tiene.\",IF(C95>B95,\" * La variable Pueblos Originarios no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6611,7 +6755,7 @@
             "rule_logic": "Columna B > 0 AND Migrantes debe existir AND Migrantes <= Columna B",
             "formula": "=IF(AND(B95>0,D95=),\" No olvide digitar la variable Migrantes. Digite cero si no tiene.\",IF(D95>B95,\" * La variable Migrantes no puede ser mayor al Total.\",))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6639,7 +6783,7 @@
             "rule_logic": "Columna B > 0 AND Columna CG debe existir AND Columna CG <= Columna B",
             "formula": "=IF(AND(B95>0,C95=),1,IF(C95>B95,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6667,7 +6811,7 @@
             "rule_logic": "Columna B > 0 AND Columna CH debe existir AND Columna CH <= Columna B",
             "formula": "=IF(AND(B95>0,D95=),1,IF(D95>B95,1,0))"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -6881,7 +7025,8 @@
                 "from": 12,
                 "to": 51
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -6908,7 +7053,8 @@
                 "from": 12,
                 "to": 51
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -6935,7 +7081,8 @@
                 "from": 12,
                 "to": 51
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -6962,7 +7109,8 @@
                 "from": 12,
                 "to": 51
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -6989,7 +7137,8 @@
                 "from": 12,
                 "to": 51
             },
-            "rule_logic": "Suma(O) = Columna O"
+            "rule_logic": "Suma(O) = Columna O",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -7016,7 +7165,8 @@
                 "from": 12,
                 "to": 51
             },
-            "rule_logic": "Suma(P) = Columna P"
+            "rule_logic": "Suma(P) = Columna P",
+            "total_row": 11
         },
         "status": "active",
         "version": "1.0.0",
@@ -7070,7 +7220,8 @@
                 "from": 62,
                 "to": 73
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 74
         },
         "status": "active",
         "version": "1.0.0",
@@ -7097,7 +7248,8 @@
                 "from": 78,
                 "to": 91
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 92
         },
         "status": "active",
         "version": "1.0.0",
@@ -7151,7 +7303,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7178,7 +7331,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7205,7 +7359,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7232,7 +7387,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7259,7 +7415,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7286,7 +7443,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7313,7 +7471,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7340,7 +7499,8 @@
                 "from": 97,
                 "to": 108
             },
-            "rule_logic": "Suma(J) = Columna J"
+            "rule_logic": "Suma(J) = Columna J",
+            "total_row": 109
         },
         "status": "active",
         "version": "1.0.0",
@@ -7367,7 +7527,8 @@
                 "from": 113,
                 "to": 122
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 123
         },
         "status": "active",
         "version": "1.0.0",
@@ -8258,7 +8419,8 @@
                 "from": 12,
                 "to": 22
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 23
         },
         "status": "active",
         "version": "1.0.0",
@@ -8285,7 +8447,8 @@
                 "from": 12,
                 "to": 22
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 23
         },
         "status": "active",
         "version": "1.0.0",
@@ -8312,7 +8475,8 @@
                 "from": 12,
                 "to": 22
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 23
         },
         "status": "active",
         "version": "1.0.0",
@@ -8339,7 +8503,8 @@
                 "from": 28,
                 "to": 40
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -8366,7 +8531,8 @@
                 "from": 28,
                 "to": 40
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -8393,7 +8559,8 @@
                 "from": 28,
                 "to": 40
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -8420,7 +8587,8 @@
                 "from": 63,
                 "to": 65
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 66
         },
         "status": "active",
         "version": "1.0.0",
@@ -8447,7 +8615,8 @@
                 "from": 71,
                 "to": 72
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 73
         },
         "status": "active",
         "version": "1.0.0",
@@ -8474,7 +8643,8 @@
                 "from": 71,
                 "to": 72
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 73
         },
         "status": "active",
         "version": "1.0.0",
@@ -8528,7 +8698,8 @@
                 "from": 87,
                 "to": 89
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -8555,7 +8726,8 @@
                 "from": 87,
                 "to": 89
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -8582,7 +8754,8 @@
                 "from": 124,
                 "to": 129
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 130
         },
         "status": "active",
         "version": "1.0.0",
@@ -8609,7 +8782,8 @@
                 "from": 145,
                 "to": 152
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 153
         },
         "status": "active",
         "version": "1.0.0",
@@ -8636,7 +8810,8 @@
                 "from": 145,
                 "to": 152
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 153
         },
         "status": "active",
         "version": "1.0.0",
@@ -8692,7 +8867,7 @@
             },
             "rule_logic": "Suma(CF + CG + CH) = Columna B"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -8908,7 +9083,7 @@
             },
             "rule_logic": "Suma(CI + CJ + CK + CL + CM) = Columna B"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -9662,7 +9837,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9689,7 +9865,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9716,7 +9893,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9743,7 +9921,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9770,7 +9949,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9797,7 +9977,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9824,7 +10005,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9851,7 +10033,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(J) = Columna J"
+            "rule_logic": "Suma(J) = Columna J",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9878,7 +10061,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(K) = Columna K"
+            "rule_logic": "Suma(K) = Columna K",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9905,7 +10089,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9932,7 +10117,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -9959,7 +10145,8 @@
                 "from": 38,
                 "to": 40
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 41
         },
         "status": "active",
         "version": "1.0.0",
@@ -10013,7 +10200,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10040,7 +10236,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10067,7 +10272,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10094,7 +10308,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10121,7 +10344,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10148,7 +10380,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10175,7 +10416,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(J) = Columna J"
+            "rule_logic": "Suma(J) = Columna J",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10202,7 +10452,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(K) = Columna K"
+            "rule_logic": "Suma(K) = Columna K",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10229,7 +10488,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(L) = Columna L"
+            "rule_logic": "Suma(L) = Columna L",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10256,7 +10524,16 @@
                 "from": 54,
                 "to": 58
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 59,
+            "source_rows": [
+                50,
+                54,
+                55,
+                56,
+                57,
+                58
+            ]
         },
         "status": "active",
         "version": "1.0.0",
@@ -10337,7 +10614,8 @@
                 "from": 115,
                 "to": 119
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 120
         },
         "status": "active",
         "version": "1.0.0",
@@ -10364,7 +10642,8 @@
                 "from": 11,
                 "to": 52
             },
-            "rule_logic": "Suma(AB) = Columna AB"
+            "rule_logic": "Suma(AB) = Columna AB",
+            "total_row": 53
         },
         "status": "active",
         "version": "1.0.0",
@@ -10391,7 +10670,8 @@
                 "from": 11,
                 "to": 52
             },
-            "rule_logic": "Suma(AC) = Columna AC"
+            "rule_logic": "Suma(AC) = Columna AC",
+            "total_row": 53
         },
         "status": "active",
         "version": "1.0.0",
@@ -10418,7 +10698,8 @@
                 "from": 11,
                 "to": 52
             },
-            "rule_logic": "Suma(AD) = Columna AD"
+            "rule_logic": "Suma(AD) = Columna AD",
+            "total_row": 53
         },
         "status": "active",
         "version": "1.0.0",
@@ -10445,7 +10726,8 @@
                 "from": 11,
                 "to": 52
             },
-            "rule_logic": "Suma(AE) = Columna AE"
+            "rule_logic": "Suma(AE) = Columna AE",
+            "total_row": 53
         },
         "status": "active",
         "version": "1.0.0",
@@ -10472,7 +10754,8 @@
                 "from": 11,
                 "to": 52
             },
-            "rule_logic": "Suma(AH) = Columna AH"
+            "rule_logic": "Suma(AH) = Columna AH",
+            "total_row": 53
         },
         "status": "active",
         "version": "1.0.0",
@@ -10499,7 +10782,8 @@
                 "from": 11,
                 "to": 52
             },
-            "rule_logic": "Suma(AI) = Columna AI"
+            "rule_logic": "Suma(AI) = Columna AI",
+            "total_row": 53
         },
         "status": "active",
         "version": "1.0.0",
@@ -10580,7 +10864,8 @@
                 "from": 56,
                 "to": 97
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 98
         },
         "status": "active",
         "version": "1.0.0",
@@ -10607,7 +10892,8 @@
                 "from": 56,
                 "to": 97
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 98
         },
         "status": "active",
         "version": "1.0.0",
@@ -10634,7 +10920,8 @@
                 "from": 56,
                 "to": 97
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 98
         },
         "status": "active",
         "version": "1.0.0",
@@ -10661,7 +10948,8 @@
                 "from": 56,
                 "to": 97
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 98
         },
         "status": "active",
         "version": "1.0.0",
@@ -10688,7 +10976,8 @@
                 "from": 56,
                 "to": 97
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 98
         },
         "status": "active",
         "version": "1.0.0",
@@ -10850,7 +11139,8 @@
                 "from": 171,
                 "to": 202
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 203
         },
         "status": "active",
         "version": "1.0.0",
@@ -10877,7 +11167,8 @@
                 "from": 171,
                 "to": 202
             },
-            "rule_logic": "Suma(F) = Columna F"
+            "rule_logic": "Suma(F) = Columna F",
+            "total_row": 203
         },
         "status": "active",
         "version": "1.0.0",
@@ -10904,7 +11195,8 @@
                 "from": 171,
                 "to": 202
             },
-            "rule_logic": "Suma(G) = Columna G"
+            "rule_logic": "Suma(G) = Columna G",
+            "total_row": 203
         },
         "status": "active",
         "version": "1.0.0",
@@ -10931,7 +11223,8 @@
                 "from": 171,
                 "to": 202
             },
-            "rule_logic": "Suma(H) = Columna H"
+            "rule_logic": "Suma(H) = Columna H",
+            "total_row": 203
         },
         "status": "active",
         "version": "1.0.0",
@@ -10958,7 +11251,8 @@
                 "from": 171,
                 "to": 202
             },
-            "rule_logic": "Suma(I) = Columna I"
+            "rule_logic": "Suma(I) = Columna I",
+            "total_row": 203
         },
         "status": "active",
         "version": "1.0.0",
@@ -10985,7 +11279,8 @@
                 "from": 20,
                 "to": 24
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 19
         },
         "status": "active",
         "version": "1.0.0",
@@ -11012,7 +11307,8 @@
                 "from": 20,
                 "to": 24
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 19
         },
         "status": "active",
         "version": "1.0.0",
@@ -11039,7 +11335,8 @@
                 "from": 20,
                 "to": 24
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 19
         },
         "status": "active",
         "version": "1.0.0",
@@ -11174,7 +11471,8 @@
                 "from": 80,
                 "to": 96
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 97
         },
         "status": "active",
         "version": "1.0.0",
@@ -11201,7 +11499,8 @@
                 "from": 80,
                 "to": 96
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 97
         },
         "status": "active",
         "version": "1.0.0",
@@ -11228,7 +11527,8 @@
                 "from": 80,
                 "to": 96
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 97
         },
         "status": "active",
         "version": "1.0.0",
@@ -11255,7 +11555,8 @@
                 "from": 80,
                 "to": 96
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 97
         },
         "status": "active",
         "version": "1.0.0",
@@ -11282,7 +11583,8 @@
                 "from": 100,
                 "to": 104
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 105
         },
         "status": "active",
         "version": "1.0.0",
@@ -11309,7 +11611,8 @@
                 "from": 100,
                 "to": 104
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 105
         },
         "status": "active",
         "version": "1.0.0",
@@ -11336,7 +11639,8 @@
                 "from": 100,
                 "to": 104
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 105
         },
         "status": "active",
         "version": "1.0.0",
@@ -11363,7 +11667,8 @@
                 "from": 100,
                 "to": 104
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 105
         },
         "status": "active",
         "version": "1.0.0",
@@ -11390,7 +11695,8 @@
                 "from": 108,
                 "to": 112
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 113
         },
         "status": "active",
         "version": "1.0.0",
@@ -11417,7 +11723,8 @@
                 "from": 108,
                 "to": 112
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 113
         },
         "status": "active",
         "version": "1.0.0",
@@ -11444,7 +11751,8 @@
                 "from": 108,
                 "to": 112
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 113
         },
         "status": "active",
         "version": "1.0.0",
@@ -11471,7 +11779,8 @@
                 "from": 108,
                 "to": 112
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 113
         },
         "status": "active",
         "version": "1.0.0",
@@ -11606,7 +11915,8 @@
                 "from": 224,
                 "to": 248
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 249
         },
         "status": "active",
         "version": "1.0.0",
@@ -11768,7 +12078,8 @@
                 "from": 115,
                 "to": 131
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 132
         },
         "status": "active",
         "version": "1.0.0",
@@ -11849,7 +12160,8 @@
                 "from": 124,
                 "to": 129
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 123
         },
         "status": "active",
         "version": "1.0.0",
@@ -12065,7 +12377,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AN) = Columna AN"
+            "rule_logic": "Suma(AN) = Columna AN",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12092,7 +12405,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12119,7 +12433,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12146,7 +12461,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12173,7 +12489,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12200,7 +12517,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12227,7 +12545,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AT) = Columna AT"
+            "rule_logic": "Suma(AT) = Columna AT",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12254,7 +12573,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AU) = Columna AU"
+            "rule_logic": "Suma(AU) = Columna AU",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12281,7 +12601,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AV) = Columna AV"
+            "rule_logic": "Suma(AV) = Columna AV",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12308,7 +12629,8 @@
                 "from": 12,
                 "to": 27
             },
-            "rule_logic": "Suma(AW) = Columna AW"
+            "rule_logic": "Suma(AW) = Columna AW",
+            "total_row": 28
         },
         "status": "active",
         "version": "1.0.0",
@@ -12362,7 +12684,8 @@
                 "from": 32,
                 "to": 45
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 46
         },
         "status": "active",
         "version": "1.0.0",
@@ -12389,7 +12712,8 @@
                 "from": 32,
                 "to": 45
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 46
         },
         "status": "active",
         "version": "1.0.0",
@@ -12416,7 +12740,8 @@
                 "from": 32,
                 "to": 45
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 46
         },
         "status": "active",
         "version": "1.0.0",
@@ -12470,7 +12795,8 @@
                 "from": 50,
                 "to": 65
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 66
         },
         "status": "active",
         "version": "1.0.0",
@@ -12497,7 +12823,8 @@
                 "from": 50,
                 "to": 65
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 66
         },
         "status": "active",
         "version": "1.0.0",
@@ -12524,7 +12851,8 @@
                 "from": 50,
                 "to": 65
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 66
         },
         "status": "active",
         "version": "1.0.0",
@@ -12551,7 +12879,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(B) = Columna B"
+            "rule_logic": "Suma(B) = Columna B",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12578,7 +12907,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12605,7 +12935,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(O) = Columna O"
+            "rule_logic": "Suma(O) = Columna O",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12632,7 +12963,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(P) = Columna P"
+            "rule_logic": "Suma(P) = Columna P",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12659,7 +12991,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(Q) = Columna Q"
+            "rule_logic": "Suma(Q) = Columna Q",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12686,7 +13019,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(R) = Columna R"
+            "rule_logic": "Suma(R) = Columna R",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12713,7 +13047,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(S) = Columna S"
+            "rule_logic": "Suma(S) = Columna S",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12740,7 +13075,8 @@
                 "from": 71,
                 "to": 84
             },
-            "rule_logic": "Suma(T) = Columna T"
+            "rule_logic": "Suma(T) = Columna T",
+            "total_row": 85
         },
         "status": "active",
         "version": "1.0.0",
@@ -12821,7 +13157,8 @@
                 "from": 11,
                 "to": 15
             },
-            "rule_logic": "Suma(V) = Columna V"
+            "rule_logic": "Suma(V) = Columna V",
+            "total_row": 16
         },
         "status": "active",
         "version": "1.0.0",
@@ -12848,7 +13185,8 @@
                 "from": 11,
                 "to": 15
             },
-            "rule_logic": "Suma(W) = Columna W"
+            "rule_logic": "Suma(W) = Columna W",
+            "total_row": 16
         },
         "status": "active",
         "version": "1.0.0",
@@ -12875,7 +13213,8 @@
                 "from": 11,
                 "to": 15
             },
-            "rule_logic": "Suma(X) = Columna X"
+            "rule_logic": "Suma(X) = Columna X",
+            "total_row": 16
         },
         "status": "active",
         "version": "1.0.0",
@@ -12902,7 +13241,8 @@
                 "from": 11,
                 "to": 15
             },
-            "rule_logic": "Suma(Y) = Columna Y"
+            "rule_logic": "Suma(Y) = Columna Y",
+            "total_row": 16
         },
         "status": "active",
         "version": "1.0.0",
@@ -12929,7 +13269,8 @@
                 "from": 11,
                 "to": 15
             },
-            "rule_logic": "Suma(Z) = Columna Z"
+            "rule_logic": "Suma(Z) = Columna Z",
+            "total_row": 16
         },
         "status": "active",
         "version": "1.0.0",
@@ -12983,7 +13324,8 @@
                 "from": 19,
                 "to": 23
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 24
         },
         "status": "active",
         "version": "1.0.0",
@@ -13010,7 +13352,8 @@
                 "from": 19,
                 "to": 23
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 24
         },
         "status": "active",
         "version": "1.0.0",
@@ -13037,7 +13380,8 @@
                 "from": 19,
                 "to": 23
             },
-            "rule_logic": "Suma(E) = Columna E"
+            "rule_logic": "Suma(E) = Columna E",
+            "total_row": 24
         },
         "status": "active",
         "version": "1.0.0",
@@ -13091,7 +13435,8 @@
                 "from": 95,
                 "to": 103
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 104
         },
         "status": "active",
         "version": "1.0.0",
@@ -13118,7 +13463,8 @@
                 "from": 95,
                 "to": 103
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 104
         },
         "status": "active",
         "version": "1.0.0",
@@ -13145,7 +13491,8 @@
                 "from": 95,
                 "to": 103
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 104
         },
         "status": "active",
         "version": "1.0.0",
@@ -13172,7 +13519,8 @@
                 "from": 95,
                 "to": 103
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 104
         },
         "status": "active",
         "version": "1.0.0",
@@ -13199,7 +13547,8 @@
                 "from": 95,
                 "to": 103
             },
-            "rule_logic": "Suma(AT) = Columna AT"
+            "rule_logic": "Suma(AT) = Columna AT",
+            "total_row": 104
         },
         "status": "active",
         "version": "1.0.0",
@@ -13226,7 +13575,8 @@
                 "from": 95,
                 "to": 103
             },
-            "rule_logic": "Suma(AU) = Columna AU"
+            "rule_logic": "Suma(AU) = Columna AU",
+            "total_row": 104
         },
         "status": "active",
         "version": "1.0.0",
@@ -13253,7 +13603,8 @@
                 "from": 35,
                 "to": 89
             },
-            "rule_logic": "Suma(AM) = Columna AM"
+            "rule_logic": "Suma(AM) = Columna AM",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -13280,7 +13631,8 @@
                 "from": 35,
                 "to": 89
             },
-            "rule_logic": "Suma(AN) = Columna AN"
+            "rule_logic": "Suma(AN) = Columna AN",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -13307,7 +13659,8 @@
                 "from": 35,
                 "to": 89
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -13334,7 +13687,8 @@
                 "from": 35,
                 "to": 89
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -13361,7 +13715,8 @@
                 "from": 35,
                 "to": 89
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -13388,7 +13743,8 @@
                 "from": 35,
                 "to": 89
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -13415,7 +13771,8 @@
                 "from": 35,
                 "to": 89
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 90
         },
         "status": "active",
         "version": "1.0.0",
@@ -13469,7 +13826,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(M) = Columna M"
+            "rule_logic": "Suma(M) = Columna M",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13496,7 +13854,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(N) = Columna N"
+            "rule_logic": "Suma(N) = Columna N",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13523,7 +13882,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(O) = Columna O"
+            "rule_logic": "Suma(O) = Columna O",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13550,7 +13910,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(P) = Columna P"
+            "rule_logic": "Suma(P) = Columna P",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13577,7 +13938,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(Q) = Columna Q"
+            "rule_logic": "Suma(Q) = Columna Q",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13604,7 +13966,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(R) = Columna R"
+            "rule_logic": "Suma(R) = Columna R",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13631,7 +13994,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(S) = Columna S"
+            "rule_logic": "Suma(S) = Columna S",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13658,7 +14022,8 @@
                 "from": 116,
                 "to": 117
             },
-            "rule_logic": "Suma(T) = Columna T"
+            "rule_logic": "Suma(T) = Columna T",
+            "total_row": 118
         },
         "status": "active",
         "version": "1.0.0",
@@ -13687,7 +14052,7 @@
             },
             "rule_logic": "Suma(C + D + E + F + G + H + I + J + K + L + M + N + O + P + Q + R + S) = Columna B"
         },
-        "status": "active",
+        "status": "inactive",
         "version": "1.0.0",
         "metadata": {
             "source": "Estructura Excel"
@@ -13739,7 +14104,8 @@
                 "from": 130,
                 "to": 139
             },
-            "rule_logic": "Suma(AN) = Columna AN"
+            "rule_logic": "Suma(AN) = Columna AN",
+            "total_row": 140
         },
         "status": "active",
         "version": "1.0.0",
@@ -13766,7 +14132,8 @@
                 "from": 130,
                 "to": 139
             },
-            "rule_logic": "Suma(AO) = Columna AO"
+            "rule_logic": "Suma(AO) = Columna AO",
+            "total_row": 140
         },
         "status": "active",
         "version": "1.0.0",
@@ -13793,7 +14160,8 @@
                 "from": 130,
                 "to": 139
             },
-            "rule_logic": "Suma(AP) = Columna AP"
+            "rule_logic": "Suma(AP) = Columna AP",
+            "total_row": 140
         },
         "status": "active",
         "version": "1.0.0",
@@ -13820,7 +14188,8 @@
                 "from": 130,
                 "to": 139
             },
-            "rule_logic": "Suma(AQ) = Columna AQ"
+            "rule_logic": "Suma(AQ) = Columna AQ",
+            "total_row": 140
         },
         "status": "active",
         "version": "1.0.0",
@@ -13847,7 +14216,8 @@
                 "from": 130,
                 "to": 139
             },
-            "rule_logic": "Suma(AR) = Columna AR"
+            "rule_logic": "Suma(AR) = Columna AR",
+            "total_row": 140
         },
         "status": "active",
         "version": "1.0.0",
@@ -13874,7 +14244,8 @@
                 "from": 130,
                 "to": 139
             },
-            "rule_logic": "Suma(AS) = Columna AS"
+            "rule_logic": "Suma(AS) = Columna AS",
+            "total_row": 140
         },
         "status": "active",
         "version": "1.0.0",
@@ -14117,7 +14488,8 @@
                 "from": 54,
                 "to": 55
             },
-            "rule_logic": "Suma(C) = Columna C"
+            "rule_logic": "Suma(C) = Columna C",
+            "total_row": 56
         },
         "status": "active",
         "version": "1.0.0",
@@ -14144,7 +14516,8 @@
                 "from": 54,
                 "to": 55
             },
-            "rule_logic": "Suma(D) = Columna D"
+            "rule_logic": "Suma(D) = Columna D",
+            "total_row": 56
         },
         "status": "active",
         "version": "1.0.0",
@@ -23346,6 +23719,1672 @@
             "origen": "patron_datos_reales_sin_formula",
             "aprobado_por_usuario": true,
             "caso_referencia": "A06/C.2/fila 97 (De Familia)"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_am_row331_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Gestantes (fila TOTAL 331)",
+        "description": "Valida que la suma de las columnas AM sea igual al total de la columna AM. Variable: Gestantes. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AM",
+            "row_range": {
+                "from": 253,
+                "to": 325
+            },
+            "source_rows": [
+                253,
+                259,
+                265,
+                271,
+                277,
+                283,
+                289,
+                295,
+                301,
+                307,
+                313,
+                319,
+                325
+            ],
+            "total_row": 331,
+            "rule_logic": "Suma(AM) = Columna AM"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 226,
+            "derived_from_rule_key": "a09_i_am_sum_equals",
+            "b2_total_row": 331,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:04+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_am_row332_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Gestantes (fila TOTAL 332)",
+        "description": "Valida que la suma de las columnas AM sea igual al total de la columna AM. Variable: Gestantes. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AM",
+            "row_range": {
+                "from": 254,
+                "to": 326
+            },
+            "source_rows": [
+                254,
+                260,
+                266,
+                272,
+                278,
+                284,
+                290,
+                296,
+                302,
+                308,
+                314,
+                320,
+                326
+            ],
+            "total_row": 332,
+            "rule_logic": "Suma(AM) = Columna AM"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 226,
+            "derived_from_rule_key": "a09_i_am_sum_equals",
+            "b2_total_row": 332,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:04+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_am_row334_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Gestantes (fila TOTAL 334)",
+        "description": "Valida que la suma de las columnas AM sea igual al total de la columna AM. Variable: Gestantes. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AM",
+            "row_range": {
+                "from": 256,
+                "to": 328
+            },
+            "source_rows": [
+                256,
+                262,
+                268,
+                274,
+                280,
+                286,
+                292,
+                298,
+                304,
+                310,
+                316,
+                322,
+                328
+            ],
+            "total_row": 334,
+            "rule_logic": "Suma(AM) = Columna AM"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 226,
+            "derived_from_rule_key": "a09_i_am_sum_equals",
+            "b2_total_row": 334,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:05+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_am_row335_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Gestantes (fila TOTAL 335)",
+        "description": "Valida que la suma de las columnas AM sea igual al total de la columna AM. Variable: Gestantes. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AM",
+            "row_range": {
+                "from": 257,
+                "to": 329
+            },
+            "source_rows": [
+                257,
+                263,
+                269,
+                275,
+                281,
+                287,
+                293,
+                299,
+                305,
+                311,
+                317,
+                323,
+                329
+            ],
+            "total_row": 335,
+            "rule_logic": "Suma(AM) = Columna AM"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 226,
+            "derived_from_rule_key": "a09_i_am_sum_equals",
+            "b2_total_row": 335,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:06+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_am_row336_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Gestantes (fila TOTAL 336)",
+        "description": "Valida que la suma de las columnas AM sea igual al total de la columna AM. Variable: Gestantes. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AM",
+            "row_range": {
+                "from": 258,
+                "to": 330
+            },
+            "source_rows": [
+                258,
+                264,
+                270,
+                276,
+                282,
+                288,
+                294,
+                300,
+                306,
+                312,
+                318,
+                324,
+                330
+            ],
+            "total_row": 336,
+            "rule_logic": "Suma(AM) = Columna AM"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 226,
+            "derived_from_rule_key": "a09_i_am_sum_equals",
+            "b2_total_row": 336,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:06+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_an_row331_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "60 años (incluido en grupos de  60-64 años) (fila TOTAL 331)",
+        "description": "Valida que la suma de las columnas AN sea igual al total de la columna AN. Variable: 60 años (incluido en grupos de  60-64 años). De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AN",
+            "row_range": {
+                "from": 253,
+                "to": 325
+            },
+            "source_rows": [
+                253,
+                259,
+                265,
+                271,
+                277,
+                283,
+                289,
+                295,
+                301,
+                307,
+                313,
+                319,
+                325
+            ],
+            "total_row": 331,
+            "rule_logic": "Suma(AN) = Columna AN"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 227,
+            "derived_from_rule_key": "a09_i_an_sum_equals",
+            "b2_total_row": 331,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:07+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_an_row332_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "60 años (incluido en grupos de  60-64 años) (fila TOTAL 332)",
+        "description": "Valida que la suma de las columnas AN sea igual al total de la columna AN. Variable: 60 años (incluido en grupos de  60-64 años). De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AN",
+            "row_range": {
+                "from": 254,
+                "to": 326
+            },
+            "source_rows": [
+                254,
+                260,
+                266,
+                272,
+                278,
+                284,
+                290,
+                296,
+                302,
+                308,
+                314,
+                320,
+                326
+            ],
+            "total_row": 332,
+            "rule_logic": "Suma(AN) = Columna AN"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 227,
+            "derived_from_rule_key": "a09_i_an_sum_equals",
+            "b2_total_row": 332,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:07+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_an_row334_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "60 años (incluido en grupos de  60-64 años) (fila TOTAL 334)",
+        "description": "Valida que la suma de las columnas AN sea igual al total de la columna AN. Variable: 60 años (incluido en grupos de  60-64 años). De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AN",
+            "row_range": {
+                "from": 256,
+                "to": 328
+            },
+            "source_rows": [
+                256,
+                262,
+                268,
+                274,
+                280,
+                286,
+                292,
+                298,
+                304,
+                310,
+                316,
+                322,
+                328
+            ],
+            "total_row": 334,
+            "rule_logic": "Suma(AN) = Columna AN"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 227,
+            "derived_from_rule_key": "a09_i_an_sum_equals",
+            "b2_total_row": 334,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:08+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_an_row335_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "60 años (incluido en grupos de  60-64 años) (fila TOTAL 335)",
+        "description": "Valida que la suma de las columnas AN sea igual al total de la columna AN. Variable: 60 años (incluido en grupos de  60-64 años). De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AN",
+            "row_range": {
+                "from": 257,
+                "to": 329
+            },
+            "source_rows": [
+                257,
+                263,
+                269,
+                275,
+                281,
+                287,
+                293,
+                299,
+                305,
+                311,
+                317,
+                323,
+                329
+            ],
+            "total_row": 335,
+            "rule_logic": "Suma(AN) = Columna AN"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 227,
+            "derived_from_rule_key": "a09_i_an_sum_equals",
+            "b2_total_row": 335,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:08+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_an_row336_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "60 años (incluido en grupos de  60-64 años) (fila TOTAL 336)",
+        "description": "Valida que la suma de las columnas AN sea igual al total de la columna AN. Variable: 60 años (incluido en grupos de  60-64 años). De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AN",
+            "row_range": {
+                "from": 258,
+                "to": 330
+            },
+            "source_rows": [
+                258,
+                264,
+                270,
+                276,
+                282,
+                288,
+                294,
+                300,
+                306,
+                312,
+                318,
+                324,
+                330
+            ],
+            "total_row": 336,
+            "rule_logic": "Suma(AN) = Columna AN"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 227,
+            "derived_from_rule_key": "a09_i_an_sum_equals",
+            "b2_total_row": 336,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:09+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_at_row331_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios con Discapacidad (fila TOTAL 331)",
+        "description": "Valida que la suma de las columnas AT sea igual al total de la columna AT. Variable: Usuarios con Discapacidad. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AT",
+            "row_range": {
+                "from": 253,
+                "to": 325
+            },
+            "source_rows": [
+                253,
+                259,
+                265,
+                271,
+                277,
+                283,
+                289,
+                295,
+                301,
+                307,
+                313,
+                319,
+                325
+            ],
+            "total_row": 331,
+            "rule_logic": "Suma(AT) = Columna AT"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 231,
+            "derived_from_rule_key": "a09_i_at_sum_equals",
+            "b2_total_row": 331,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:09+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_at_row332_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios con Discapacidad (fila TOTAL 332)",
+        "description": "Valida que la suma de las columnas AT sea igual al total de la columna AT. Variable: Usuarios con Discapacidad. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AT",
+            "row_range": {
+                "from": 254,
+                "to": 326
+            },
+            "source_rows": [
+                254,
+                260,
+                266,
+                272,
+                278,
+                284,
+                290,
+                296,
+                302,
+                308,
+                314,
+                320,
+                326
+            ],
+            "total_row": 332,
+            "rule_logic": "Suma(AT) = Columna AT"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 231,
+            "derived_from_rule_key": "a09_i_at_sum_equals",
+            "b2_total_row": 332,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:10+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_at_row334_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios con Discapacidad (fila TOTAL 334)",
+        "description": "Valida que la suma de las columnas AT sea igual al total de la columna AT. Variable: Usuarios con Discapacidad. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AT",
+            "row_range": {
+                "from": 256,
+                "to": 328
+            },
+            "source_rows": [
+                256,
+                262,
+                268,
+                274,
+                280,
+                286,
+                292,
+                298,
+                304,
+                310,
+                316,
+                322,
+                328
+            ],
+            "total_row": 334,
+            "rule_logic": "Suma(AT) = Columna AT"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 231,
+            "derived_from_rule_key": "a09_i_at_sum_equals",
+            "b2_total_row": 334,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:11+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_at_row335_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios con Discapacidad (fila TOTAL 335)",
+        "description": "Valida que la suma de las columnas AT sea igual al total de la columna AT. Variable: Usuarios con Discapacidad. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AT",
+            "row_range": {
+                "from": 257,
+                "to": 329
+            },
+            "source_rows": [
+                257,
+                263,
+                269,
+                275,
+                281,
+                287,
+                293,
+                299,
+                305,
+                311,
+                317,
+                323,
+                329
+            ],
+            "total_row": 335,
+            "rule_logic": "Suma(AT) = Columna AT"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 231,
+            "derived_from_rule_key": "a09_i_at_sum_equals",
+            "b2_total_row": 335,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:11+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_at_row336_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios con Discapacidad (fila TOTAL 336)",
+        "description": "Valida que la suma de las columnas AT sea igual al total de la columna AT. Variable: Usuarios con Discapacidad. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AT",
+            "row_range": {
+                "from": 258,
+                "to": 330
+            },
+            "source_rows": [
+                258,
+                264,
+                270,
+                276,
+                282,
+                288,
+                294,
+                300,
+                306,
+                312,
+                318,
+                324,
+                330
+            ],
+            "total_row": 336,
+            "rule_logic": "Suma(AT) = Columna AT"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 231,
+            "derived_from_rule_key": "a09_i_at_sum_equals",
+            "b2_total_row": 336,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:12+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_au_row331_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios Oncológicos (fila TOTAL 331)",
+        "description": "Valida que la suma de las columnas AU sea igual al total de la columna AU. Variable: Usuarios Oncológicos. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AU",
+            "row_range": {
+                "from": 253,
+                "to": 325
+            },
+            "source_rows": [
+                253,
+                259,
+                265,
+                271,
+                277,
+                283,
+                289,
+                295,
+                301,
+                307,
+                313,
+                319,
+                325
+            ],
+            "total_row": 331,
+            "rule_logic": "Suma(AU) = Columna AU"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 232,
+            "derived_from_rule_key": "a09_i_au_sum_equals",
+            "b2_total_row": 331,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:12+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_au_row332_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios Oncológicos (fila TOTAL 332)",
+        "description": "Valida que la suma de las columnas AU sea igual al total de la columna AU. Variable: Usuarios Oncológicos. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AU",
+            "row_range": {
+                "from": 254,
+                "to": 326
+            },
+            "source_rows": [
+                254,
+                260,
+                266,
+                272,
+                278,
+                284,
+                290,
+                296,
+                302,
+                308,
+                314,
+                320,
+                326
+            ],
+            "total_row": 332,
+            "rule_logic": "Suma(AU) = Columna AU"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 232,
+            "derived_from_rule_key": "a09_i_au_sum_equals",
+            "b2_total_row": 332,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:13+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_au_row334_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios Oncológicos (fila TOTAL 334)",
+        "description": "Valida que la suma de las columnas AU sea igual al total de la columna AU. Variable: Usuarios Oncológicos. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AU",
+            "row_range": {
+                "from": 256,
+                "to": 328
+            },
+            "source_rows": [
+                256,
+                262,
+                268,
+                274,
+                280,
+                286,
+                292,
+                298,
+                304,
+                310,
+                316,
+                322,
+                328
+            ],
+            "total_row": 334,
+            "rule_logic": "Suma(AU) = Columna AU"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 232,
+            "derived_from_rule_key": "a09_i_au_sum_equals",
+            "b2_total_row": 334,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:13+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_au_row335_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios Oncológicos (fila TOTAL 335)",
+        "description": "Valida que la suma de las columnas AU sea igual al total de la columna AU. Variable: Usuarios Oncológicos. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AU",
+            "row_range": {
+                "from": 257,
+                "to": 329
+            },
+            "source_rows": [
+                257,
+                263,
+                269,
+                275,
+                281,
+                287,
+                293,
+                299,
+                305,
+                311,
+                317,
+                323,
+                329
+            ],
+            "total_row": 335,
+            "rule_logic": "Suma(AU) = Columna AU"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 232,
+            "derived_from_rule_key": "a09_i_au_sum_equals",
+            "b2_total_row": 335,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:14+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_au_row336_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Usuarios Oncológicos (fila TOTAL 336)",
+        "description": "Valida que la suma de las columnas AU sea igual al total de la columna AU. Variable: Usuarios Oncológicos. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AU",
+            "row_range": {
+                "from": 258,
+                "to": 330
+            },
+            "source_rows": [
+                258,
+                264,
+                270,
+                276,
+                282,
+                288,
+                294,
+                300,
+                306,
+                312,
+                318,
+                324,
+                330
+            ],
+            "total_row": 336,
+            "rule_logic": "Suma(AU) = Columna AU"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 232,
+            "derived_from_rule_key": "a09_i_au_sum_equals",
+            "b2_total_row": 336,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:15+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ax_row331_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Pueblos originarios (fila TOTAL 331)",
+        "description": "Valida que la suma de las columnas AX sea igual al total de la columna AX. Variable: Pueblos originarios. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AX",
+            "row_range": {
+                "from": 253,
+                "to": 325
+            },
+            "source_rows": [
+                253,
+                259,
+                265,
+                271,
+                277,
+                283,
+                289,
+                295,
+                301,
+                307,
+                313,
+                319,
+                325
+            ],
+            "total_row": 331,
+            "rule_logic": "Suma(AX) = Columna AX"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 234,
+            "derived_from_rule_key": "a09_i_ax_sum_equals",
+            "b2_total_row": 331,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:15+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ax_row332_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Pueblos originarios (fila TOTAL 332)",
+        "description": "Valida que la suma de las columnas AX sea igual al total de la columna AX. Variable: Pueblos originarios. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AX",
+            "row_range": {
+                "from": 254,
+                "to": 326
+            },
+            "source_rows": [
+                254,
+                260,
+                266,
+                272,
+                278,
+                284,
+                290,
+                296,
+                302,
+                308,
+                314,
+                320,
+                326
+            ],
+            "total_row": 332,
+            "rule_logic": "Suma(AX) = Columna AX"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 234,
+            "derived_from_rule_key": "a09_i_ax_sum_equals",
+            "b2_total_row": 332,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:16+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ax_row334_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Pueblos originarios (fila TOTAL 334)",
+        "description": "Valida que la suma de las columnas AX sea igual al total de la columna AX. Variable: Pueblos originarios. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AX",
+            "row_range": {
+                "from": 256,
+                "to": 328
+            },
+            "source_rows": [
+                256,
+                262,
+                268,
+                274,
+                280,
+                286,
+                292,
+                298,
+                304,
+                310,
+                316,
+                322,
+                328
+            ],
+            "total_row": 334,
+            "rule_logic": "Suma(AX) = Columna AX"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 234,
+            "derived_from_rule_key": "a09_i_ax_sum_equals",
+            "b2_total_row": 334,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:16+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ax_row335_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Pueblos originarios (fila TOTAL 335)",
+        "description": "Valida que la suma de las columnas AX sea igual al total de la columna AX. Variable: Pueblos originarios. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AX",
+            "row_range": {
+                "from": 257,
+                "to": 329
+            },
+            "source_rows": [
+                257,
+                263,
+                269,
+                275,
+                281,
+                287,
+                293,
+                299,
+                305,
+                311,
+                317,
+                323,
+                329
+            ],
+            "total_row": 335,
+            "rule_logic": "Suma(AX) = Columna AX"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 234,
+            "derived_from_rule_key": "a09_i_ax_sum_equals",
+            "b2_total_row": 335,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:17+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ax_row336_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "b2_expansion",
+        "name": "Pueblos originarios (fila TOTAL 336)",
+        "description": "Valida que la suma de las columnas AX sea igual al total de la columna AX. Variable: Pueblos originarios. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AX",
+            "row_range": {
+                "from": 258,
+                "to": 330
+            },
+            "source_rows": [
+                258,
+                264,
+                270,
+                276,
+                282,
+                288,
+                294,
+                300,
+                306,
+                312,
+                318,
+                324,
+                330
+            ],
+            "total_row": 336,
+            "rule_logic": "Suma(AX) = Columna AX"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 234,
+            "derived_from_rule_key": "a09_i_ax_sum_equals",
+            "b2_total_row": 336,
+            "created_via": "rule:expand-b2-aggregation",
+            "reason": "Expansion real B2 25/30 (17.40), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T16:55:18+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_aq_row331_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Inasistente (fila TOTAL 331)",
+        "description": "Valida que la suma de las columnas AQ sea igual al total de la columna AQ. Variable: Inasistente. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AQ",
+            "row_range": {
+                "from": 253,
+                "to": 325
+            },
+            "source_rows": [
+                253,
+                259,
+                265,
+                271,
+                277,
+                283,
+                289,
+                295,
+                301,
+                307,
+                313,
+                319,
+                325
+            ],
+            "total_row": 331,
+            "rule_logic": "Suma(AQ) = Columna AQ"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 228,
+            "derived_from_rule_key": "a09_i_aq_sum_equals",
+            "total_row": 331,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:30+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_aq_row332_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Inasistente (fila TOTAL 332)",
+        "description": "Valida que la suma de las columnas AQ sea igual al total de la columna AQ. Variable: Inasistente. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AQ",
+            "row_range": {
+                "from": 254,
+                "to": 326
+            },
+            "source_rows": [
+                254,
+                260,
+                266,
+                272,
+                278,
+                284,
+                290,
+                296,
+                302,
+                308,
+                314,
+                320,
+                326
+            ],
+            "total_row": 332,
+            "rule_logic": "Suma(AQ) = Columna AQ"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 228,
+            "derived_from_rule_key": "a09_i_aq_sum_equals",
+            "total_row": 332,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:31+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ar_row331_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Compra de Servicio (fila TOTAL 331)",
+        "description": "Valida que la suma de las columnas AR sea igual al total de la columna AR. Variable: Compra de Servicio. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AR",
+            "row_range": {
+                "from": 253,
+                "to": 325
+            },
+            "source_rows": [
+                253,
+                259,
+                265,
+                271,
+                277,
+                283,
+                289,
+                295,
+                301,
+                307,
+                313,
+                319,
+                325
+            ],
+            "total_row": 331,
+            "rule_logic": "Suma(AR) = Columna AR"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 229,
+            "derived_from_rule_key": "a09_i_ar_sum_equals",
+            "total_row": 331,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:31+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ar_row332_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Compra de Servicio (fila TOTAL 332)",
+        "description": "Valida que la suma de las columnas AR sea igual al total de la columna AR. Variable: Compra de Servicio. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AR",
+            "row_range": {
+                "from": 254,
+                "to": 326
+            },
+            "source_rows": [
+                254,
+                260,
+                266,
+                272,
+                278,
+                284,
+                290,
+                296,
+                302,
+                308,
+                314,
+                320,
+                326
+            ],
+            "total_row": 332,
+            "rule_logic": "Suma(AR) = Columna AR"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 229,
+            "derived_from_rule_key": "a09_i_ar_sum_equals",
+            "total_row": 332,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:32+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ar_row334_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Compra de Servicio (fila TOTAL 334)",
+        "description": "Valida que la suma de las columnas AR sea igual al total de la columna AR. Variable: Compra de Servicio. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AR",
+            "row_range": {
+                "from": 256,
+                "to": 328
+            },
+            "source_rows": [
+                256,
+                262,
+                268,
+                274,
+                280,
+                286,
+                292,
+                298,
+                304,
+                310,
+                316,
+                322,
+                328
+            ],
+            "total_row": 334,
+            "rule_logic": "Suma(AR) = Columna AR"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 229,
+            "derived_from_rule_key": "a09_i_ar_sum_equals",
+            "total_row": 334,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:32+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ar_row335_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Compra de Servicio (fila TOTAL 335)",
+        "description": "Valida que la suma de las columnas AR sea igual al total de la columna AR. Variable: Compra de Servicio. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AR",
+            "row_range": {
+                "from": 257,
+                "to": 329
+            },
+            "source_rows": [
+                257,
+                263,
+                269,
+                275,
+                281,
+                287,
+                293,
+                299,
+                305,
+                311,
+                317,
+                323,
+                329
+            ],
+            "total_row": 335,
+            "rule_logic": "Suma(AR) = Columna AR"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 229,
+            "derived_from_rule_key": "a09_i_ar_sum_equals",
+            "total_row": 335,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:33+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_ar_row336_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Compra de Servicio (fila TOTAL 336)",
+        "description": "Valida que la suma de las columnas AR sea igual al total de la columna AR. Variable: Compra de Servicio. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AR",
+            "row_range": {
+                "from": 258,
+                "to": 330
+            },
+            "source_rows": [
+                258,
+                264,
+                270,
+                276,
+                282,
+                288,
+                294,
+                300,
+                306,
+                312,
+                318,
+                324,
+                330
+            ],
+            "total_row": 336,
+            "rule_logic": "Suma(AR) = Columna AR"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 229,
+            "derived_from_rule_key": "a09_i_ar_sum_equals",
+            "total_row": 336,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:33+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_as_row335_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Ortodoncia interceptiva (fila TOTAL 335)",
+        "description": "Valida que la suma de las columnas AS sea igual al total de la columna AS. Variable: Ortodoncia interceptiva. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AS",
+            "row_range": {
+                "from": 257,
+                "to": 329
+            },
+            "source_rows": [
+                257,
+                263,
+                269,
+                275,
+                281,
+                287,
+                293,
+                299,
+                305,
+                311,
+                317,
+                323,
+                329
+            ],
+            "total_row": 335,
+            "rule_logic": "Suma(AS) = Columna AS"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 230,
+            "derived_from_rule_key": "a09_i_as_sum_equals",
+            "total_row": 335,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:34+00:00"
+        },
+        "created_by_email": null,
+        "updated_by_email": null
+    },
+    {
+        "rule_key": "a09_i_av_row334_sum_equals",
+        "rule_type": "sum_equals",
+        "source": "a09_i_expansion",
+        "name": "Contrarreferencia al alta (fila TOTAL 334)",
+        "description": "Valida que la suma de las columnas AV sea igual al total de la columna AV. Variable: Contrarreferencia al alta. De lo contrario, se marca como observación.",
+        "category": "A09",
+        "severity": "error",
+        "scope": "row_range",
+        "config": {
+            "sheet": "A09",
+            "section": "I",
+            "column": "AV",
+            "row_range": {
+                "from": 256,
+                "to": 328
+            },
+            "source_rows": [
+                256,
+                262,
+                268,
+                274,
+                280,
+                286,
+                292,
+                298,
+                304,
+                310,
+                316,
+                322,
+                328
+            ],
+            "total_row": 334,
+            "rule_logic": "Suma(AV) = Columna AV"
+        },
+        "status": "active",
+        "version": "1.0.0",
+        "metadata": {
+            "derived_from_rule_id": 233,
+            "derived_from_rule_key": "a09_i_av_sum_equals",
+            "total_row": 334,
+            "created_via": "rule:expand-a09-i-aggregation",
+            "reason": "Expansion real A09/I B3/CategoriaF, 9 agregaciones (17.43), autorizada explicitamente",
+            "by": "Administrador Esalud",
+            "created_at": "2026-08-28T18:10:34+00:00"
         },
         "created_by_email": null,
         "updated_by_email": null
