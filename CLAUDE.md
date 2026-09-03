@@ -195,7 +195,85 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
-### CHECKPOINT DE CIERRE DE JORNADA — 2026-09-03 (leer primero al retomar)
+### CIERRE DE JORNADA — 2026-09-03, ACTUALIZACIÓN FINAL DEL DÍA (leer esto primero, antes que el checkpoint de más abajo)
+
+**Veredicto: `F5_LOGOUT_BUG_RESOLVED_AND_DEPLOYED` + `PRODUCTION_UPDATED_AND_VALIDATED`.** Después del checkpoint de sesión/2FA de más abajo (mismo día), se investigó y cerró un bug crítico adicional, y **el servidor de producción fue actualizado y validado** — la primera actualización real de producción desde el cierre de REM A el 31 de agosto.
+
+**1) Bug crítico resuelto: Login → Dashboard → F5 → expulsión a `/login`.**
+
+Causa raíz confirmada — no solo inferida, **reproducida con HTTP real y procesos aislados** —: `backend/bootstrap/app.php` registraba manualmente `EncryptCookies`, `AddQueuedCookiesToResponse` y `StartSession` en el prepend del grupo `api`, pero `Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful` **ya ejecuta esas mismas tres internamente** (más CSRF) para tráfico frontend stateful — duplicación real del pipeline de sesión/cookies en cada request.
+
+Metodología: un primer intento de reproducir el bug con el harness de PHPUnit **no lo detectó** (falso negativo) — el harness de Laravel reutiliza el mismo `SessionManager`/`Store` cacheado entre "requests" simuladas dentro de un mismo método de test, algo que **nunca ocurre entre un login y un F5 posterior en un despliegue real** (cada request HTTP real es un ciclo de aplicación nuevo). Corregido levantando `php artisan serve` real y usando `curl` en **procesos completamente independientes**, contra `esalud_testing` con `SESSION_DRIVER=database` (igual que producción):
+- **Con la duplicación restaurada**: la cookie de sesión enviada en una request posterior producía, al descifrar el ID real (no comparar el texto cifrado, que cambia siempre por el IV aleatorio de AES), un **ID de sesión distinto** — `SON LA MISMA SESIÓN: NO`.
+- **Con el fix aplicado**: el ID de sesión real permanece **idéntico** entre dos procesos `curl` independientes — `SON LA MISMA SESIÓN: SÍ`.
+
+Corrección: `bootstrap/app.php` deja únicamente `EnsureFrontendRequestsAreStateful` en el prepend de `api`. `tests/TestCase.php` agrega `Referer`/`Origin` por defecto a **todos** los tests (evaluado explícitamente si limitarlo solo a `Feature/Auth`; se decidió mantenerlo global porque el 100% del tráfico real de esta app es SPA stateful vía Sanctum, y la regresión completa confirmó cero diferencia de comportamiento fuera de `Feature/Auth`). Nuevo `StatefulSessionMiddlewareTest.php` (5 tests, con reenvío real de cookie capturada, no continuidad de proceso).
+
+**Commit**: `0fc193c65f8cf172f76ea6838f8424fa8cc1f2a7` (`fix(auth): remove duplicated stateful session middleware`) — exactamente 3 archivos: `backend/bootstrap/app.php`, `backend/tests/TestCase.php`, `backend/tests/Feature/Auth/StatefulSessionMiddlewareTest.php`. `Feature/Auth`: **74/74 passed** (389 assertions). Pusheado: `main`=`origin/main`=**`0fc193c`**, ahead/behind=**0/0**.
+
+**Falso hallazgo durante el diagnóstico, no confundir con un defecto**: una petición `curl` artificial sin header `Referer`/`Origin` contra `/auth/session` dio HTTP 500 — es el comportamiento **esperado**: `EnsureFrontendRequestsAreStateful::fromFrontend()` exige uno de esos headers coincidente con `SANCTUM_STATEFUL_DOMAINS` para aplicar su pipeline de sesión; cualquier petición real del navegador (fetch/XHR) los envía siempre. **No revertir el fix por esta prueba artificial que omite el contexto de frontend.**
+
+**2) Producción actualizada — primera actualización real desde el cierre de REM A.**
+
+Servidor: `orion@192.168.1.158`, proyecto en `/var/www/esalud` (`backend/` dentro), Docker Compose en `/home/orion/docker-setup/esalud`, dominio `http://atenea.cormudesi.cl` (HTTP, sin TLS todavía). Contenedores: `esalud-backend`, `esalud-worker`, `esalud-redis` (backend expone `8083`→PHP-FPM `9000`; Redis `6379`; `restart: unless-stopped` verificado/agregado en `esalud-backend`).
+
+Secuencia ejecutada: `git fetch origin main` (antes: servidor en `790910d`, `origin/main` en `0fc193c`) → `git merge --ff-only origin/main` → fast-forward correcto → servidor en `0fc193c`, `HEAD=origin/main`, ahead/behind=0/0 → `docker compose build esalud-app` → recreados `esalud-backend`/`esalud-worker` con la imagen reconstruida → los 3 contenedores en `running`.
+
+**Configuración Laravel productiva confirmada:**
+
+| Variable | Valor |
+|---|---|
+| `APP_ENV` / `APP_DEBUG` | `production` / `false` |
+| `SESSION_DRIVER` / `SESSION_COOKIE` | `database` / `esalud-session` |
+| `SESSION_DOMAIN` / `SESSION_PATH` | `atenea.cormudesi.cl` / `/` |
+| `SESSION_LIFETIME` / `SESSION_EXPIRE_ON_CLOSE` | `120` / `true` |
+| `SESSION_SECURE_COOKIE` | `false` (**correcto mientras se sirva por HTTP** — no es un descuido) |
+| `SANCTUM_STATEFUL_DOMAINS` | `atenea.cormudesi.cl` |
+| `DB_CONNECTION` / `DB_DATABASE` | `mysql` / `atenea` |
+| `APP_URL` | `http://atenea.cormudesi.cl` |
+
+**Pendiente técnico, no bloqueante**: cuando se implemente HTTPS, revisar como mínimo — certificado TLS, Nginx/proxy, `APP_URL=https://...`, `SESSION_SECURE_COOKIE=true`, caches de Laravel, contenedores, y repetir la regresión completa de login/F5/logout/2FA.
+
+**Validación manual real en producción (Chrome), confirmada por el usuario:** Login → Dashboard → F5 → **el usuario permanece autenticado** (antes del fix, esto expulsaba a `/login`). Network mostró una sola petición a `/auth/session`: `HTTP 200`, `data.authenticated=true`, `data.requires_2fa=false`, `data.user` correcto, `message="Sesión activa"`, `errors=null`. También verificado manualmente: login, dashboard, logout, 2FA, y **una carga REM real completa** — todo funcionando correctamente. **`BUG F5/LOGOUT: RESUELTO Y VALIDADO EN PRODUCCIÓN.`**
+
+**3) Certificación REM promovida al servidor, verificada por checksum.** `certification-checksums.sha256` (generado en local; cubre `reglas-funcionales.json`, `mismatch-resolution-audit.json`, `serie-a-catalogo.json`, `certification-manifest.json` + todo `cell-data/*.json` — **392 archivos** en total) transferido a `/var/www/esalud/backend/storage/app/private/certificacion/`. En el servidor: `sha256sum -c certification-checksums.sha256` → **392 verificados, sin errores**.
+
+Estado post-promoción confirmado en producción (mecanismo `rem:promote-certified-structure` del checkpoint de abajo, ejecutado ahí contra la BD real de producción): **estructura activa id=19/v33**, **798 reglas** (751 activas), **1425 bindings** (los 974 preexistentes de producción + los 649 del paquete certificado — ninguno de los dos conjuntos se perdió, exactamente el diseño "append-only" ya documentado en el punto 3 del checkpoint de abajo). No coincide con el `1655` de la BD local certificada porque producción conservó sus propios bindings previos — comportamiento esperado, no una discrepancia.
+
+**4) Elementos locales del servidor — NO tocar sin revisar antes.** `git status` en el servidor muestra sin rastrear: `.dockerignore`, `backend/esalud_dev`, `frontend/dist_predeploy_20260813_081741/`, `frontend/node_modules_predeploy_20260812_181301/`. **No borrarlos automáticamente, no agregarlos a Git automáticamente** — revisar su propósito primero si alguna vez se decide limpiarlos.
+
+**5) Aclaración de estado funcional — importante, no sobre-interpretar el cierre de hoy.** Que producción esté desplegada y funcionando **no significa que ATHENEA esté terminado**, ni que **toda la Serie A esté calibrada**. A01–A08 ya estaban calibradas/certificadas; el trabajo de calibración quedó en **A09** y debe continuar progresivamente, hoja por hoja / sección por sección. "Serie A desplegada" **≠** "Serie A completamente calibrada" — el desarrollo funcional continúa.
+
+**Excepción estructural a recordar en A01** (para cuando se retome cualquier trabajo de calibración que toque esa hoja): las filas **23** y **24** (**Recién nacido hasta 10 días de vida**, **Médico/a y Matrona/ón**) tienen un patrón distinto al resto — solo la columna **TOTAL** está habilitada; las columnas de rangos etarios/no aplicables están bloqueadas. **No deben heredar la regla general `sum_equals`** de las filas anteriores — la calibración debe detectar este patrón y sus excepciones reales por fila/sección, nunca asumir uniformidad entre filas de una misma sección.
+
+**6) Fotografía del dashboard al cierre de hoy** (snapshot puntual, no valores permanentes — cambiarán con cada carga futura): cargas REM totales **28**, reglas activas **751**, bindings activos **1402**, cargas con motor ejecutado **16 de 28**, logs con error **0**.
+
+**7) Punto exacto de reanudación mañana — MUY IMPORTANTE.**
+
+**No empezar investigando el servidor de nuevo.** La etapa de deploy de hoy queda **cerrada**; producción debe considerarse **base estable validada**. El trabajo de mañana vuelve al **entorno local**.
+
+Secuencia al abrir una nueva sesión:
+1. Leer `CLAUDE.md` completo (este checkpoint primero) + `docs/ESTADO_ACTUAL_PROYECTO.md`.
+2. `git status --short`.
+3. Verificar rama/`HEAD`/`origin/main` antes de modificar nada.
+4. Recordar los 4 archivos locales excluidos de siempre: `frontend/vite.config.ts`, `backend/app/Console/Commands/DiagCheckAdminPasswordCommand.php`, `backend/app/Console/Commands/DiagResetAdminPasswordCommand.php`, `backend/demo/`.
+5. Levantar entorno local.
+6. Un smoke test corto en local si hace falta — nada más.
+7. **Retomar desarrollo funcional REM** — continuar calibración desde el punto pendiente (Serie A, desde A09 en adelante).
+8. No tocar producción para experimentar.
+9. Solo tras terminar/probar/certificar un bloque: commit → push → eventual deploy (siempre con autorización explícita, turno a turno, como en todo este proyecto).
+
+**Prioridad inmediata — continuar calibración REM en local:**
+- **(A)** Terminar la calibración estructural/consistencia interna pendiente de Serie A.
+- **(B)** Por hoja/sección: estructura, celdas habilitadas/bloqueadas, sumatorias, relaciones padre/hijo, excepciones, patrones especiales, comparación con el Excel real, pruebas, certificación.
+- **(C)** Después, avanzar a **reglas de consistencia externa** — distinto de la calibración interna, no confundir ambas etapas.
+- Tras estabilizar el núcleo REM: comparativos → metas → GES → YAPS/IAPS → paneles/reportes → epidemiología → No REM → biblioteca → auditoría/seguridad → automatizaciones posteriores.
+
+**Regla de continuidad, válida de aquí en adelante: producción es base estable, el desarrollo nuevo se hace en local.** Nunca desarrollar ni experimentar directamente en producción. Flujo normal: analizar → implementar/calibrar → probar → certificar → revisar diff → commit → push → desplegar cuando corresponda, con autorización explícita en cada etapa.
+
+---
+
+### CHECKPOINT DE CIERRE DE JORNADA — 2026-09-03 (mismo día, checkpoint anterior al de arriba)
 
 **Veredicto: `SESSION_REMEMBER_ME_POLICY_CLOSED` + `SESSION_STATUS_ENDPOINT_CLOSED`.** Dos cierres relacionados, mismo día, ambos validados con tests y con pruebas manuales del usuario en ATHENEA local. **Servidor sin tocar** — cero conexión, cero comando ejecutado ahí.
 
@@ -350,11 +428,11 @@ Riesgos residuales de Seguridad/2FA (documentados, ninguno bloqueante para el ci
 4. **Mejora controlada UX/UI — sin ítems abiertos en curso.** Ver "Próximo paso vigente" arriba para el checkpoint detallado. Fases 1–5B, 6A, 6B.1–6B.4, KPI-tiles, retiro de Prime y manejo visual 404 cerradas y validadas. El diseño funcional del 2FA ya certificado se mantiene igual — solo mejoras visuales. Pendientes reales sin fecha: ver lista de "Pendientes conocidos" arriba (ninguno bloqueante).
 5. ~~**Pruebas de UX/UI**~~ — **CERRADA, regresión general validada (2026-09-01).** `tsc --noEmit`/`npm run lint`/`npm run build` limpios (0 errores; único warning preexistente y ajeno en `RemUploadForm.tsx`) en todas las rondas de esta fase. Auditoría READ-ONLY de rutas/imports (Prime/404): cero referencias a los 6 archivos de Prime eliminados, cero imports rotos, wildcard `*` confirmado como único fallback sin capturar rutas válidas, todas las rutas principales de ATHENEA siguen registradas en `app/router/index.tsx`. Durante el checklist visual el usuario detectó el problema de legibilidad/overflow de tablas densas, resuelto en el **piloto A+B** (ver arriba, cerrado y validado). Auditoría READ-ONLY adicional de regresión sobre 12 pantallas representativas con `DataTable` (`/users`, `/health-centers`, `/audit`, `/rem-uploads`, "Decisiones funcionales por fila", `/rule-engine/catalog`, `/rule-engine/structures`, `/rule-engine/rules`, `/rule-engine/logs`, `/rule-engine/bindings`, `/rule-engine/comparison`, `SectionRulesTable`) identificó 3 hallazgos, ninguno bloqueante: **#1** (`UsersTable.tsx` duplicaba el fondo del header con un `HeaderCell` local preexistente al piloto) — **corregido y validado visualmente por el usuario** (se retiraron `bg-slate-50`/`-mx-2`/`px-2`, redundantes tras el fondo compartido de `TableHeader`; `HeaderCell` se conservó por su rol real de alineación/centrado de "Estado"/"Acciones"). **#2** (columna "Centro" de `RemUploadsPage.tsx` sin `max-width`/truncate, a diferencia de "Archivo") y **#3** (esquinas/radius: el fondo del header puede asomar por sub-píxeles en tablas sin wrapper `overflow-hidden` propio) quedan **registrados como observaciones no bloqueantes, explícitamente sin modificar**. Checklist visual del usuario completo para `/users`; el resto de las 12 pantallas quedó cubierto por la auditoría de código (metodología ya usada y aceptada durante toda la campaña) más la validación en vivo directa de "Decisiones funcionales por fila" (piloto A+B).
 6. ~~Commit/push de UX/UI~~ — **CERRADO** (`54dc5cd`, pusheado a `origin/main`, ahead/behind 0/0).
-7. **Despliegue controlado al servidor ATHENEA** — el servidor **todavía no debe actualizarse** con nada de lo hecho desde el cierre de REM A; no hacer `git pull` ni deploy sin autorización explícita.
-8. Smoke tests en servidor.
-9. **REM BM** → **REM BS** → **REM D** → **REM P** — en ese orden.
+7. ~~Despliegue controlado al servidor ATHENEA~~ — **CERRADO Y VALIDADO (2026-09-03)**. Servidor actualizado a `0fc193c` (`git fetch`+`merge --ff-only`, fast-forward), contenedores reconstruidos y en `running`, certificación REM promovida y verificada por checksum (392/392). Ver el checkpoint **"CIERRE DE JORNADA — 2026-09-03, ACTUALIZACIÓN FINAL DEL DÍA"** al inicio de esta sección para el detalle completo. **Producción ya no está pendiente de actualización — es base estable validada.**
+8. ~~Smoke tests en servidor~~ — **CERRADO (2026-09-03)**. Validación manual real en Chrome contra producción: login, Dashboard, F5 (con sesión persistente — el bug que motivó este paso quedó resuelto), logout, 2FA, y una carga REM real completa — todo correcto.
+9. **REM BM** → **REM BS** → **REM D** → **REM P** — en ese orden. **Todavía no iniciado** — antes de esto, retomar y continuar la calibración de la Serie A pendiente (A09 en adelante, ver checkpoint de arriba) en **entorno local**, nunca en producción.
 10. Tras completar las series REM: **versionamiento transversal** → **salto de celdas** → **pruebas integrales / cierre**.
 
-**REM A y Seguridad/2FA quedan cerradas — no reabrirlas salvo defecto comprobado.** Los 4 cambios locales excluidos (`vite.config.ts`, 2 comandos `Diag*`, `backend/demo/`) deben permanecer separados, sin mezclarse accidentalmente con el trabajo de UX/UI ni de ninguna campaña posterior.
+**REM A, Seguridad/2FA, y el despliegue a producción quedan cerrados — no reabrirlos salvo defecto comprobado.** Esto **no significa que ATHENEA ni la Serie A estén terminados** — la calibración funcional de Serie A continúa (A09 en adelante) y las demás series REM (BM/BS/D/P) ni siquiera han comenzado. Los 4 cambios locales excluidos (`vite.config.ts`, 2 comandos `Diag*`, `backend/demo/`) deben permanecer separados, sin mezclarse accidentalmente con ninguna campaña posterior.
 
 No iniciar ninguna fase futura de esta lista sin instrucción explícita. Si al reanudar el estado real (BD/Git) difiere de lo documentado aquí: **STOP y reportar la discrepancia antes de escribir nada.**

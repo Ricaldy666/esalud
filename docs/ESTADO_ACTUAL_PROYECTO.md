@@ -6,22 +6,39 @@
 > [`docs/handoff/DEPLOYMENT.md`](handoff/DEPLOYMENT.md) y
 > [`docs/CHECKLIST_DESPLIEGUE_PRODUCCION.md`](CHECKLIST_DESPLIEGUE_PRODUCCION.md).
 >
-> **Última actualización:** 2026-09-01.
-> **Último commit estable:** `e7cda9c4d144d78777e0468a91b1f5028d78e2a4`
+> **Última actualización:** 2026-09-03.
+> **Último commit estable:** `0fc193c65f8cf172f76ea6838f8424fa8cc1f2a7`
 > (rama `main`, sincronizado con `origin/main`). Incluye, además de lo
 > descrito originalmente en este documento (agosto, commit `d02e88e`):
-> el cierre completo de **REM A**, **Seguridad/2FA** y la campaña
-> **UX/UI** (retiro de Prime legacy + manejo visual 404). Ver `CLAUDE.md`
-> para el detalle punto por punto de cada campaña.
+> el cierre completo de **REM A**, **Seguridad/2FA**, la campaña
+> **UX/UI** (retiro de Prime legacy + manejo visual 404), el mecanismo
+> seguro de promoción de la certificación REM, y la corrección del bug de
+> duplicación de middleware de sesión (F5 expulsaba a `/login`). Ver
+> `CLAUDE.md` para el detalle punto por punto de cada campaña.
+>
+> **DESPLIEGUE A PRODUCCIÓN: YA REALIZADO (2026-09-03).** Las secciones
+> 3, 5, 6 y 7 de este documento describen el estado **previo** al
+> despliegue (planificación) — se conservan como referencia de
+> procedimiento, pero **ya no reflejan una tarea pendiente**. El servidor
+> (`orion@192.168.1.158`, `/var/www/esalud`) está en el commit de arriba,
+> contenedores Docker reconstruidos y corriendo, certificación REM
+> promovida y verificada por checksum (392/392 archivos), y validado
+> manualmente en Chrome (login, Dashboard, F5 con sesión persistente,
+> logout, 2FA, carga REM real). Detalle completo en `CLAUDE.md`,
+> checkpoint **"CIERRE DE JORNADA — 2026-09-03, ACTUALIZACIÓN FINAL DEL
+> DÍA"**. Esto **no significa que ATHENEA ni la Serie A estén
+> terminados** — la calibración funcional de Serie A continúa desde A09
+> en adelante, y las series REM BM/BS/D/P todavía no comienzan.
 
 ---
 
 ## 1. Resumen de una línea
 
 El backend (parser REM, motor de reglas, pipeline de carga) y el módulo de
-Usuarios están funcional y visualmente cerrados y verificados en local.
-Queda pendiente únicamente el despliegue operativo en el servidor con
-Nelson — sin bloqueantes de código.
+Usuarios están funcional y visualmente cerrados y verificados en local, y
+**ya están desplegados y validados en producción** (2026-09-03). El
+desarrollo funcional continúa: calibración de Serie A desde A09 en
+adelante, y luego las series REM BM/BS/D/P.
 
 ---
 
