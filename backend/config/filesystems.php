@@ -36,6 +36,19 @@ return [
             'serve' => true,
             'throw' => false,
             'report' => false,
+            // Sin esto, Flysystem usa su default de fabrica para directorios
+            // "privados" (0700, propietario unicamente -- ver
+            // League\Flysystem\UnixVisibility\PortableVisibilityConverter).
+            // Eso dejo storage/app/private/certificacion/cell-data ilegible
+            // para PHP-FPM (usuario/grupo www-data, distinto del propietario
+            // que creo el directorio) -- causa raiz de una incidencia real en
+            // produccion 2026-09-04. Minimo privilegio: rw/rwx para
+            // propietario y grupo, nada para "otros" (storage/app/private
+            // contiene datos privados).
+            'permissions' => [
+                'file' => ['public' => 0660, 'private' => 0660],
+                'dir' => ['public' => 0770, 'private' => 0770],
+            ],
         ],
 
         'public' => [
