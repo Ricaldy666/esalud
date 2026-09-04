@@ -5,6 +5,7 @@ namespace App\Domain\RemParser\Services;
 use App\Domain\RemParser\Models\RemTemplateStructure;
 use App\Domain\RuleEngine\Services\SectionCalibrationMatrixService;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
 class StructureApprovalService
@@ -50,7 +51,20 @@ class StructureApprovalService
         // Invalida el agregado de progreso cacheado (ver
         // SectionCalibrationMatrixService::buildStructureCalibrationSummary())
         // -- cambio de estructura activa invalida cualquier resumen previo.
-        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+        // DB::afterCommit() (no Cache::forget() directo): activate() puede
+        // correr dentro de una transaccion mas amplia (ej.
+        // CertifiedStructurePromotionService::commit()). Un forget()
+        // sincrono aqui corria ANTES del COMMIT real -- una request
+        // concurrente en esa ventana recalculaba contra la estructura
+        // todavia vieja (su conexion no ve los cambios sin confirmar bajo
+        // REPEATABLE READ) y volvia a cachear ese resultado obsoleto por
+        // CALIBRATION_SUMMARY_CACHE_TTL_SECONDS. Diferir el forget() hasta
+        // el COMMIT real cierra esa ventana. Fuera de una transaccion
+        // (caso normal), afterCommit() ejecuta el callback de inmediato --
+        // sin cambio de comportamiento.
+        DB::afterCommit(function () {
+            Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+        });
 
         return $structure;
     }
