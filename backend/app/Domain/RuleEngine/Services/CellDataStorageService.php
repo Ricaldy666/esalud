@@ -57,6 +57,17 @@ class CellDataStorageService
             Storage::disk(self::DISK)->makeDirectory($dir);
         }
 
+        // makeDirectory() crea el directorio via mkdir() (Flysystem
+        // LocalFilesystemAdapter::createDirectory()), sujeto al umask del
+        // proceso -- el modo configurado en filesystems.php
+        // (permissions.dir.private, 0770) llega recortado (ej. 0750 con
+        // umask 022). setVisibility() aplica un chmod() explicito, que no
+        // esta sujeto a umask, garantizando el modo exacto declarado sin
+        // depender de que mkdir() lo respete por si solo. Se llama siempre
+        // (exista o no el directorio ya) para autocorregir tambien un
+        // directorio preexistente con permisos incorrectos.
+        Storage::disk(self::DISK)->setVisibility($dir, 'private');
+
         $serialized = [];
         foreach ($cells as $coord => $cell) {
             $serialized[$coord] = $cell instanceof \App\Domain\RemParser\DTOs\EnhancedCellDTO
@@ -64,10 +75,15 @@ class CellDataStorageService
                 : $cell;
         }
 
+        // 'private' como tercer argumento de put() es lo que efectivamente
+        // dispara el chmod() explicito de Flysystem tras escribir -- put()
+        // sin visibilidad explicita deja el archivo con el modo por defecto
+        // de file_put_contents() (0666 menos umask, tipicamente 0644),
+        // ignorando por completo permissions.file de filesystems.php.
         Storage::disk(self::DISK)->put($path, json_encode(
             $serialized,
             JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE
-        ));
+        ), 'private');
 
         $this->cache[$sheet . '|' . $section] = $serialized;
     }
