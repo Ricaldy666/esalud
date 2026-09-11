@@ -118,7 +118,7 @@ export function RuleCatalogTable({ cards, loading, stats }: RuleCatalogTableProp
 
       <div className="flex justify-end">
         <a
-          href={certificationService.getExportUrl()}
+          href={certificationService.getExportUrl('A')}
           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <Download className="w-4 h-4" />

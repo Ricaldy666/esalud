@@ -149,7 +149,7 @@ class QuickRevalidationThenNormalSaveRegressionTest extends TestCase
         $this->seedLegacyAnswer($historical->id);
 
         // 1) Quick-revalidation real, exitosa.
-        $this->postJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns/1/quick-revalidation')
+        $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns/1/quick-revalidation')
             ->assertOk();
 
         $stored = json_decode(Storage::disk('local')->get('certificacion/reglas-funcionales.json'), true);
@@ -193,7 +193,7 @@ class QuickRevalidationThenNormalSaveRegressionTest extends TestCase
             ],
         ];
 
-        $this->postJson('/api/v1/rule-engine/catalog/A01/sections/B/pattern-questions', $normalPayload)
+        $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/B/pattern-questions', $normalPayload)
             ->assertOk();
 
         // 3) La metadata v2 protegida NO debe haber cambiado.

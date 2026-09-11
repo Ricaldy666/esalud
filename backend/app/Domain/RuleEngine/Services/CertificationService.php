@@ -13,11 +13,19 @@ class CertificationService
     private const CERT_DIR = 'certificacion';
     private const CERT_FILE = 'serie-a-catalogo.json';
 
-    private ?array $structureData = null;
+    // BM-2 (2026-09-11): keyeado por $structure->id (antes un solo slot sin
+    // key) -- una misma instancia de servicio resolviendo dos series
+    // distintas en el mismo ciclo de vida (ej. dos requests reutilizando el
+    // mismo objeto en un test, o un futuro consumidor que compare series)
+    // ya NO puede devolver silenciosamente la estructura de la primera
+    // serie cacheada para la segunda. Ver parseEstructura() abajo.
+    private array $structureDataByStructureId = [];
 
-    public function getRules(array $filters = []): Collection
+    // string $serie = 'A' (BM-2, 2026-09-11): compatibilidad historica --
+    // ningun consumidor actual (CatalogController) pasa todavia otra serie.
+    public function getRules(array $filters = [], string $serie = 'A'): Collection
     {
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         if (!$structure) {
             return collect();
         }
@@ -46,10 +54,10 @@ class CertificationService
         return $query->orderBy('rule_key')->get();
     }
 
-    public function buildCertificationCard(Rule $rule): array
+    public function buildCertificationCard(Rule $rule, string $serie = 'A'): array
     {
         $config = $rule->config ?? [];
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         $structureArr = $structure ? $this->parseEstructura($structure) : null;
         $sheet = $config['sheet'] ?? $this->extractSheetFromKey($rule->rule_key);
         $section = $config['section'] ?? $this->extractSectionFromKey($rule->rule_key);
@@ -196,9 +204,9 @@ class CertificationService
         Storage::disk('local')->put($path, json_encode($certStatus, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
-    public function getStats(): array
+    public function getStats(string $serie = 'A'): array
     {
-        $totalRules = $this->getRules()->count();
+        $totalRules = $this->getRules([], $serie)->count();
         $certStatus = $this->loadCertificationStatus();
         $certificadas = 0;
         $requiereRevision = 0;
@@ -221,9 +229,9 @@ class CertificationService
         ];
     }
 
-    public function getAvailableSheets(): array
+    public function getAvailableSheets(string $serie = 'A'): array
     {
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         if (!$structure) return [];
         $est = $this->parseEstructura($structure);
         $names = array_map(fn($f) => $f['sheetName'] ?? '', $est['forms'] ?? []);
@@ -232,14 +240,14 @@ class CertificationService
         return array_values($names);
     }
 
-    public function getRuleByKey(string $ruleKey): ?Rule
+    public function getRuleByKey(string $ruleKey, string $serie = 'A'): ?Rule
     {
-        return $this->getRules(['rule_key' => $ruleKey])->first();
+        return $this->getRules(['rule_key' => $ruleKey], $serie)->first();
     }
 
-    public function getSectionRules(string $sheet, string $section): array
+    public function getSectionRules(string $sheet, string $section, string $serie = 'A'): array
     {
-        $rules = $this->getRules(['sheet' => $sheet]);
+        $rules = $this->getRules(['sheet' => $sheet], $serie);
         $sectionRules = $rules->filter(function ($rule) use ($section) {
             $config = $rule->config ?? [];
             $ruleSection = $config['section'] ?? $this->extractSectionFromKey($rule->rule_key);
@@ -248,7 +256,7 @@ class CertificationService
 
         $cards = [];
         foreach ($sectionRules as $rule) {
-            $cards[] = $this->buildCertificationCard($rule);
+            $cards[] = $this->buildCertificationCard($rule, $serie);
         }
 
         usort($cards, function ($a, $b) {
@@ -260,9 +268,9 @@ class CertificationService
         return $cards;
     }
 
-    public function getSectionInfo(string $sheet, string $section): ?array
+    public function getSectionInfo(string $sheet, string $section, string $serie = 'A'): ?array
     {
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         if (!$structure) return null;
         $est = $this->parseEstructura($structure);
 
@@ -295,9 +303,9 @@ class CertificationService
         return null;
     }
 
-    public function getStructureForCard(): ?array
+    public function getStructureForCard(string $serie = 'A'): ?array
     {
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         if (!$structure) return null;
         return [
             'hash' => $structure->hash_estructura,
@@ -307,29 +315,39 @@ class CertificationService
         ];
     }
 
-    public function exportAllCards(): array
+    public function exportAllCards(string $serie = 'A'): array
     {
-        $rules = $this->getRules();
+        $rules = $this->getRules([], $serie);
         $cards = [];
         foreach ($rules as $rule) {
-            $cards[] = $this->buildCertificationCard($rule);
+            $cards[] = $this->buildCertificationCard($rule, $serie);
         }
         return $cards;
     }
 
-    private function getActiveStructure(): ?RemTemplateStructure
+    // string $serie (BM-2, 2026-09-11): antes hardcodeado a 'A' (anio se
+    // mantiene fijo a 2026 -- fuera del alcance de esta generalizacion,
+    // explicitamente acotada a serie). Nunca cae a Serie A si se pide otra
+    // serie: la consulta filtra exactamente por $serie y simplemente
+    // devuelve null si no hay estructura activa para ella.
+    private function getActiveStructure(string $serie = 'A'): ?RemTemplateStructure
     {
         return RemTemplateStructure::where('anio', 2026)
-            ->where('serie', 'A')
+            ->where('serie', $serie)
             ->where('status', 'active')
             ->first();
     }
 
+    // BM-2 (2026-09-11): cache keyeada por $structure->id -- ver
+    // $structureDataByStructureId arriba. Antes: un solo slot compartido
+    // por toda la instancia, sin importar que estructura se pidiera.
     private function parseEstructura(RemTemplateStructure $structure): ?array
     {
-        if ($this->structureData !== null) return $this->structureData;
+        if (isset($this->structureDataByStructureId[$structure->id])) {
+            return $this->structureDataByStructureId[$structure->id];
+        }
         $est = is_string($structure->estructura) ? json_decode($structure->estructura, true) : $structure->estructura;
-        $this->structureData = $est;
+        $this->structureDataByStructureId[$structure->id] = $est;
         return $est;
     }
 

@@ -32,9 +32,9 @@ export default function CalibrationSheetPage() {
 
   const sectionSummaries = useQueries({
     queries: sections.map((section) => ({
-      queryKey: ['pattern-matrix', sheet, section.codigo],
-      queryFn: () => calibrationService.getPatterns(sheet!, section.codigo),
-      enabled: Boolean(sheet) && hasTechnicalData(section),
+      queryKey: ['pattern-matrix', series, sheet, section.codigo],
+      queryFn: () => calibrationService.getPatterns(series!, sheet!, section.codigo),
+      enabled: Boolean(series) && Boolean(sheet) && hasTechnicalData(section),
       staleTime: 30_000,
     })),
   })

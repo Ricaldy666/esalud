@@ -6,7 +6,11 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class MetadataExtractorService
 {
-    private const TIPOS_REM = ['A', 'BM', 'BS', 'D', 'P'];
+    // Publica (BM-2, 2026-09-11): fuente central unica de series REM validas
+    // -- reutilizada por los controladores de calibracion/certificacion en
+    // vez de duplicar la lista. Sin cambios de valor ni de uso interno de
+    // esta clase.
+    public const TIPOS_REM = ['A', 'BM', 'BS', 'D', 'P'];
 
     private const NOMBRE_DEIS_COLS = ['C', 'D', 'E', 'F', 'G', 'H'];
 

@@ -23,21 +23,23 @@ class CatalogController extends Controller
         private CellScanOrchestrator $cellScanOrchestrator,
     ) {}
 
-    public function index(Request $request): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- se
+    // reenvia a CertificationService, ya generalizado.
+    public function index(Request $request, string $serie): JsonResponse
     {
         $filters = array_filter([
             'sheet' => $request->query('sheet'),
             'rule_type' => $request->query('rule_type'),
         ]);
 
-        $rules = $this->certificationService->getRules($filters);
+        $rules = $this->certificationService->getRules($filters, $serie);
 
         $statusFilter = $request->query('status');
         $search = $request->query('search');
 
         $cards = collect();
         foreach ($rules as $rule) {
-            $card = $this->certificationService->buildCertificationCard($rule);
+            $card = $this->certificationService->buildCertificationCard($rule, $serie);
             $cards->push($card);
         }
 
@@ -64,14 +66,14 @@ class CatalogController extends Controller
         return response()->json([
             'data' => [
                 'reglas' => $reglas,
-                'sheets' => $this->certificationService->getAvailableSheets(),
+                'sheets' => $this->certificationService->getAvailableSheets($serie),
                 'rule_types' => ['sum_equals', 'required_and_le_parent'],
                 'statuses' => [
                     ['key' => 'Pendiente', 'label' => 'Pendiente'],
                     ['key' => 'Certificada técnicamente', 'label' => 'Certificada técnicamente'],
                     ['key' => 'Requiere revisión', 'label' => 'Requiere revisión'],
                 ],
-                'stats' => $this->certificationService->getStats(),
+                'stats' => $this->certificationService->getStats($serie),
                 'filters' => [
                     'sheet' => $request->query('sheet', ''),
                     'rule_type' => $request->query('rule_type', ''),
@@ -90,28 +92,33 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function show(string $ruleKey): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function show(string $serie, string $ruleKey): JsonResponse
     {
-        $rule = $this->certificationService->getRuleByKey($ruleKey);
+        $rule = $this->certificationService->getRuleByKey($ruleKey, $serie);
         abort_unless($rule, 404, "Regla {$ruleKey} no encontrada");
 
-        $card = $this->certificationService->buildCertificationCard($rule);
+        $card = $this->certificationService->buildCertificationCard($rule, $serie);
         $funcional = $this->functionalRuleService->getFunctionalRule($ruleKey);
 
         return response()->json([
             'data' => [
                 'regla' => $card,
                 'funcional' => $funcional,
-                'estructura' => $this->certificationService->getStructureForCard(),
+                'estructura' => $this->certificationService->getStructureForCard($serie),
             ],
             'message' => null,
             'errors' => null,
         ]);
     }
 
-    public function status(Request $request, string $ruleKey): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- solo se
+    // usa para localizar la regla por rule_key, el guardado de estado en si
+    // (saveCertificationStatus/loadCertificationStatus) sigue siendo por
+    // rule_key, sin distincion de serie (comportamiento sin cambios).
+    public function status(Request $request, string $serie, string $ruleKey): JsonResponse
     {
-        $rule = $this->certificationService->getRuleByKey($ruleKey);
+        $rule = $this->certificationService->getRuleByKey($ruleKey, $serie);
         abort_unless($rule, 404);
 
         $valid = $request->validate([
@@ -146,12 +153,13 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function section(Request $request, string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function section(Request $request, string $serie, string $sheet, string $section): JsonResponse
     {
-        $sectionInfo = $this->certificationService->getSectionInfo($sheet, $section);
+        $sectionInfo = $this->certificationService->getSectionInfo($sheet, $section, $serie);
         abort_unless($sectionInfo, 404, "Sección {$section} no encontrada en hoja {$sheet}");
 
-        $cards = $this->certificationService->getSectionRules($sheet, $section);
+        $cards = $this->certificationService->getSectionRules($sheet, $section, $serie);
         $certStatus = $this->certificationService->loadCertificationStatus();
         $funcionalRules = $this->functionalRuleService->getFunctionalRulesBySheetSection($sheet, $section);
 
@@ -221,9 +229,10 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function getFunctionalRules(string $ruleKey): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function getFunctionalRules(string $serie, string $ruleKey): JsonResponse
     {
-        $rule = $this->certificationService->getRuleByKey($ruleKey);
+        $rule = $this->certificationService->getRuleByKey($ruleKey, $serie);
         abort_unless($rule, 404);
 
         $funcional = $this->functionalRuleService->getFunctionalRule($ruleKey);
@@ -237,9 +246,11 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function saveFunctionalRules(Request $request, string $ruleKey): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- solo
+    // para localizar la regla; el guardado en si sigue siendo por rule_key.
+    public function saveFunctionalRules(Request $request, string $serie, string $ruleKey): JsonResponse
     {
-        $rule = $this->certificationService->getRuleByKey($ruleKey);
+        $rule = $this->certificationService->getRuleByKey($ruleKey, $serie);
         abort_unless($rule, 404);
 
         $valid = $request->validate([
@@ -269,12 +280,13 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function sectionExport(string $sheet, string $section)
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function sectionExport(string $serie, string $sheet, string $section)
     {
-        $sectionInfo = $this->certificationService->getSectionInfo($sheet, $section);
+        $sectionInfo = $this->certificationService->getSectionInfo($sheet, $section, $serie);
         abort_unless($sectionInfo, 404);
 
-        $cards = $this->certificationService->getSectionRules($sheet, $section);
+        $cards = $this->certificationService->getSectionRules($sheet, $section, $serie);
         $funcionalRules = $this->functionalRuleService->getFunctionalRulesBySheetSection($sheet, $section);
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
@@ -332,9 +344,10 @@ class CatalogController extends Controller
         return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 
-    public function matrix(string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function matrix(string $serie, string $sheet, string $section): JsonResponse
     {
-        $matrix = $this->matrixService->buildMatrix($sheet, $section);
+        $matrix = $this->matrixService->buildMatrix($sheet, $section, $serie);
         abort_unless($matrix['section']['codigo'], 404, "Sección {$section} no encontrada en hoja {$sheet}");
 
         return response()->json([
@@ -344,9 +357,10 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function rowDetail(string $sheet, string $section, int $row): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function rowDetail(string $serie, string $sheet, string $section, int $row): JsonResponse
     {
-        $detail = $this->matrixService->getRowDetail($sheet, $section, $row);
+        $detail = $this->matrixService->getRowDetail($sheet, $section, $row, $serie);
         abort_unless($detail, 404, "Fila {$row} no encontrada en {$sheet}/{$section}");
 
         $funcional = $this->functionalRuleService->getFunctionalRuleByRow($sheet, $section, $row);
@@ -361,9 +375,12 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function saveRowFunctionalRules(Request $request, string $sheet, string $section, int $row): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- solo
+    // para localizar la fila; el guardado en si sigue siendo por
+    // sheet/section/row (comportamiento sin cambios).
+    public function saveRowFunctionalRules(Request $request, string $serie, string $sheet, string $section, int $row): JsonResponse
     {
-        $detail = $this->matrixService->getRowDetail($sheet, $section, $row);
+        $detail = $this->matrixService->getRowDetail($sheet, $section, $row, $serie);
         abort_unless($detail, 404, "Fila {$row} no encontrada en {$sheet}/{$section}");
 
         $valid = $request->validate([
@@ -433,9 +450,10 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function rowFunctionalDecisions(string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function rowFunctionalDecisions(string $serie, string $sheet, string $section): JsonResponse
     {
-        $matrix = $this->matrixService->buildPatternMatrix($sheet, $section);
+        $matrix = $this->matrixService->buildPatternMatrix($sheet, $section, $serie);
         abort_unless($matrix['section']['codigo'] ?? null, 404, "Sección {$section} no encontrada en hoja {$sheet}");
 
         $explicitRules = $this->functionalRuleService->getFunctionalRulesForEngine($sheet, $section);
@@ -528,7 +546,17 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function getRowFunctionalVersions(string $sheet, string $section, int $row): JsonResponse
+    // string $serie (BM-2, 2026-09-11): declarado explicitamente aunque no
+    // se usa en el cuerpo (FunctionalRuleService::getRowVersions() sigue
+    // siendo sheet/section-agnostico de serie por diseno) -- la ruta ahora
+    // antepone {serie}, y Laravel resuelve los parametros del controlador
+    // POR POSICION, no por nombre. Omitir este parametro desplazaria
+    // $sheet<-serie, $section<-sheet y $row<-section, rompiendo la
+    // consulta -- el mismo bug real detectado en
+    // CalibrationViewController::saveQuestions() durante la regresion de
+    // esta fase. La suposicion original de que Laravel "simplemente
+    // ignora" un segmento de ruta no declarado era incorrecta.
+    public function getRowFunctionalVersions(string $serie, string $sheet, string $section, int $row): JsonResponse
     {
         $versions = $this->functionalRuleService->getRowVersions($sheet, $section, $row);
 
@@ -542,9 +570,13 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function getQuestions(string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- solo
+    // para validar que la seccion existe en la estructura de esa serie; el
+    // almacenamiento de preguntas en si sigue siendo por sheet/section
+    // (comportamiento sin cambios).
+    public function getQuestions(string $serie, string $sheet, string $section): JsonResponse
     {
-        $matrix = $this->matrixService->buildMatrix($sheet, $section);
+        $matrix = $this->matrixService->buildMatrix($sheet, $section, $serie);
         abort_unless($matrix['section']['codigo'], 404);
 
         $questions = $this->functionalRuleService->getQuestions($sheet, $section);
@@ -564,9 +596,11 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function saveQuestions(Request $request, string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- mismo
+    // criterio que getQuestions().
+    public function saveQuestions(Request $request, string $serie, string $sheet, string $section): JsonResponse
     {
-        $matrix = $this->matrixService->buildMatrix($sheet, $section);
+        $matrix = $this->matrixService->buildMatrix($sheet, $section, $serie);
         abort_unless($matrix['section']['codigo'], 404);
 
         $valid = $request->validate([
@@ -593,9 +627,10 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function bulkFunctional(Request $request, string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function bulkFunctional(Request $request, string $serie, string $sheet, string $section): JsonResponse
     {
-        $matrix = $this->matrixService->buildMatrix($sheet, $section);
+        $matrix = $this->matrixService->buildMatrix($sheet, $section, $serie);
         abort_unless($matrix['section']['codigo'], 404);
 
         $valid = $request->validate([
@@ -640,12 +675,13 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function exportCalibration(string $sheet, string $section)
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function exportCalibration(string $serie, string $sheet, string $section)
     {
-        $matrix = $this->matrixService->buildMatrix($sheet, $section);
+        $matrix = $this->matrixService->buildMatrix($sheet, $section, $serie);
         abort_unless($matrix['section']['codigo'], 404);
 
-        $patternMatrix = $this->matrixService->buildPatternMatrix($sheet, $section);
+        $patternMatrix = $this->matrixService->buildPatternMatrix($sheet, $section, $serie);
         $funcionalByRow = $this->functionalRuleService->getFunctionalRulesByRow($sheet, $section);
         $questions = $this->functionalRuleService->getQuestions($sheet, $section);
 
@@ -879,11 +915,14 @@ class CatalogController extends Controller
         return response()->download($tempPath, $filename)->deleteFileAfterSend(true);
     }
 
-    public function scanCells(string $sheet, ?string $section = null): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- se
+    // reenvia a CellScanOrchestrator, ya generalizado. Coincide con ambas
+    // rutas registradas (con y sin {section}).
+    public function scanCells(string $serie, string $sheet, ?string $section = null): JsonResponse
     {
         try {
             if ($section) {
-                $cells = $this->cellScanOrchestrator->scan($sheet, $section);
+                $cells = $this->cellScanOrchestrator->scan($sheet, $section, serie: $serie);
                 $summary = [
                     'section' => $section,
                     'total_cells' => count($cells),
@@ -892,7 +931,7 @@ class CatalogController extends Controller
                     'bloqueadas' => collect($cells)->filter(fn($c) => $c->estaBloqueada)->count(),
                 ];
             } else {
-                $results = $this->cellScanOrchestrator->scanAllSections($sheet);
+                $results = $this->cellScanOrchestrator->scanAllSections($sheet, $serie);
                 $summary = [
                     'sheet' => $sheet,
                     'sections' => $results,
@@ -917,9 +956,12 @@ class CatalogController extends Controller
         }
     }
 
-    public function getCellData(string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- solo
+    // para el chequeo 404 via getSectionInfo(); el cell-data en si sigue
+    // siendo sheet/section (CellDataStorageService, sin cambios).
+    public function getCellData(string $serie, string $sheet, string $section): JsonResponse
     {
-        $sectionInfo = $this->certificationService->getSectionInfo($sheet, $section);
+        $sectionInfo = $this->certificationService->getSectionInfo($sheet, $section, $serie);
         abort_unless($sectionInfo, 404, "Sección {$section} no encontrada en {$sheet}");
 
         $cellData = $this->cellDataStorage->loadCellData($sheet, $section);
@@ -960,9 +1002,10 @@ class CatalogController extends Controller
         ]);
     }
 
-    public function export()
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function export(string $serie)
     {
-        $cards = $this->certificationService->exportAllCards();
+        $cards = $this->certificationService->exportAllCards($serie);
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();

@@ -39,7 +39,9 @@ export default function RuleCatalogPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['rule-catalog', queryParams],
-    queryFn: () => certificationService.list(queryParams),
+    // BM-2: sin selector de serie en esta pantalla todavia -- ver
+    // services/certification.ts para el detalle de por que 'A' es explicito.
+    queryFn: () => certificationService.list('A', queryParams),
   })
 
   const handleFilterChange = useCallback((partial: Partial<CatalogFilters>) => {

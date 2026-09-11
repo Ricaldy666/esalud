@@ -20,9 +20,11 @@ class CalibrationViewController extends Controller
         private FunctionalRuleService $functionalRuleService,
     ) {}
 
-    public function matrixData(string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- se
+    // reenvia explicitamente al servicio, ya generalizado.
+    public function matrixData(string $serie, string $sheet, string $section): JsonResponse
     {
-        $matrix = $this->matrixService->buildPatternMatrix($sheet, $section);
+        $matrix = $this->matrixService->buildPatternMatrix($sheet, $section, $serie);
 
         return response()->json([
             'data' => $matrix,
@@ -37,9 +39,10 @@ class CalibrationViewController extends Controller
      * mostrar avance real sin requerir N requests por seccion desde el
      * navegador (ver SectionCalibrationMatrixService::buildStructureCalibrationSummary()).
      */
-    public function calibrationSummary(): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}.
+    public function calibrationSummary(string $serie): JsonResponse
     {
-        $summary = $this->matrixService->buildStructureCalibrationSummary();
+        $summary = $this->matrixService->buildStructureCalibrationSummary($serie);
 
         return response()->json([
             'data' => $summary,
@@ -48,7 +51,17 @@ class CalibrationViewController extends Controller
         ]);
     }
 
-    public function saveQuestions(Request $request, string $sheet, string $section): JsonResponse
+    // string $serie (BM-2, 2026-09-11): declarado explicitamente aunque no
+    // se usa en el cuerpo (FunctionalRuleService::saveQuestions() sigue
+    // siendo serie-agnostico por diseno) -- la ruta ahora antepone {serie}
+    // a {sheet}/{section}, y Laravel resuelve los parametros del
+    // controlador POR POSICION, no por nombre (ver
+    // Illuminate\Routing\ResolvesRouteDependencies::resolveMethodDependencies()).
+    // Omitir este parametro desplazaria $sheet<-serie y $section<-sheet,
+    // corrompiendo silenciosamente la clave "{sheet}_{section}" de
+    // reglas-funcionales.json -- exactamente el bug que la regresion de
+    // esta fase detecto y que motiva este comentario.
+    public function saveQuestions(Request $request, string $serie, string $sheet, string $section): JsonResponse
     {
         $validated = $request->validate([
             'questions' => 'required|array',
@@ -98,11 +111,16 @@ class CalibrationViewController extends Controller
      * flujo normal de calibracion, sin activar el mecanismo v2 en
      * produccion. No escribe nada.
      */
-    public function migrationPlan(string $sheet, string $section, PatternMigrationScanner $scanner): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie}. Antes
+    // resolvia "la" estructura activa sin filtrar por serie -- funcionaba
+    // solo porque nunca hubo mas de una estructura activa a la vez en toda
+    // la tabla. Con mas de una serie activa simultaneamente, ->first() sin
+    // filtro seria no determinista -- ahora filtra exacto por $serie.
+    public function migrationPlan(string $serie, string $sheet, string $section, PatternMigrationScanner $scanner): JsonResponse
     {
-        $activeStructure = RemTemplateStructure::where('status', 'active')->first();
+        $activeStructure = RemTemplateStructure::where('serie', $serie)->where('status', 'active')->first();
         if (! $activeStructure) {
-            return response()->json(['data' => null, 'message' => 'No hay ninguna estructura activa.', 'errors' => ['no_active_structure']], 422);
+            return response()->json(['data' => null, 'message' => "No hay ninguna estructura activa para la serie {$serie}.", 'errors' => ['no_active_structure']], 422);
         }
 
         $estructura = is_string($activeStructure->estructura)
@@ -143,13 +161,15 @@ class CalibrationViewController extends Controller
      * vigente, filas vigentes, usuario que revalida, timestamp) se calcula
      * o se obtiene exclusivamente en el servidor.
      */
-    public function confirmQuickRevalidation(Request $request, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- mismo
+    // fix de determinismo que migrationPlan() arriba.
+    public function confirmQuickRevalidation(Request $request, string $serie, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner): JsonResponse
     {
-        $activeStructure = RemTemplateStructure::where('status', 'active')->first();
+        $activeStructure = RemTemplateStructure::where('serie', $serie)->where('status', 'active')->first();
         if (! $activeStructure) {
             return response()->json([
                 'data' => null,
-                'message' => 'No hay ninguna estructura activa.',
+                'message' => "No hay ninguna estructura activa para la serie {$serie}.",
                 'errors' => ['no_active_structure'],
             ], 422);
         }
@@ -267,11 +287,13 @@ class CalibrationViewController extends Controller
      * structural_review) para que el frontend decida qué botón mostrar.
      * Nunca escribe nada.
      */
-    public function mismatchResolutionDetails(string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner, MismatchResolutionAuditService $audit): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- mismo
+    // fix de determinismo que migrationPlan().
+    public function mismatchResolutionDetails(string $serie, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner, MismatchResolutionAuditService $audit): JsonResponse
     {
-        $activeStructure = RemTemplateStructure::where('status', 'active')->first();
+        $activeStructure = RemTemplateStructure::where('serie', $serie)->where('status', 'active')->first();
         if (! $activeStructure) {
-            return response()->json(['data' => null, 'message' => 'No hay ninguna estructura activa.', 'errors' => ['no_active_structure']], 422);
+            return response()->json(['data' => null, 'message' => "No hay ninguna estructura activa para la serie {$serie}.", 'errors' => ['no_active_structure']], 422);
         }
 
         $estructura = is_string($activeStructure->estructura)
@@ -341,11 +363,13 @@ class CalibrationViewController extends Controller
      * coinciden con lo que se auditó (el patrón cambió de nuevo desde que se
      * etiquetó), rechaza con 409 en vez de escribir.
      */
-    public function confirmMismatchResolution(Request $request, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner, MismatchResolutionAuditService $audit): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- mismo
+    // fix de determinismo que migrationPlan().
+    public function confirmMismatchResolution(Request $request, string $serie, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner, MismatchResolutionAuditService $audit): JsonResponse
     {
-        $activeStructure = RemTemplateStructure::where('status', 'active')->first();
+        $activeStructure = RemTemplateStructure::where('serie', $serie)->where('status', 'active')->first();
         if (! $activeStructure) {
-            return response()->json(['data' => null, 'message' => 'No hay ninguna estructura activa.', 'errors' => ['no_active_structure']], 422);
+            return response()->json(['data' => null, 'message' => "No hay ninguna estructura activa para la serie {$serie}.", 'errors' => ['no_active_structure']], 422);
         }
 
         $estructura = is_string($activeStructure->estructura)
@@ -632,11 +656,13 @@ class CalibrationViewController extends Controller
      * menos) con las preguntas ya existentes de ese pattern_id -- una
      * "revision completa" a medias no se acepta.
      */
-    public function confirmHumanReviewResolution(Request $request, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner, MismatchResolutionAuditService $audit): JsonResponse
+    // string $serie (BM-2, 2026-09-11): ruta ahora lleva {serie} -- mismo
+    // fix de determinismo que migrationPlan().
+    public function confirmHumanReviewResolution(Request $request, string $serie, string $sheet, string $section, int $patternId, PatternMigrationScanner $scanner, MismatchResolutionAuditService $audit): JsonResponse
     {
-        $activeStructure = RemTemplateStructure::where('status', 'active')->first();
+        $activeStructure = RemTemplateStructure::where('serie', $serie)->where('status', 'active')->first();
         if (! $activeStructure) {
-            return response()->json(['data' => null, 'message' => 'No hay ninguna estructura activa.', 'errors' => ['no_active_structure']], 422);
+            return response()->json(['data' => null, 'message' => "No hay ninguna estructura activa para la serie {$serie}.", 'errors' => ['no_active_structure']], 422);
         }
 
         $estructura = is_string($activeStructure->estructura)

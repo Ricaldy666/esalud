@@ -24,6 +24,7 @@ interface MismatchConfirmErrorResponse {
 }
 
 interface Props {
+  serie: string
   sheet: string
   section: string
   sectionTitle?: string
@@ -68,6 +69,7 @@ const CATEGORY_LABEL: Record<MismatchResolutionCategory, string> = {
  * nunca ofrece un boton rapido.
  */
 export function MismatchResolutionPanel({
+  serie,
   sheet,
   section,
   sectionTitle,
@@ -109,6 +111,7 @@ export function MismatchResolutionPanel({
         {mismatchPatterns.map((pattern) => (
           <MismatchPatternCard
             key={pattern.pattern_id}
+            serie={serie}
             sheet={sheet}
             section={section}
             pattern={pattern}
@@ -122,12 +125,14 @@ export function MismatchResolutionPanel({
 }
 
 function MismatchPatternCard({
+  serie,
   sheet,
   section,
   pattern,
   readOnly,
   onOpenAdvanced,
 }: {
+  serie: string
   sheet: string
   section: string
   pattern: MigrationPlanPattern
@@ -137,9 +142,9 @@ function MismatchPatternCard({
   const queryClient = useQueryClient()
 
   const detailsQuery = useQuery({
-    queryKey: ['mismatch-resolution', sheet, section, pattern.pattern_id],
+    queryKey: ['mismatch-resolution', serie, sheet, section, pattern.pattern_id],
     queryFn: () =>
-      calibrationService.getMismatchResolutionDetails(sheet, section, pattern.pattern_id),
+      calibrationService.getMismatchResolutionDetails(serie, sheet, section, pattern.pattern_id),
   })
 
   const details: MismatchResolutionDetails | undefined = detailsQuery.data
@@ -148,17 +153,17 @@ function MismatchPatternCard({
 
   const confirmMutation = useMutation({
     mutationFn: () =>
-      calibrationService.confirmMismatchResolution(sheet, section, pattern.pattern_id),
+      calibrationService.confirmMismatchResolution(serie, sheet, section, pattern.pattern_id),
     onSuccess: () => {
       toast.success(
         tag?.category === 'structural_row_exclusion'
           ? `Patrón ${pattern.pattern_id} resuelto (exclusión estructural de TOTAL líder).`
           : `Patrón ${pattern.pattern_id} resuelto (safe_reconfirm).`
       )
-      queryClient.invalidateQueries({ queryKey: ['migration-plan', sheet, section] })
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['migration-plan', serie, sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
       queryClient.invalidateQueries({
-        queryKey: ['mismatch-resolution', sheet, section, pattern.pattern_id],
+        queryKey: ['mismatch-resolution', serie, sheet, section, pattern.pattern_id],
       })
     },
     onError: (error: AxiosError<MismatchConfirmErrorResponse>) => {
@@ -190,7 +195,7 @@ function MismatchPatternCard({
           )
         }
         queryClient.invalidateQueries({
-          queryKey: ['mismatch-resolution', sheet, section, pattern.pattern_id],
+          queryKey: ['mismatch-resolution', serie, sheet, section, pattern.pattern_id],
         })
         return
       }

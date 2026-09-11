@@ -35,6 +35,7 @@ const COLOR_LEGEND = [
 ]
 
 interface Props {
+  serie: string
   sheet: string
   section: string
   readOnly?: boolean
@@ -42,15 +43,16 @@ interface Props {
 }
 
 export default function PatternCalibrationSummary({
+  serie,
   sheet,
   section,
   readOnly = false,
   structureVersion = '',
 }: Props) {
   const { data, isLoading, error } = useQuery<PatternMatrixResponse>({
-    queryKey: ['pattern-matrix', sheet, section],
-    queryFn: () => calibrationService.getPatterns(sheet, section),
-    enabled: !!sheet && !!section,
+    queryKey: ['pattern-matrix', serie, sheet, section],
+    queryFn: () => calibrationService.getPatterns(serie, sheet, section),
+    enabled: !!serie && !!sheet && !!section,
   })
 
   if (isLoading) {
@@ -83,7 +85,7 @@ export default function PatternCalibrationSummary({
           </span>
         </div>
         <a
-          href={calibrationService.getCalibrationExportUrl(sheet, section)}
+          href={calibrationService.getCalibrationExportUrl(serie, sheet, section)}
           className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
         >
           <FileSpreadsheet className="w-4 h-4" />
@@ -164,6 +166,7 @@ export default function PatternCalibrationSummary({
 
       {data.calibration_applicability?.status === 'not_calibratable' ? (
         <NotCalibratableSectionPanel
+          serie={serie}
           sheet={sheet}
           section={section}
           data={data}
@@ -172,6 +175,7 @@ export default function PatternCalibrationSummary({
         />
       ) : (
         <FunctionalQuestionsPanel
+          serie={serie}
           sheet={sheet}
           section={section}
           patterns={patterns}

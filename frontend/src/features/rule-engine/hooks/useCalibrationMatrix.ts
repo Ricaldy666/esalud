@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { calibrationService } from '../services/calibration'
 
-export function useCalibrationMatrix(sheet: string | undefined, section: string | undefined) {
+export function useCalibrationMatrix(
+  serie: string | undefined,
+  sheet: string | undefined,
+  section: string | undefined
+) {
   return useQuery({
-    queryKey: ['calibration-matrix', sheet, section],
-    queryFn: () => calibrationService.getMatrix(sheet!, section!),
-    enabled: !!sheet && !!section,
+    queryKey: ['calibration-matrix', serie, sheet, section],
+    queryFn: () => calibrationService.getMatrix(serie!, sheet!, section!),
+    enabled: !!serie && !!sheet && !!section,
   })
 }

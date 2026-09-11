@@ -16,6 +16,7 @@ type EditableDecision =
   | 'requiere_revision'
 
 interface Props {
+  serie: string
   sheet: string
   section: string
   readOnly?: boolean
@@ -78,15 +79,20 @@ function inheritedText(row: RowFunctionalDecision) {
   return 'Sin decision heredada'
 }
 
-export default function RowFunctionalDecisionTable({ sheet, section, readOnly = false }: Props) {
+export default function RowFunctionalDecisionTable({
+  serie,
+  sheet,
+  section,
+  readOnly = false,
+}: Props) {
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
   const [drafts, setDrafts] = useState<Record<number, EditableDecision>>({})
 
   const { data, isLoading } = useQuery({
-    queryKey: ['row-functional-decisions', sheet, section],
-    queryFn: () => calibrationService.getRowFunctionalDecisions(sheet, section),
-    enabled: Boolean(sheet) && Boolean(section),
+    queryKey: ['row-functional-decisions', serie, sheet, section],
+    queryFn: () => calibrationService.getRowFunctionalDecisions(serie, sheet, section),
+    enabled: Boolean(serie) && Boolean(sheet) && Boolean(section),
   })
 
   const rows = useMemo(() => [...(data?.rows ?? [])].sort((a, b) => a.row - b.row), [data?.rows])
@@ -114,7 +120,7 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
         payload.functional_condition = 'Requiere revision de Estadistica'
       }
 
-      return calibrationService.saveRowFunctionalRule(sheet, section, row.row, payload)
+      return calibrationService.saveRowFunctionalRule(serie, sheet, section, row.row, payload)
     },
     onSuccess: (_data, variables) => {
       toast.success('Decision funcional guardada')
@@ -123,8 +129,10 @@ export default function RowFunctionalDecisionTable({ sheet, section, readOnly = 
         delete next[variables.row.row]
         return next
       })
-      queryClient.invalidateQueries({ queryKey: ['row-functional-decisions', sheet, section] })
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
+      queryClient.invalidateQueries({
+        queryKey: ['row-functional-decisions', serie, sheet, section],
+      })
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
       queryClient.invalidateQueries({ queryKey: ['calibration-matrix'] })
     },
     onError: () => toast.error('No se pudo guardar la decision funcional'),

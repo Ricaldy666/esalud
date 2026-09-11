@@ -20,31 +20,46 @@ import type {
   RowFunctionalVersion,
 } from '../types/calibration'
 
+// BM-2 (2026-09-11): todas las funciones de este servicio ahora exigen
+// `serie` como primer parametro -- el backend generalizado (routes/api.php,
+// CalibrationViewController, CatalogController) ya requiere {serie} en la
+// URL para las 22 rutas de este dominio (calibracion/escaneo/matrices/
+// certificacion). TypeScript obliga en tiempo de compilacion a que todo
+// caller reenvie explicitamente el `series` que el router ya trae
+// (useParams() en CalibrationSectionPage) -- ningun caller puede omitirlo
+// ni asumir 'A' en silencio (a diferencia del backend, que si mantiene un
+// default 'A' por compatibilidad historica en las rutas que no pasan por
+// este servicio, ej. comandos artisan).
 export const calibrationService = {
-  getCalibrationSummary: async (): Promise<CalibrationSummaryResponse> => {
+  getCalibrationSummary: async (serie: string): Promise<CalibrationSummaryResponse> => {
     const { data } = await api.get<ApiResponse<CalibrationSummaryResponse>>(
-      '/rule-engine/catalog/calibration-summary'
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/calibration-summary`
     )
     return data.data
   },
 
-  getMatrix: async (sheet: string, section: string): Promise<CalibrationMatrixResponse> => {
+  getMatrix: async (
+    serie: string,
+    sheet: string,
+    section: string
+  ): Promise<CalibrationMatrixResponse> => {
     const { data } = await api.get<ApiResponse<CalibrationMatrixResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/matrix`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/matrix`
     )
     return data.data
   },
 
-  getRowDetail: async (sheet: string, section: string, row: number) => {
+  getRowDetail: async (serie: string, sheet: string, section: string, row: number) => {
     const { data } = await api.get<
       ApiResponse<{ row: CalibrationRow; funcional: CalibrationFunctionalRule | null }>
     >(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/rows/${row}`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/rows/${row}`
     )
     return data.data
   },
 
   saveRowFunctionalRule: async (
+    serie: string,
     sheet: string,
     section: string,
     row: number,
@@ -59,30 +74,44 @@ export const calibrationService = {
         funcional: CalibrationFunctionalRule | null
       }>
     >(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/rows/${row}/functional-rules`,
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/rows/${row}/functional-rules`,
       payload
     )
     return data.data
   },
 
-  getQuestions: async (sheet: string, section: string): Promise<CalibrationQuestionResponse> => {
+  getQuestions: async (
+    serie: string,
+    sheet: string,
+    section: string
+  ): Promise<CalibrationQuestionResponse> => {
     const { data } = await api.get<ApiResponse<CalibrationQuestionResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/questions`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/questions`
     )
     return data.data
   },
 
-  saveQuestions: async (sheet: string, section: string, questions: CalibrationQuestion[]) => {
+  saveQuestions: async (
+    serie: string,
+    sheet: string,
+    section: string,
+    questions: CalibrationQuestion[]
+  ) => {
     await fetchCsrfCookie()
 
     const { data } = await api.post<ApiResponse<{ success: boolean; message: string }>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/questions`,
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/questions`,
       { questions }
     )
     return data.data
   },
 
-  bulkFunctional: async (sheet: string, section: string, payload: BulkFunctionalPayload) => {
+  bulkFunctional: async (
+    serie: string,
+    sheet: string,
+    section: string,
+    payload: BulkFunctionalPayload
+  ) => {
     await fetchCsrfCookie()
 
     const { data } = await api.post<
@@ -93,30 +122,36 @@ export const calibrationService = {
         rows_affected: number[]
       }>
     >(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/bulk-functional`,
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/bulk-functional`,
       payload
     )
     return data.data
   },
 
-  getPatterns: async (sheet: string, section: string): Promise<PatternMatrixResponse> => {
+  getPatterns: async (
+    serie: string,
+    sheet: string,
+    section: string
+  ): Promise<PatternMatrixResponse> => {
     const { data } = await api.get<ApiResponse<PatternMatrixResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns`
     )
     return data.data
   },
 
   getRowFunctionalDecisions: async (
+    serie: string,
     sheet: string,
     section: string
   ): Promise<RowFunctionalDecisionResponse> => {
     const { data } = await api.get<ApiResponse<RowFunctionalDecisionResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/row-functional-decisions`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/row-functional-decisions`
     )
     return data.data
   },
 
   savePatternQuestions: async (
+    serie: string,
     sheet: string,
     section: string,
     questions: CalibrationQuestion[]
@@ -124,33 +159,38 @@ export const calibrationService = {
     await fetchCsrfCookie()
 
     const { data } = await api.post<ApiResponse<{ success: boolean; message: string }>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/pattern-questions`,
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/pattern-questions`,
       { questions }
     )
     return data.data
   },
 
-  getCalibrationExportUrl: (sheet: string, section: string): string => {
-    return `${api.defaults.baseURL}/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/export-calibration`
+  getCalibrationExportUrl: (serie: string, sheet: string, section: string): string => {
+    return `${api.defaults.baseURL}/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/export-calibration`
   },
 
-  getRowFunctionalVersions: async (sheet: string, section: string, row: number) => {
+  getRowFunctionalVersions: async (serie: string, sheet: string, section: string, row: number) => {
     const { data } = await api.get<
       ApiResponse<{ versions: RowFunctionalVersion[]; total: number }>
     >(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/rows/${row}/functional-rules/versions`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/rows/${row}/functional-rules/versions`
     )
     return data.data
   },
 
-  getMigrationPlan: async (sheet: string, section: string): Promise<MigrationPlanResponse> => {
+  getMigrationPlan: async (
+    serie: string,
+    sheet: string,
+    section: string
+  ): Promise<MigrationPlanResponse> => {
     const { data } = await api.get<ApiResponse<MigrationPlanResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/migration-plan`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/migration-plan`
     )
     return data.data
   },
 
   confirmQuickRevalidation: async (
+    serie: string,
     sheet: string,
     section: string,
     patternId: number
@@ -158,23 +198,25 @@ export const calibrationService = {
     await fetchCsrfCookie()
 
     const { data } = await api.post<ApiResponse<QuickRevalidationConfirmResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/quick-revalidation`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/quick-revalidation`
     )
     return data.data
   },
 
   getMismatchResolutionDetails: async (
+    serie: string,
     sheet: string,
     section: string,
     patternId: number
   ): Promise<MismatchResolutionDetails> => {
     const { data } = await api.get<ApiResponse<MismatchResolutionDetails>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution`
     )
     return data.data
   },
 
   confirmMismatchResolution: async (
+    serie: string,
     sheet: string,
     section: string,
     patternId: number
@@ -182,7 +224,7 @@ export const calibrationService = {
     await fetchCsrfCookie()
 
     const { data } = await api.post<ApiResponse<MismatchResolutionConfirmResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution/confirm`
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution/confirm`
     )
     return data.data
   },
@@ -197,6 +239,7 @@ export const calibrationService = {
   // confirmQuickRevalidation()/confirmMismatchResolution(); la calibracion
   // normal de cualquier otra seccion sigue usando savePatternQuestions().
   confirmHumanReviewResolution: async (
+    serie: string,
     sheet: string,
     section: string,
     patternId: number,
@@ -205,7 +248,7 @@ export const calibrationService = {
     await fetchCsrfCookie()
 
     const { data } = await api.post<ApiResponse<HumanReviewResolutionResponse>>(
-      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution/full-review`,
+      `/rule-engine/catalog/${encodeURIComponent(serie)}/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution/full-review`,
       { questions }
     )
     return data.data

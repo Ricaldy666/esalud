@@ -40,13 +40,15 @@ export default function RuleSectionPage() {
   if (estado) params.estado = estado
   if (search) params.search = search
 
+  // BM-2: sin selector de serie en esta pantalla todavia -- ver
+  // services/functional-rule.ts para el detalle de por que 'A' es explicito.
   const { data, isLoading } = useQuery({
     queryKey: ['section', sheet, section, params],
-    queryFn: () => functionalRuleService.getSection(sheet!, section!, params),
+    queryFn: () => functionalRuleService.getSection('A', sheet!, section!, params),
     enabled: !!sheet && !!section,
   })
 
-  const { data: matrixData, isLoading: matrixLoading } = useCalibrationMatrix(sheet, section)
+  const { data: matrixData, isLoading: matrixLoading } = useCalibrationMatrix('A', sheet, section)
 
   const filaOptions = data?.reglas
     ? [...new Set(data.reglas.map((r) => r.rango_filas).filter(Boolean))].sort()
@@ -66,7 +68,7 @@ export default function RuleSectionPage() {
         breadcrumb={[{ label: 'Catálogo', onClick: () => navigate('/rule-engine/catalog') }]}
         actions={
           <a
-            href={functionalRuleService.getSectionExportUrl(sheet ?? 'A01', section ?? 'A')}
+            href={functionalRuleService.getSectionExportUrl('A', sheet ?? 'A01', section ?? 'A')}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
           >
             <Download className="w-4 h-4" />
@@ -189,11 +191,12 @@ export default function RuleSectionPage() {
         <SectionCalibrationTable
           data={matrixData}
           loading={matrixLoading}
+          serie="A"
           sheet={sheet}
           section={section}
         />
       ) : (
-        <PatternCalibrationSummary sheet={sheet ?? 'A01'} section={section ?? 'A'} />
+        <PatternCalibrationSummary serie="A" sheet={sheet ?? 'A01'} section={section ?? 'A'} />
       )}
     </div>
   )

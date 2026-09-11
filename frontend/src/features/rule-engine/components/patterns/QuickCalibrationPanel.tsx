@@ -60,6 +60,7 @@ type ProblemType =
   | 'otro problema'
 
 interface Props {
+  serie: string
   sheet: string
   section: string
   sectionTitle?: string
@@ -372,6 +373,7 @@ function buildScopeObservation(selectedCenters: Record<string, CenterMode>, extr
 }
 
 export default function QuickCalibrationPanel({
+  serie,
   sheet,
   section,
   sectionTitle,
@@ -452,9 +454,9 @@ export default function QuickCalibrationPanel({
   // QuickRevalidationPanel en vez del flujo normal. No participa del
   // calculo de progreso ni de reconcileLive() en produccion.
   const { data: migrationPlan } = useQuery({
-    queryKey: ['migration-plan', sheet, section],
-    queryFn: () => calibrationService.getMigrationPlan(sheet, section),
-    enabled: Boolean(sheet) && Boolean(section),
+    queryKey: ['migration-plan', serie, sheet, section],
+    queryFn: () => calibrationService.getMigrationPlan(serie, sheet, section),
+    enabled: Boolean(serie) && Boolean(sheet) && Boolean(section),
     staleTime: 0,
   })
   // "Revisar nuevamente esta sección" no persiste nada -- solo oculta el
@@ -527,7 +529,7 @@ export default function QuickCalibrationPanel({
 
   const saveMutation = useMutation({
     mutationFn: (payload: CalibrationQuestion[]) =>
-      calibrationService.savePatternQuestions(sheet, section, payload),
+      calibrationService.savePatternQuestions(serie, sheet, section, payload),
     onSuccess: () => {
       toast.success(
         showProblem
@@ -536,7 +538,7 @@ export default function QuickCalibrationPanel({
             ? 'Sección guardada. Abriendo la siguiente sección.'
             : 'Sección guardada correctamente.'
       )
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
       if (!showProblem && nextSection) onNavigateSection(nextSection)
     },
     onError: () => toast.error('No se pudo guardar la calibración rápida'),
@@ -767,6 +769,7 @@ export default function QuickCalibrationPanel({
   if (migrationPlan?.category === 'QUICK_CONFIRMATION' && !forceFullReview) {
     return (
       <QuickRevalidationPanel
+        serie={serie}
         sheet={sheet}
         section={section}
         sectionTitle={sectionTitle}
@@ -788,6 +791,7 @@ export default function QuickCalibrationPanel({
   if (migrationPlan?.category === 'MISMATCH' && !forceFullReview) {
     return (
       <MismatchResolutionPanel
+        serie={serie}
         sheet={sheet}
         section={section}
         sectionTitle={sectionTitle}
@@ -801,6 +805,7 @@ export default function QuickCalibrationPanel({
   if (data.calibration_applicability?.status === 'not_calibratable') {
     return (
       <NotCalibratableSectionPanel
+        serie={serie}
         sheet={sheet}
         section={section}
         sectionTitle={sectionTitle}

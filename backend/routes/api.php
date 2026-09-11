@@ -169,35 +169,51 @@ Route::prefix('v1')->group(function () {
                 Route::put('{calibration}/cells', [CalibrationController::class, 'saveCell'])->name('save-cell');
             });
 
-            Route::prefix('catalog')->name('catalog.')->group(function () {
-                Route::get('/', [CatalogController::class, 'index'])->name('index');
-                Route::get('/export', [CatalogController::class, 'export'])->name('export');
-                Route::get('/calibration-summary', [CalibrationViewController::class, 'calibrationSummary'])->name('calibration-summary');
-                Route::get('/{sheet}/sections/{section}', [CatalogController::class, 'section'])->name('section');
-                Route::get('/{sheet}/sections/{section}/export', [CatalogController::class, 'sectionExport'])->name('section-export');
-                Route::get('/{sheet}/sections/{section}/matrix', [CatalogController::class, 'matrix'])->name('matrix');
-                Route::get('/{sheet}/sections/{section}/patterns', [CalibrationViewController::class, 'matrixData'])->name('patterns');
-                Route::get('/{sheet}/sections/{section}/migration-plan', [CalibrationViewController::class, 'migrationPlan'])->name('migration-plan');
-                Route::get('/{sheet}/sections/{section}/row-functional-decisions', [CatalogController::class, 'rowFunctionalDecisions'])->name('row-functional-decisions');
-                Route::get('/{sheet}/sections/{section}/questions', [CatalogController::class, 'getQuestions'])->name('questions');
-                Route::post('/{sheet}/sections/{section}/questions', [CatalogController::class, 'saveQuestions'])->name('questions.save');
-                Route::post('/{sheet}/sections/{section}/pattern-questions', [CalibrationViewController::class, 'saveQuestions'])->name('pattern-questions.save');
-                Route::post('/{sheet}/sections/{section}/patterns/{patternId}/quick-revalidation', [CalibrationViewController::class, 'confirmQuickRevalidation'])->name('patterns.quick-revalidation');
-                Route::get('/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution', [CalibrationViewController::class, 'mismatchResolutionDetails'])->name('patterns.mismatch-resolution.details');
-                Route::post('/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution/confirm', [CalibrationViewController::class, 'confirmMismatchResolution'])->name('patterns.mismatch-resolution.confirm');
-                Route::post('/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution/full-review', [CalibrationViewController::class, 'confirmHumanReviewResolution'])->name('patterns.mismatch-resolution.full-review');
-                Route::post('/{sheet}/sections/{section}/bulk-functional', [CatalogController::class, 'bulkFunctional'])->name('bulk-functional');
-                Route::get('/{sheet}/sections/{section}/export-calibration', [CatalogController::class, 'exportCalibration'])->name('export-calibration');
-                Route::get('/{sheet}/sections/{section}/rows/{row}', [CatalogController::class, 'rowDetail'])->name('row-detail');
-                Route::post('/{sheet}/sections/{section}/rows/{row}/functional-rules', [CatalogController::class, 'saveRowFunctionalRules'])->name('row-functional-rules.save');
-                Route::get('/{sheet}/sections/{section}/rows/{row}/functional-rules/versions', [CatalogController::class, 'getRowFunctionalVersions'])->name('row-functional-rules.versions');
-                Route::post('/{sheet}/sections/{section}/scan-cells', [CatalogController::class, 'scanCells'])->name('scan-cells');
-                Route::post('/{sheet}/scan-cells', [CatalogController::class, 'scanCells'])->name('scan-cells-sheet');
-                Route::get('/{sheet}/sections/{section}/cell-data', [CatalogController::class, 'getCellData'])->name('cell-data');
-                Route::get('/{ruleKey}', [CatalogController::class, 'show'])->name('show');
-                Route::post('/{ruleKey}/status', [CatalogController::class, 'status'])->name('status');
-                Route::get('/{ruleKey}/functional-rules', [CatalogController::class, 'getFunctionalRules'])->name('functional-rules');
-                Route::post('/{ruleKey}/functional-rules', [CatalogController::class, 'saveFunctionalRules'])->name('functional-rules.save');
+            // BM-2 (2026-09-11): todo el grupo 'catalog' pasa a llevar {serie}
+            // como primer segmento -- convencion unica y coherente para las
+            // 22 rutas de calibracion/escaneo/matrices/certificacion (todas
+            // sin excepcion pasan por SectionCalibrationMatrixService/
+            // CertificationService/CellScanOrchestrator, ya generalizados).
+            // Restriccion ->where('serie', ...) reutiliza
+            // MetadataExtractorService::TIPOS_REM (fuente central unica, sin
+            // duplicar la lista A/BM/BS/D/P) -- una serie fuera de esa lista
+            // nunca llega al controlador: Laravel responde 404 (misma
+            // convencion ya usada en todo el proyecto para "recurso/ruta no
+            // encontrada", sin logica de validacion nueva que mantener).
+            // Compatibilidad: cambia la forma de la URL para las 22 rutas,
+            // pero el unico consumidor real (el frontend de ATHENEA) se
+            // actualiza en el mismo cambio (ver calibration.ts).
+            Route::prefix('catalog')->name('catalog.')
+                ->where(['serie' => implode('|', \App\Domain\RemParser\Services\MetadataExtractorService::TIPOS_REM)])
+                ->group(function () {
+                Route::get('/{serie}', [CatalogController::class, 'index'])->name('index');
+                Route::get('/{serie}/export', [CatalogController::class, 'export'])->name('export');
+                Route::get('/{serie}/calibration-summary', [CalibrationViewController::class, 'calibrationSummary'])->name('calibration-summary');
+                Route::get('/{serie}/{sheet}/sections/{section}', [CatalogController::class, 'section'])->name('section');
+                Route::get('/{serie}/{sheet}/sections/{section}/export', [CatalogController::class, 'sectionExport'])->name('section-export');
+                Route::get('/{serie}/{sheet}/sections/{section}/matrix', [CatalogController::class, 'matrix'])->name('matrix');
+                Route::get('/{serie}/{sheet}/sections/{section}/patterns', [CalibrationViewController::class, 'matrixData'])->name('patterns');
+                Route::get('/{serie}/{sheet}/sections/{section}/migration-plan', [CalibrationViewController::class, 'migrationPlan'])->name('migration-plan');
+                Route::get('/{serie}/{sheet}/sections/{section}/row-functional-decisions', [CatalogController::class, 'rowFunctionalDecisions'])->name('row-functional-decisions');
+                Route::get('/{serie}/{sheet}/sections/{section}/questions', [CatalogController::class, 'getQuestions'])->name('questions');
+                Route::post('/{serie}/{sheet}/sections/{section}/questions', [CatalogController::class, 'saveQuestions'])->name('questions.save');
+                Route::post('/{serie}/{sheet}/sections/{section}/pattern-questions', [CalibrationViewController::class, 'saveQuestions'])->name('pattern-questions.save');
+                Route::post('/{serie}/{sheet}/sections/{section}/patterns/{patternId}/quick-revalidation', [CalibrationViewController::class, 'confirmQuickRevalidation'])->name('patterns.quick-revalidation');
+                Route::get('/{serie}/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution', [CalibrationViewController::class, 'mismatchResolutionDetails'])->name('patterns.mismatch-resolution.details');
+                Route::post('/{serie}/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution/confirm', [CalibrationViewController::class, 'confirmMismatchResolution'])->name('patterns.mismatch-resolution.confirm');
+                Route::post('/{serie}/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution/full-review', [CalibrationViewController::class, 'confirmHumanReviewResolution'])->name('patterns.mismatch-resolution.full-review');
+                Route::post('/{serie}/{sheet}/sections/{section}/bulk-functional', [CatalogController::class, 'bulkFunctional'])->name('bulk-functional');
+                Route::get('/{serie}/{sheet}/sections/{section}/export-calibration', [CatalogController::class, 'exportCalibration'])->name('export-calibration');
+                Route::get('/{serie}/{sheet}/sections/{section}/rows/{row}', [CatalogController::class, 'rowDetail'])->name('row-detail');
+                Route::post('/{serie}/{sheet}/sections/{section}/rows/{row}/functional-rules', [CatalogController::class, 'saveRowFunctionalRules'])->name('row-functional-rules.save');
+                Route::get('/{serie}/{sheet}/sections/{section}/rows/{row}/functional-rules/versions', [CatalogController::class, 'getRowFunctionalVersions'])->name('row-functional-rules.versions');
+                Route::post('/{serie}/{sheet}/sections/{section}/scan-cells', [CatalogController::class, 'scanCells'])->name('scan-cells');
+                Route::post('/{serie}/{sheet}/scan-cells', [CatalogController::class, 'scanCells'])->name('scan-cells-sheet');
+                Route::get('/{serie}/{sheet}/sections/{section}/cell-data', [CatalogController::class, 'getCellData'])->name('cell-data');
+                Route::get('/{serie}/{ruleKey}', [CatalogController::class, 'show'])->name('show');
+                Route::post('/{serie}/{ruleKey}/status', [CatalogController::class, 'status'])->name('status');
+                Route::get('/{serie}/{ruleKey}/functional-rules', [CatalogController::class, 'getFunctionalRules'])->name('functional-rules');
+                Route::post('/{serie}/{ruleKey}/functional-rules', [CatalogController::class, 'saveFunctionalRules'])->name('functional-rules.save');
             });
         });
     });

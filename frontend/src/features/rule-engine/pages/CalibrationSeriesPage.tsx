@@ -25,7 +25,7 @@ export default function CalibrationSeriesPage() {
     queryFn: () => structuresService.get(structureId),
     enabled: Number.isFinite(structureId),
   })
-  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary()
+  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary(series)
   const sheetSummaries = useMemo(() => {
     if (structureId !== summary?.structure_id) return new Map<string, CalibrationSheetSummary>()
     return new Map(summary.sheets.map((s) => [s.sheet_name, s]))

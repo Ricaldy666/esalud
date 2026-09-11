@@ -17,7 +17,12 @@ import type { CalibrationStructureTotals } from '../types/calibration'
 export default function CalibrationDashboardPage() {
   const navigate = useNavigate()
   const { data, isLoading } = useStructures({ per_page: 100 })
-  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary()
+  // BM-2: esta pantalla lista plantillas de todas las series pero solo
+  // conoce un resumen a la vez (matcheado por structure_id, ver TemplateCard
+  // mas abajo) -- sin un selector de serie real, se pide explicitamente la
+  // serie A (unica con estructura activa hoy). Agregar resumenes por cada
+  // serie es una mejora futura, fuera de alcance de BM-2.
+  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary('A')
   const visibleStructures =
     data?.data.filter((structure) => structure.status !== 'superseded') ?? []
 

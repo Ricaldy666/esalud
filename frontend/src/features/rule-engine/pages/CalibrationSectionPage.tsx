@@ -31,7 +31,11 @@ export default function CalibrationSectionPage() {
   const isReadOnly = user?.roles.some((role) => READ_ONLY_ROLES.includes(role)) ?? false
   const [tab, setTab] = useState<TabView>('matrix')
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const { data: matrixData, isLoading: matrixLoading } = useCalibrationMatrix(sheet, section)
+  const { data: matrixData, isLoading: matrixLoading } = useCalibrationMatrix(
+    series,
+    sheet,
+    section
+  )
   const structureId = Number(templateId)
   const { data: structure } = useQuery({
     queryKey: ['calibration-template', structureId],
@@ -39,9 +43,9 @@ export default function CalibrationSectionPage() {
     enabled: Number.isFinite(structureId),
   })
   const { data: patternData, isLoading: patternLoading } = useQuery({
-    queryKey: ['pattern-matrix', sheet, section],
-    queryFn: () => calibrationService.getPatterns(sheet!, section!),
-    enabled: Boolean(sheet) && Boolean(section),
+    queryKey: ['pattern-matrix', series, sheet, section],
+    queryFn: () => calibrationService.getPatterns(series!, sheet!, section!),
+    enabled: Boolean(series) && Boolean(sheet) && Boolean(section),
     staleTime: 30_000,
   })
   const sections = useMemo(() => {
@@ -64,9 +68,9 @@ export default function CalibrationSectionPage() {
   const deferSummaries = readySection === section
   const sectionSummaries = useQueries({
     queries: sections.map((item) => ({
-      queryKey: ['pattern-matrix', sheet, item.codigo],
-      queryFn: () => calibrationService.getPatterns(sheet!, item.codigo),
-      enabled: Boolean(sheet) && item.codigo !== section && deferSummaries,
+      queryKey: ['pattern-matrix', series, sheet, item.codigo],
+      queryFn: () => calibrationService.getPatterns(series!, sheet!, item.codigo),
+      enabled: Boolean(series) && Boolean(sheet) && item.codigo !== section && deferSummaries,
       staleTime: 30_000,
     })),
   })
@@ -196,6 +200,7 @@ export default function CalibrationSectionPage() {
       {!patternLoading && patternData && !showAdvanced && (
         <>
           <QuickCalibrationPanel
+            serie={series ?? 'A'}
             sheet={sheet ?? 'A01'}
             section={section ?? 'A'}
             sectionTitle={currentSectionTitle}
@@ -209,6 +214,7 @@ export default function CalibrationSectionPage() {
             onNavigateSection={navigateToSection}
           />
           <RowFunctionalDecisionTable
+            serie={series ?? 'A'}
             sheet={sheet ?? 'A01'}
             section={section ?? 'A'}
             readOnly={isReadOnly}
@@ -227,12 +233,14 @@ export default function CalibrationSectionPage() {
               <SectionCalibrationTable
                 data={matrixData}
                 loading={matrixLoading}
+                serie={series}
                 sheet={sheet}
                 section={section}
               />
             </div>
           ) : (
             <PatternCalibrationSummary
+              serie={series ?? 'A'}
               sheet={sheet ?? 'A01'}
               section={section ?? 'A'}
               readOnly={isReadOnly}

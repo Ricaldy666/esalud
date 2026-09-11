@@ -34,6 +34,7 @@ function findNoCalibratableClosure(
 }
 
 interface Props {
+  serie: string
   sheet: string
   section: string
   sectionTitle?: string
@@ -47,6 +48,7 @@ interface Props {
 }
 
 export function NotCalibratableSectionPanel({
+  serie,
   sheet,
   section,
   sectionTitle,
@@ -67,10 +69,10 @@ export function NotCalibratableSectionPanel({
 
   const saveMutation = useMutation({
     mutationFn: (payload: CalibrationQuestion[]) =>
-      calibrationService.savePatternQuestions(sheet, section, payload),
+      calibrationService.savePatternQuestions(serie, sheet, section, payload),
     onSuccess: () => {
       toast.success('Sección cerrada: no requiere calibración funcional.')
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
       if (nextSection && onNavigateSection) onNavigateSection(nextSection)
     },
     onError: () => {

@@ -26,9 +26,14 @@ class CalibrationService
         return $query->orderBy('created_at', 'desc')->get();
     }
 
-    public function createDraft(User $user): Calibration
+    // string $serie = 'A' (BM-2, 2026-09-11): compatibilidad historica
+    // explicita -- createDraft() nunca recibia serie antes, y ningun
+    // consumidor actual (CalibrationController::store()) la pasa todavia.
+    // Generaliza la resolucion de estructura sin cambiar el comportamiento
+    // por defecto.
+    public function createDraft(User $user, string $serie = 'A'): Calibration
     {
-        $structure = $this->resolveActiveStructure();
+        $structure = $this->resolveActiveStructure($serie);
 
         $existing = Calibration::where('structure_id', $structure->id)
             ->where('hoja', 'A01')
@@ -45,7 +50,7 @@ class CalibrationService
 
         $calibration = Calibration::create([
             'structure_id' => $structure->id,
-            'serie' => 'A',
+            'serie' => $serie,
             'hoja' => 'A01',
             'anio' => $structure->anio,
             'version' => 1,
@@ -85,7 +90,8 @@ class CalibrationService
         try {
             $matrix = $this->matrixService->buildPatternMatrix(
                 $calibration->hoja,
-                $section
+                $section,
+                $calibration->serie ?? 'A'
             );
         } catch (\Throwable $e) {
             $matrix = [
@@ -176,9 +182,13 @@ class CalibrationService
         ]);
     }
 
-    private function resolveActiveStructure(): RemTemplateStructure
+    // string $serie (BM-2, 2026-09-11): antes hardcodeado a 'A'. Nunca cae
+    // a Serie A si se pide otra serie -- la consulta filtra exactamente por
+    // $serie, y la ausencia de estructura se reporta con el mensaje
+    // reflejando la serie realmente solicitada (nunca "serie A" a ciegas).
+    private function resolveActiveStructure(string $serie): RemTemplateStructure
     {
-        $structure = RemTemplateStructure::where('serie', 'A')
+        $structure = RemTemplateStructure::where('serie', $serie)
             ->where('status', 'active')
             ->orderByRaw('COALESCE(version_number, 0) DESC')
             ->orderBy('id', 'DESC')
@@ -186,7 +196,7 @@ class CalibrationService
 
         if (!$structure) {
             throw new \DomainException(
-                'No se encontró una estructura activa para la serie A. '
+                "No se encontró una estructura activa para la serie {$serie}. "
                 . 'Debe existir al menos una estructura con status=active en rem_template_structures.'
             );
         }

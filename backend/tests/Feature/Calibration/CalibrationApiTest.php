@@ -784,7 +784,7 @@ class CalibrationApiTest extends TestCase
         Storage::fake('local');
         Sanctum::actingAs($this->admin);
 
-        $response = $this->postJson('/api/v1/rule-engine/catalog/A01/sections/A/pattern-questions', [
+        $response = $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/A/pattern-questions', [
             'questions' => [
                 [
                     'id' => 'patron_1_empty',
@@ -837,7 +837,7 @@ class CalibrationApiTest extends TestCase
         ]));
         Sanctum::actingAs($this->admin);
 
-        $response = $this->postJson('/api/v1/rule-engine/catalog/A01/sections/A/pattern-questions', [
+        $response = $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/A/pattern-questions', [
             'questions' => [
                 [
                     'id' => 'patron_1_empty',
@@ -867,7 +867,7 @@ class CalibrationApiTest extends TestCase
         Storage::fake('local');
         Sanctum::actingAs($this->admin);
 
-        $response = $this->postJson('/api/v1/rule-engine/catalog/A01/sections/A/pattern-questions', [
+        $response = $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/A/pattern-questions', [
             'questions' => [
                 [
                     'id' => 'patron_1_empty',
@@ -935,7 +935,7 @@ class CalibrationApiTest extends TestCase
             ],
         ]));
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/A/row-functional-decisions');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/A/row-functional-decisions');
 
         $response->assertOk();
         $rows = collect($response->json('data.rows'))->keyBy('row');
@@ -965,7 +965,7 @@ class CalibrationApiTest extends TestCase
             ],
         ]));
 
-        $response = $this->postJson('/api/v1/rule-engine/catalog/A01/sections/A/rows/19/functional-rules', [
+        $response = $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/A/rows/19/functional-rules', [
             'empty_behavior' => 'heredar_seccion',
             'updated_by' => 'Analista Estadistica APS',
         ]);
@@ -1007,13 +1007,13 @@ class CalibrationApiTest extends TestCase
             ],
         ]));
 
-        $this->postJson('/api/v1/rule-engine/catalog/A01/sections/A/rows/17/functional-rules', [
+        $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/A/rows/17/functional-rules', [
             'empty_behavior' => 'debe_registrar_cero',
             'status' => 'aprobada',
             'updated_by' => 'Analista Estadistica APS',
             'functional_condition' => 'Debe registrar 0 segun criterio de Estadistica',
         ])->assertOk();
-        $this->postJson('/api/v1/rule-engine/catalog/A01/sections/A/rows/19/functional-rules', [
+        $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/A/rows/19/functional-rules', [
             'empty_behavior' => 'debe_registrar_cero',
             'status' => 'aprobada',
             'updated_by' => 'Analista Estadistica APS',
@@ -1034,7 +1034,7 @@ class CalibrationApiTest extends TestCase
         Sanctum::actingAs($this->admin);
         $this->createPatternStructure();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/A/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/A/patterns');
 
         $response->assertOk();
         $response->assertJsonCount(4, 'data.patterns');
@@ -1059,7 +1059,7 @@ class CalibrationApiTest extends TestCase
         $this->createPatternStructure();
         $this->putBCellData();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.section.codigo', 'B');
@@ -1151,7 +1151,7 @@ class CalibrationApiTest extends TestCase
             ],
         ]));
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/row-functional-decisions');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/row-functional-decisions');
 
         $response->assertOk();
         $rows = collect($response->json('data.rows'))->keyBy('row');
@@ -1176,7 +1176,7 @@ class CalibrationApiTest extends TestCase
         $this->createPatternStructure();
         $this->putDCellData();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/D/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/D/patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.section.codigo', 'D');
@@ -1206,7 +1206,7 @@ class CalibrationApiTest extends TestCase
         $this->assertNotContains('I', $patterns[0]['rows'][0]['functional_rules'][0]['origin_columns']);
         $this->assertNotContains('I', $patterns[0]['rows'][0]['functional_rules'][1]['origin_columns']);
 
-        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/D/matrix');
+        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/D/matrix');
 
         $matrixResponse->assertOk();
         $matrixRows = $matrixResponse->json('data.rows');
@@ -1228,7 +1228,7 @@ class CalibrationApiTest extends TestCase
         $this->createPatternStructure();
         $this->putECellData();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/E/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/E/patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.warnings', []);
@@ -1250,7 +1250,7 @@ class CalibrationApiTest extends TestCase
         $this->assertNotContains(77, $patterns[0]['filas']);
         $this->assertNotContains(83, $patterns[0]['filas']);
 
-        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/E/matrix');
+        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/E/matrix');
         $matrixResponse->assertOk();
 
         $matrixRows = $matrixResponse->json('data.rows');
@@ -1277,7 +1277,7 @@ class CalibrationApiTest extends TestCase
         $this->createPatternStructure();
         $this->putFCellData();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/F/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/F/patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.warnings', []);
@@ -1309,7 +1309,7 @@ class CalibrationApiTest extends TestCase
         $this->assertSame('AG', $response->json('data.column_groups.2.start_column'));
         $this->assertSame('AH', $response->json('data.column_groups.2.end_column'));
 
-        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/F/matrix');
+        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/F/matrix');
         $matrixResponse->assertOk();
         $matrixRows = $matrixResponse->json('data.rows');
         $this->assertSame([86, 87, 88, 89, 90, 91, 92, 93], array_column($matrixRows, 'row'));
@@ -1329,7 +1329,7 @@ class CalibrationApiTest extends TestCase
         $this->createPatternStructure();
         $this->putGCellData();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/G./patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/G./patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.warnings', []);
@@ -1362,7 +1362,7 @@ class CalibrationApiTest extends TestCase
         $this->assertSame('L', $response->json('data.column_groups.1.start_column'));
         $this->assertSame('L', $response->json('data.column_groups.1.end_column'));
 
-        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/G./matrix');
+        $matrixResponse = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/G./matrix');
         $matrixResponse->assertOk();
         $matrixRows = $matrixResponse->json('data.rows');
         $this->assertSame([95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 112], array_column($matrixRows, 'row'));
@@ -1381,7 +1381,7 @@ class CalibrationApiTest extends TestCase
         Sanctum::actingAs($this->admin);
         $this->createPatternStructure();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.patterns.0.source', 'structure_inferred');

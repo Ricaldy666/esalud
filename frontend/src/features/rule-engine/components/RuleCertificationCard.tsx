@@ -61,7 +61,9 @@ export function RuleCertificationCard({
   const handleStatusChange = async (estado: CertificationCardType['estado']) => {
     setSaving(true)
     try {
-      await certificationService.updateStatus(card.rule_key, {
+      // BM-2: sin selector de serie en esta pantalla todavia -- ver
+      // services/certification.ts para el detalle de por que 'A' es explicito.
+      await certificationService.updateStatus('A', card.rule_key, {
         estado,
         observaciones,
         certificado_por: certificadoPor,
@@ -78,7 +80,7 @@ export function RuleCertificationCard({
   const handleSaveObservaciones = async () => {
     setSaving(true)
     try {
-      await certificationService.updateStatus(card.rule_key, {
+      await certificationService.updateStatus('A', card.rule_key, {
         estado: card.estado,
         observaciones,
         certificado_por: certificadoPor,

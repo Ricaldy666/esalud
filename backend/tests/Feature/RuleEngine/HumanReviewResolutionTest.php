@@ -167,17 +167,17 @@ class HumanReviewResolutionTest extends TestCase
 
     private function fullReviewEndpoint(int $patternId = 1): string
     {
-        return "/api/v1/rule-engine/catalog/A01/sections/B/patterns/{$patternId}/mismatch-resolution/full-review";
+        return "/api/v1/rule-engine/catalog/A/A01/sections/B/patterns/{$patternId}/mismatch-resolution/full-review";
     }
 
     private function confirmEndpoint(int $patternId = 1): string
     {
-        return "/api/v1/rule-engine/catalog/A01/sections/B/patterns/{$patternId}/mismatch-resolution/confirm";
+        return "/api/v1/rule-engine/catalog/A/A01/sections/B/patterns/{$patternId}/mismatch-resolution/confirm";
     }
 
     private function detailsEndpoint(int $patternId = 1): string
     {
-        return "/api/v1/rule-engine/catalog/A01/sections/B/patterns/{$patternId}/mismatch-resolution";
+        return "/api/v1/rule-engine/catalog/A/A01/sections/B/patterns/{$patternId}/mismatch-resolution";
     }
 
     private function liveFingerprint(): string

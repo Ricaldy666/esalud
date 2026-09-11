@@ -23,6 +23,7 @@ import type {
 } from '../../types/calibration'
 
 interface Props {
+  serie: string
   sheet: string
   section: string
   patterns: PatternGroup[]
@@ -587,6 +588,7 @@ function groupRange(columnGroups: ColumnGroup[] | undefined, type: string) {
 }
 
 export default function FunctionalQuestionsPanel({
+  serie,
   sheet,
   section,
   patterns,
@@ -609,8 +611,8 @@ export default function FunctionalQuestionsPanel({
   // markPatternReviewed, markSectionReviewed, saveMutation) sigue exactamente
   // igual, sin ninguna rama condicional nueva sobre ellos.
   const migrationPlanQuery = useQuery({
-    queryKey: ['migration-plan', sheet, section],
-    queryFn: () => calibrationService.getMigrationPlan(sheet, section),
+    queryKey: ['migration-plan', serie, sheet, section],
+    queryFn: () => calibrationService.getMigrationPlan(serie, sheet, section),
     enabled: !readOnly,
     staleTime: 30_000,
   })
@@ -623,8 +625,9 @@ export default function FunctionalQuestionsPanel({
   )
   const resolutionDetailsQueries = useQueries({
     queries: mismatchPatternIds.map((patternId) => ({
-      queryKey: ['mismatch-resolution', sheet, section, patternId],
-      queryFn: () => calibrationService.getMismatchResolutionDetails(sheet, section, patternId),
+      queryKey: ['mismatch-resolution', serie, sheet, section, patternId],
+      queryFn: () =>
+        calibrationService.getMismatchResolutionDetails(serie, sheet, section, patternId),
       enabled: !readOnly,
     })),
   })
@@ -737,13 +740,13 @@ export default function FunctionalQuestionsPanel({
 
   const resolveHumanReviewMutation = useMutation({
     mutationFn: ({ patternId, questions }: { patternId: number; questions: HumanReviewAnswer[] }) =>
-      calibrationService.confirmHumanReviewResolution(sheet, section, patternId, questions),
+      calibrationService.confirmHumanReviewResolution(serie, sheet, section, patternId, questions),
     onSuccess: (_response, variables) => {
       toast.success(`Patrón ${variables.patternId} resuelto (revisión funcional completa).`)
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
-      queryClient.invalidateQueries({ queryKey: ['migration-plan', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['migration-plan', serie, sheet, section] })
       queryClient.invalidateQueries({
-        queryKey: ['mismatch-resolution', sheet, section, variables.patternId],
+        queryKey: ['mismatch-resolution', serie, sheet, section, variables.patternId],
       })
     },
     onError: (error: AxiosError<{ message?: string; errors?: string[] | null }>) => {
@@ -764,7 +767,7 @@ export default function FunctionalQuestionsPanel({
   const resolveHumanReviewForPattern = async (patternId: number) => {
     let existingQuestions: CalibrationQuestion[]
     try {
-      const result = await calibrationService.getQuestions(sheet, section)
+      const result = await calibrationService.getQuestions(serie, sheet, section)
       existingQuestions = result.questions
     } catch {
       toast.error('No se pudieron obtener las preguntas actuales del patrón.')
@@ -916,10 +919,10 @@ export default function FunctionalQuestionsPanel({
 
   const saveMutation = useMutation({
     mutationFn: (questions: CalibrationQuestion[]) =>
-      calibrationService.savePatternQuestions(sheet, section, questions),
+      calibrationService.savePatternQuestions(serie, sheet, section, questions),
     onSuccess: () => {
       toast.success('Respuestas guardadas correctamente')
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
     },
     onError: () => toast.error('Error al guardar respuestas'),
   })

@@ -126,12 +126,12 @@ class StructuralRowExclusionConfirmMechanism12Test extends TestCase
 
     private function detailsEndpoint(string $sheet, string $section, int $patternId): string
     {
-        return "/api/v1/rule-engine/catalog/{$sheet}/sections/{$section}/patterns/{$patternId}/mismatch-resolution";
+        return "/api/v1/rule-engine/catalog/A/{$sheet}/sections/{$section}/patterns/{$patternId}/mismatch-resolution";
     }
 
     private function confirmEndpoint(string $sheet, string $section, int $patternId): string
     {
-        return "/api/v1/rule-engine/catalog/{$sheet}/sections/{$section}/patterns/{$patternId}/mismatch-resolution/confirm";
+        return "/api/v1/rule-engine/catalog/A/{$sheet}/sections/{$section}/patterns/{$patternId}/mismatch-resolution/confirm";
     }
 
     private function liveFingerprint(string $sheet, string $section, int $patternId): string

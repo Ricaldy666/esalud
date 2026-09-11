@@ -139,7 +139,7 @@ class QuickRevalidationApiTest extends TestCase
 
     private function endpoint(int $patternId = 1): string
     {
-        return "/api/v1/rule-engine/catalog/A01/sections/B/patterns/{$patternId}/quick-revalidation";
+        return "/api/v1/rule-engine/catalog/A/A01/sections/B/patterns/{$patternId}/quick-revalidation";
     }
 
     public function test_quick_confirmation_valid_case_saves_v2_and_returns_ok(): void

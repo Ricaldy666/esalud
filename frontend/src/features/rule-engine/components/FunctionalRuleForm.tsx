@@ -45,7 +45,9 @@ export function FunctionalRuleForm({ ruleKey, initial, onSaved }: FunctionalRule
   const handleSave = async () => {
     setSaving(true)
     try {
-      await functionalRuleService.saveFunctionalRule(ruleKey, {
+      // BM-2: sin selector de serie en esta pantalla todavia -- ver
+      // services/functional-rule.ts para el detalle de por que 'A' es explicito.
+      await functionalRuleService.saveFunctionalRule('A', ruleKey, {
         empty_behavior: emptyBehavior || null,
         applies_to_types: appliesToTypes,
         included_health_centers: includedCenters

@@ -189,6 +189,7 @@ function RuleTechnicalDetails({ rule }: { rule: FunctionalRule }) {
 interface SectionCalibrationTableProps {
   data: CalibrationMatrixResponse | undefined
   loading: boolean
+  serie: string | undefined
   sheet: string | undefined
   section: string | undefined
 }
@@ -196,6 +197,7 @@ interface SectionCalibrationTableProps {
 export function SectionCalibrationTable({
   data,
   loading,
+  serie,
   sheet,
   section,
 }: SectionCalibrationTableProps) {
@@ -218,9 +220,9 @@ export function SectionCalibrationTable({
 
   // Questions
   const { data: questionsData } = useQuery({
-    queryKey: ['calibration-questions', sheet, section],
-    queryFn: () => calibrationService.getQuestions(sheet!, section!),
-    enabled: !!sheet && !!section && showQuestions,
+    queryKey: ['calibration-questions', serie, sheet, section],
+    queryFn: () => calibrationService.getQuestions(serie!, sheet!, section!),
+    enabled: !!serie && !!sheet && !!section && showQuestions,
   })
 
   const actualQuestions: CalibrationQuestion[] = questionsData?.questions ?? data?.questions ?? []
@@ -291,9 +293,9 @@ export function SectionCalibrationTable({
             <HelpCircle className="w-3.5 h-3.5" />
             Preguntas para Estadística ({actualQuestions.length})
           </button>
-          {sheet && section && (
+          {serie && sheet && section && (
             <a
-              href={calibrationService.getCalibrationExportUrl(sheet, section)}
+              href={calibrationService.getCalibrationExportUrl(serie, sheet, section)}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
@@ -307,6 +309,7 @@ export function SectionCalibrationTable({
       {showQuestions && (
         <QuestionsPanel
           questions={actualQuestions as EditableQuestion[]}
+          serie={serie}
           sheet={sheet}
           section={section}
           onClose={() => setShowQuestions(false)}
@@ -314,15 +317,18 @@ export function SectionCalibrationTable({
       )}
 
       {/* ── Bulk decision dialog ── */}
-      {showBulk && sheet && section && (
+      {showBulk && serie && sheet && section && (
         <BulkDecisionDialog
+          serie={serie}
           sheet={sheet}
           section={section}
           candidateRows={candidateRows}
           onClose={() => setShowBulk(false)}
           onSaved={() => {
             setShowBulk(false)
-            queryClient.invalidateQueries({ queryKey: ['calibration-matrix', sheet, section] })
+            queryClient.invalidateQueries({
+              queryKey: ['calibration-matrix', serie, sheet, section],
+            })
           }}
         />
       )}
@@ -385,6 +391,7 @@ export function SectionCalibrationTable({
                   <CalibrationRowComponent
                     key={r.row}
                     row={r}
+                    serie={serie ?? 'A'}
                     sheet={sheet ?? 'A01'}
                     section={section ?? 'A'}
                     isExpanded={expandedRow === r.row}
@@ -425,12 +432,14 @@ export function SectionCalibrationTable({
 
 function CalibrationRowComponent({
   row,
+  serie,
   sheet,
   section,
   isExpanded,
   onToggle,
 }: {
   row: CalibrationRow
+  serie: string
   sheet: string
   section: string
   isExpanded: boolean
@@ -596,6 +605,7 @@ function CalibrationRowComponent({
           <td colSpan={10} className="px-6 py-4">
             <RowDetailPanel
               row={row}
+              serie={serie}
               sheet={sheet}
               section={section}
               editing={editing}
@@ -667,12 +677,14 @@ function EvidenceBadge({ type }: { type: EvidenceType }) {
 
 function RowDetailPanel({
   row,
+  serie,
   sheet,
   section,
   editing,
   setEditing,
 }: {
   row: CalibrationRow
+  serie: string
   sheet: string
   section: string
   editing: boolean
@@ -707,7 +719,7 @@ function RowDetailPanel({
   const loadVersions = async () => {
     setLoadingVersions(true)
     try {
-      const res = await calibrationService.getRowFunctionalVersions(sheet, section, row.row)
+      const res = await calibrationService.getRowFunctionalVersions(serie, sheet, section, row.row)
       setVersions(res.versions)
     } catch {
       setVersions([])
@@ -848,6 +860,7 @@ function RowDetailPanel({
       {row.row_type === 'data' && (
         <FunctionalRuleEditor
           row={row}
+          serie={serie}
           sheet={sheet}
           section={section}
           editing={editing}
@@ -1005,12 +1018,14 @@ function RowDetailPanel({
 
 function FunctionalRuleEditor({
   row,
+  serie,
   sheet,
   section,
   editing,
   setEditing,
 }: {
   row: CalibrationRow
+  serie: string
   sheet: string
   section: string
   editing: boolean
@@ -1041,7 +1056,7 @@ function FunctionalRuleEditor({
     setSaveError('')
     setSaved(false)
     try {
-      await calibrationService.saveRowFunctionalRule(sheet, section, row.row, {
+      await calibrationService.saveRowFunctionalRule(serie, sheet, section, row.row, {
         empty_behavior: emptyBehavior || null,
         applies_to_types: [],
         included_health_centers: includedCenters
@@ -1358,11 +1373,13 @@ type EditableQuestion = CalibrationQuestion & {
 
 function QuestionsPanel({
   questions,
+  serie,
   sheet,
   section,
   onClose,
 }: {
   questions: EditableQuestion[]
+  serie: string | undefined
   sheet: string | undefined
   section: string | undefined
   onClose: () => void
@@ -1371,9 +1388,11 @@ function QuestionsPanel({
   const [localQuestions, setLocalQuestions] = useState<EditableQuestion[]>(questions)
 
   const saveMutation = useMutation({
-    mutationFn: () => calibrationService.saveQuestions(sheet!, section!, localQuestions),
+    mutationFn: () => calibrationService.saveQuestions(serie!, sheet!, section!, localQuestions),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calibration-questions', sheet, section] })
+      queryClient.invalidateQueries({
+        queryKey: ['calibration-questions', serie, sheet, section],
+      })
     },
   })
 
@@ -1511,6 +1530,7 @@ function QuestionsPanel({
 // ─── Bulk Decision Dialog ───────────────────────────────────────────
 
 interface BulkDecisionDialogProps {
+  serie: string
   sheet: string
   section: string
   candidateRows: number[]
@@ -1519,6 +1539,7 @@ interface BulkDecisionDialogProps {
 }
 
 function BulkDecisionDialog({
+  serie,
   sheet,
   section,
   candidateRows,
@@ -1545,7 +1566,7 @@ function BulkDecisionDialog({
 
   const mutation = useMutation({
     mutationFn: () =>
-      calibrationService.bulkFunctional(sheet, section, {
+      calibrationService.bulkFunctional(serie, sheet, section, {
         rowNumbers: affectedRows,
         empty_behavior: emptyBehavior || null,
         applies_to_types: appliesToTypes
@@ -1572,7 +1593,7 @@ function BulkDecisionDialog({
         status: 'propuesta',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['calibration-matrix', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['calibration-matrix', serie, sheet, section] })
       onSaved()
     },
   })

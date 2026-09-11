@@ -138,7 +138,7 @@ class MigrationPlanApiTest extends TestCase
 
     private function endpoint(string $sheet = 'A01', string $section = 'B'): string
     {
-        return "/api/v1/rule-engine/catalog/{$sheet}/sections/{$section}/migration-plan";
+        return "/api/v1/rule-engine/catalog/A/{$sheet}/sections/{$section}/migration-plan";
     }
 
     public function test_quick_confirmation_section_returns_full_plan(): void

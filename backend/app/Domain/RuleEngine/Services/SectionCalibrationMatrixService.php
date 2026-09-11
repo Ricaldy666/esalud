@@ -31,7 +31,19 @@ class SectionCalibrationMatrixService
      */
     private const CALIBRATION_SUMMARY_CACHE_TTL_SECONDS = 3600;
 
+    // $structureData: slot de override manual, exclusivo de
+    // seedStructureData() -- unico consumidor, gana sin condicion sobre
+    // cualquier estructura real (ver docblock de seedStructureData()). NO
+    // se usa para el cacheo automatico normal desde BM-2 -- ver
+    // $parsedStructureCache abajo.
     private ?array $structureData = null;
+    // BM-2 (2026-09-11): cache automatica keyeada por $structure->id --
+    // antes ($structureData compartido, sin key) una misma instancia
+    // resolviendo dos series distintas en el mismo ciclo de vida (ej. tests,
+    // o un futuro consumidor comparando series) podia devolver
+    // silenciosamente la estructura de la primera serie cacheada para la
+    // segunda. Ver parseEstructura().
+    private array $parsedStructureCache = [];
     private string $currentSheet = '';
 
     /**
@@ -155,10 +167,13 @@ class SectionCalibrationMatrixService
         $this->structureData = $estructura;
     }
 
-    public function buildMatrix(string $sheet, string $section): array
+    // string $serie = 'A' (BM-2, 2026-09-11): compatibilidad historica --
+    // todos los consumidores actuales (CatalogController) siguen sin pasar
+    // otra serie todavia.
+    public function buildMatrix(string $sheet, string $section, string $serie = 'A'): array
     {
         $this->currentSheet = $sheet;
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         if (!$structure) {
             return $this->emptyMatrix($sheet, $section, 'not_found', [
                 'No se encontro una estructura activa para construir la matriz de calibracion.',
@@ -375,9 +390,9 @@ class SectionCalibrationMatrixService
      * enriquecimiento por fila -- ambos ausentes en el resultado porque
      * evaluateFunctionalRules() nunca los lee.
      */
-    public function getPatternsForValidation(string $sheet, string $section): array
+    public function getPatternsForValidation(string $sheet, string $section, string $serie = 'A'): array
     {
-        $matrix = $this->buildMatrix($sheet, $section);
+        $matrix = $this->buildMatrix($sheet, $section, $serie);
         if (($matrix['section']['status'] ?? 'ok') !== 'ok') {
             return [];
         }
@@ -390,7 +405,7 @@ class SectionCalibrationMatrixService
             );
         }
 
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         $est = $structure ? $this->parseEstructura($structure) : null;
         $sectionData = $est ? $this->findSection($est, $sheet, $section) : null;
 
@@ -545,9 +560,9 @@ class SectionCalibrationMatrixService
         return 'fpv2_' . substr(hash('sha256', $canonico), 0, 16);
     }
 
-    public function buildPatternMatrix(string $sheet, string $section): array
+    public function buildPatternMatrix(string $sheet, string $section, string $serie = 'A'): array
     {
-        $matrix = $this->buildMatrix($sheet, $section);
+        $matrix = $this->buildMatrix($sheet, $section, $serie);
         if (($matrix['section']['status'] ?? 'ok') !== 'ok') {
             return [
                 'section' => $matrix['section'],
@@ -580,7 +595,7 @@ class SectionCalibrationMatrixService
             ];
         }
 
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         $est = $structure ? $this->parseEstructura($structure) : null;
         $sectionData = $est ? $this->findSection($est, $sheet, $section) : null;
 
@@ -820,18 +835,35 @@ class SectionCalibrationMatrixService
      * cuentan por separado solo para presentacion, nunca se resta una de
      * la otra del total de completadas.
      */
-    public function buildStructureCalibrationSummary(): array
+    // string $serie = 'A' (BM-2, 2026-09-11): compatibilidad historica
+    // OBLIGATORIA aqui, no solo por conveniencia -- CALIBRATION_SUMMARY_CACHE_KEY
+    // es una constante PUBLICA leida por Cache::forget() desde otros 4
+    // archivos (StructureApprovalService, FunctionalRuleService x3,
+    // RemSheetUsageStatusService), ninguno de los cuales forma parte del
+    // alcance autorizado de BM-2. Para serie='A' la clave de cache queda
+    // exactamente igual que antes (esos 5 call sites de Cache::forget()
+    // siguen invalidando lo mismo que siempre, sin tocarlos). Para
+    // cualquier otra serie se deriva una clave propia, aislada -- nunca
+    // colisiona con la de Serie A. Invalidar el resumen de una serie
+    // distinta de A queda pendiente de una fase futura que sí toque esos
+    // 4 archivos (no hay nada que invalidar todavia: ninguna serie
+    // distinta de A tiene estructura activa hoy).
+    public function buildStructureCalibrationSummary(string $serie = 'A'): array
     {
+        $cacheKey = $serie === 'A'
+            ? self::CALIBRATION_SUMMARY_CACHE_KEY
+            : self::CALIBRATION_SUMMARY_CACHE_KEY . ':' . $serie;
+
         return Cache::remember(
-            self::CALIBRATION_SUMMARY_CACHE_KEY,
+            $cacheKey,
             self::CALIBRATION_SUMMARY_CACHE_TTL_SECONDS,
-            fn () => $this->computeStructureCalibrationSummary(),
+            fn () => $this->computeStructureCalibrationSummary($serie),
         );
     }
 
-    private function computeStructureCalibrationSummary(): array
+    private function computeStructureCalibrationSummary(string $serie = 'A'): array
     {
-        $structure = $this->getActiveStructure();
+        $structure = $this->getActiveStructure($serie);
         if (!$structure) {
             return [
                 'structure_id' => null,
@@ -890,7 +922,7 @@ class SectionCalibrationMatrixService
             foreach ($sectionsInSheet as $sec) {
                 $codigo = $sec['codigo'];
 
-                $matrix = $this->buildPatternMatrix($sheetName, $codigo);
+                $matrix = $this->buildPatternMatrix($sheetName, $codigo, $serie);
                 $counters['sections_total']++;
 
                 $completed = $matrix['reconciliation']['effective_section_reviewed'] ?? false;
@@ -2449,9 +2481,9 @@ class SectionCalibrationMatrixService
         return $name;
     }
 
-    public function getRowDetail(string $sheet, string $section, int $row): ?array
+    public function getRowDetail(string $sheet, string $section, int $row, string $serie = 'A'): ?array
     {
-        $matrix = $this->buildMatrix($sheet, $section);
+        $matrix = $this->buildMatrix($sheet, $section, $serie);
         foreach ($matrix['rows'] as $r) {
             if ((int) $r['row'] === $row) return $r;
         }
@@ -3573,22 +3605,36 @@ class SectionCalibrationMatrixService
         return $found;
     }
 
-    private function getActiveStructure(): ?RemTemplateStructure
+    // string $serie (BM-2, 2026-09-11): antes hardcodeado a 'A' (anio se
+    // mantiene fijo a 2026 -- fuera del alcance de esta generalizacion,
+    // explicitamente acotada a serie). Nunca cae a Serie A si se pide otra
+    // serie: la consulta filtra exactamente por $serie y simplemente
+    // devuelve null si no hay estructura activa para ella -- cada llamador
+    // publico (buildMatrix/buildPatternMatrix/getPatternsForValidation/
+    // getRowDetail/computeStructureCalibrationSummary) ya maneja ese null
+    // con una respuesta controlada propia, sin cambios de comportamiento.
+    private function getActiveStructure(string $serie = 'A'): ?RemTemplateStructure
     {
         return RemTemplateStructure::where('anio', 2026)
-            ->where('serie', 'A')
+            ->where('serie', $serie)
             ->where('status', 'active')
             ->first();
     }
 
     private function parseEstructura(RemTemplateStructure $structure): ?array
     {
+        // Override manual de seedStructureData() -- gana siempre, sin
+        // importar que estructura real se pase (comportamiento sin cambios).
         if ($this->structureData !== null) return $this->structureData;
+
+        if (isset($this->parsedStructureCache[$structure->id])) {
+            return $this->parsedStructureCache[$structure->id];
+        }
         $est = is_string($structure->estructura) ? json_decode($structure->estructura, true) : $structure->estructura;
         if (!is_array($est) || !isset($est['forms']) || !is_array($est['forms'])) {
             return null;
         }
-        $this->structureData = $est;
+        $this->parsedStructureCache[$structure->id] = $est;
         return $est;
     }
 

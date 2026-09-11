@@ -19,6 +19,7 @@ interface QuickRevalidationErrorResponse {
 }
 
 interface Props {
+  serie: string
   sheet: string
   section: string
   sectionTitle?: string
@@ -49,6 +50,7 @@ function rowsText(rows: number[]): string {
 }
 
 export function QuickRevalidationPanel({
+  serie,
   sheet,
   section,
   sectionTitle,
@@ -68,11 +70,11 @@ export function QuickRevalidationPanel({
 
   const confirmMutation = useMutation({
     mutationFn: (patternId: number) =>
-      calibrationService.confirmQuickRevalidation(sheet, section, patternId),
+      calibrationService.confirmQuickRevalidation(serie, sheet, section, patternId),
     onSuccess: (_data, patternId) => {
       toast.success(`Patrón ${patternId} confirmado.`)
-      queryClient.invalidateQueries({ queryKey: ['migration-plan', sheet, section] })
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['migration-plan', serie, sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
     },
     onError: (error: AxiosError<QuickRevalidationErrorResponse>) => {
       const category = error.response?.data?.data?.category
@@ -82,7 +84,7 @@ export function QuickRevalidationPanel({
             ? `Esta sección cambió (ahora es ${category}) y ya no admite confirmación rápida. Debe revisarse completa.`
             : 'Esta sección cambió desde que se cargó y ya no admite confirmación rápida.'
         )
-        queryClient.invalidateQueries({ queryKey: ['migration-plan', sheet, section] })
+        queryClient.invalidateQueries({ queryKey: ['migration-plan', serie, sheet, section] })
         return
       }
       toast.error(error.response?.data?.message ?? 'No se pudo confirmar la revalidación rápida.')

@@ -20,12 +20,17 @@ class CellScanOrchestrator
         $this->cellDataStorage = $cellDataStorage ?? new CellDataStorageService();
     }
 
+    // string $serie = 'A' (BM-2, 2026-09-11): compatibilidad historica --
+    // ignorado por completo si $structureId ya viene explicito (el caso ya
+    // usado por RemScanCellsCommand --structure=). Nunca cae a Serie A si
+    // se pide otra serie sin estructura explicita.
     public function scan(
         string $sheet,
         string $section,
         ?int $structureId = null,
+        string $serie = 'A',
     ): array {
-        $structureId = $structureId ?? $this->findActiveStructureId();
+        $structureId = $structureId ?? $this->findActiveStructureId($serie);
         $structure = RemTemplateStructure::withTrashed()->findOrFail($structureId);
 
         $filePath = $this->resolveFilePath($structure);
@@ -56,9 +61,9 @@ class CellScanOrchestrator
         }
     }
 
-    public function scanAllSections(string $sheet): array
+    public function scanAllSections(string $sheet, string $serie = 'A'): array
     {
-        $structureId = $this->findActiveStructureId();
+        $structureId = $this->findActiveStructureId($serie);
         $structure = RemTemplateStructure::withTrashed()->findOrFail($structureId);
 
         $filePath = $this->resolveFilePath($structure);
@@ -93,15 +98,18 @@ class CellScanOrchestrator
         }
     }
 
-    private function findActiveStructureId(): int
+    // string $serie (BM-2, 2026-09-11): antes hardcodeado a 'A'. La
+    // ausencia de estructura se reporta con el mensaje reflejando la serie
+    // realmente solicitada -- nunca cae a Serie A.
+    private function findActiveStructureId(string $serie): int
     {
         $structure = RemTemplateStructure::where('anio', 2026)
-            ->where('serie', 'A')
+            ->where('serie', $serie)
             ->where('status', 'active')
             ->first();
 
         if (!$structure) {
-            throw new \RuntimeException('No hay estructura activa para 2026/Serie A');
+            throw new \RuntimeException("No hay estructura activa para 2026/Serie {$serie}");
         }
 
         return $structure->id;

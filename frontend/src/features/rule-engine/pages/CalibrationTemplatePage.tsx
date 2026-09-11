@@ -16,7 +16,9 @@ export default function CalibrationTemplatePage() {
     queryFn: () => structuresService.get(structureId),
     enabled: Number.isFinite(structureId),
   })
-  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary()
+  // BM-2: no hay :serie en la ruta de esta pantalla, pero la estructura
+  // cargada arriba trae `serie` real -- se usa esa, no un literal 'A'.
+  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary(structure?.serie)
   const totals = structureId === summary?.structure_id ? summary.totals : undefined
 
   return (

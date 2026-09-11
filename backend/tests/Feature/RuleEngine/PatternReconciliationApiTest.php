@@ -111,7 +111,7 @@ class PatternReconciliationApiTest extends TestCase
         $this->createStructure();
         $this->putCellData();
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.patterns.0.pattern_rows', [36, 37, 38, 39]);
@@ -141,7 +141,7 @@ class PatternReconciliationApiTest extends TestCase
         $fingerprint = app(\App\Domain\RuleEngine\Services\SectionCalibrationMatrixService::class)
             ->buildPatternMatrix('A01', 'B')['patterns'][0]['row_fingerprint'];
 
-        $save = $this->postJson('/api/v1/rule-engine/catalog/A01/sections/B/pattern-questions', [
+        $save = $this->postJson('/api/v1/rule-engine/catalog/A/A01/sections/B/pattern-questions', [
             'questions' => [[
                 'id' => 'patron_1_empty',
                 'type' => 'pattern_question',
@@ -161,7 +161,7 @@ class PatternReconciliationApiTest extends TestCase
         $this->assertSame($fingerprint, $stored['_questions']['A01_B'][0]['pattern_fingerprint']);
         $this->assertSame([36, 37, 38, 39], $stored['_questions']['A01_B'][0]['pattern_rows']);
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns');
         $response->assertJsonPath('data.patterns.0.reconciliation_status', 'reviewed');
         $response->assertJsonPath('data.patterns.0.backfill_status', 'fingerprint_native');
     }
@@ -192,7 +192,7 @@ class PatternReconciliationApiTest extends TestCase
             ],
         ]));
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns');
 
         $response->assertOk();
         $response->assertJsonPath('data.patterns.0.reconciliation_status', 'requiere_revalidacion');
@@ -224,7 +224,7 @@ class PatternReconciliationApiTest extends TestCase
             ],
         ]));
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns');
 
         $response->assertJsonPath('data.patterns.0.reconciliation_status', 'reviewed');
         $response->assertJsonPath('data.patterns.0.backfill_status', 'legacy_unmigrated');
@@ -259,7 +259,7 @@ class PatternReconciliationApiTest extends TestCase
             ],
         ]));
 
-        $response = $this->getJson('/api/v1/rule-engine/catalog/A01/sections/B/patterns');
+        $response = $this->getJson('/api/v1/rule-engine/catalog/A/A01/sections/B/patterns');
 
         // La marca historica se preserva tal cual...
         $response->assertJsonPath('data.reconciliation.historical_section_reviewed', true);

@@ -9,7 +9,9 @@ export default function RuleCertificationDetailPage() {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['rule-certification', ruleKey],
-    queryFn: () => certificationService.get(ruleKey!),
+    // BM-2: sin selector de serie en esta pantalla todavia -- ver
+    // services/certification.ts para el detalle de por que 'A' es explicito.
+    queryFn: () => certificationService.get('A', ruleKey!),
     enabled: !!ruleKey,
   })
 
