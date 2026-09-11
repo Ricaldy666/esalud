@@ -39,8 +39,8 @@
 | Bindings activos a estructura 67 | **451** |
 | Estructura activa | **id=67, version=35 (67/v35)** |
 | `rem_technical_totals` | **276** (incluye 150 de la carga de certificación 187) |
-| `rem_data` | **403.247** |
-| `uploads` | **146** (incluye `upload_id=187`) |
+| `rem_data` | **420.427** (recontado 2026-09-11 en microauditoría A30, ver checkpoint abajo; sube por cargas de prueba locales posteriores al cierre de REM A, no afecta reglas/bindings/estructura/certificación) |
+| `uploads` | **152** (incluye `upload_id=187`; recontado 2026-09-11) |
 
 ### Fases cerradas — no repetir sin autorización explícita
 
@@ -56,8 +56,8 @@
 
 - **Regla `229`** (`A09/I`, columna AR, offset/`total_row=333`) — bloqueada por `AR337`, una referencia espuria e inocua (matemáticamente = 0) del template Excel de origen a una celda vacía fuera de toda sección. 4 opciones de tratamiento documentadas (archivo histórico Fase 3, punto 17.28.4), ninguna elegida. **No tocar `AR337` ni la fila 333 de `A09/I`.**
 - **Regla `230`** (`A09/I`, columna AS) — mapeo disperso ambiguo entre sus 6 posibles combinaciones periódicas (1 completa/limpia ya resuelta, 4 parciales, 1 con término mal referenciado). Requiere decisión funcional de Estadística APS, no resoluble con más evidencia técnica. **No decidir automáticamente su destino.**
-- **`A30/C pattern_id=1`** — único `MISMATCH` de calibración en toda la Serie A. Columnas J/K/L nuevas (bloque "Modalidad", Nivel Primario) sin decisión histórica — requiere calibración funcional de Estadística APS desde la interfaz ordinaria de ATHENEA, no una decisión de este asistente.
-- **56 secciones `NO_UTILIZADA`** (hojas A21, A24, A25, A30AR, A34) — fuera de alcance de cualquier campaña mientras Estadística APS no las reactive vía `rem:set-sheet-usage-status`.
+- **`A30/C pattern_id=1`** — único `MISMATCH` de calibración en toda la Serie A. Columnas J/K/L nuevas (bloque "Modalidad", Nivel Primario) sin decisión histórica — requiere calibración funcional de Estadística APS desde la interfaz ordinaria de ATHENEA, no una decisión de este asistente. **Confirmado vigente por microauditoría 2026-09-11** (ver checkpoint "MICROAUDITORÍA — 2026-09-11" en "Próximo paso vigente"): el `pattern_fingerprint` canónico v2 almacenado (`fpv2_5c40135e1604294b`, respondido bajo estructura histórica 52) difiere del actual contra 67/v35 (`fpv2_c07217a0385bd413`); `mismatch-resolution-audit.json` lo clasifica `human_review`, no resuelto. **Cobertura funcional 7/7 ≠ cierre técnico del patrón** — el resumen agregado (`rem:calibration_summary`) puede mostrar la sección como "completada" igual, por un gap de diseño ya documentado (mismo checkpoint) en `buildStructureCalibrationSummary()`.
+- **75 secciones `NO_UTILIZADA`** (hojas A21, A24, A25, A30AR, A34) — fuera de alcance de cualquier campaña mientras Estadística APS no las reactive vía `rem:set-sheet-usage-status`.
 - **14 reglas `DUPLICATE`** (`24,553,557,558,559,617,585,602,560,618,29,580,126,127`) — 8 son deuda de catálogo confirmada (duplicado exacto o subset/superseded, sin funcionalidad real faltante); 6 (`A01/A/C`: `24,553,557,558,559,617`) son genuinamente ambiguas (rangos de fila solapados, mezcla de proveniencia `csv_catalog`/`vetted_catalog`) y requieren revisión humana opcional, no automatizable.
 - **Reglas `130`/`133`** — artefactos autorreferenciales rotos (`Suma(D)=Columna D`, 100% `skipped` en su historial), candidatas a `status=inactive`, no desactivadas, no urgente.
 - **Flakiness de tests ya documentada** (punto 17.39.5 del archivo histórico) — 9 fallos "flaky/order-dependent" al correr la suite completa en un solo proceso (no aparecen si el archivo se corre aislado), no atribuibles a ningún cambio de código, no investigados, no bloqueantes.
@@ -92,7 +92,7 @@ Ninguno de los 4 debe tocarse, comitearse ni borrarse sin autorización explíci
 
 ### C. Ítems congelados, sin resolver, sin fecha (ver "Pendientes conocidos" arriba para el detalle)
 
-- `A09/I` fila 333 / `AR337`, regla 229 offset 333, regla 230 (mapeo ambiguo), reglas 228/233 (combinaciones inexistentes en el template), las 9 reglas origen de A09/I (`226-234`, expansión parcial permanente — no escribir campos nuevos ni cambiar su `status`), `A30/C` P1, `A05/V`, `A30/D`, `A25/B` (354, `no_utilizada`), las 56 secciones `no_utilizada`, las 14 reglas `DUPLICATE`, las reglas `130`/`133`.
+- `A09/I` fila 333 / `AR337`, regla 229 offset 333, regla 230 (mapeo ambiguo), reglas 228/233 (combinaciones inexistentes en el template), las 9 reglas origen de A09/I (`226-234`, expansión parcial permanente — no escribir campos nuevos ni cambiar su `status`), `A30/C` P1, `A05/V`, `A30/D`, `A25/B` (354, `no_utilizada`), las 75 secciones `no_utilizada`, las 14 reglas `DUPLICATE`, las reglas `130`/`133`.
 - Gaps de diseño documentados sin corregir: guard de `rule:remap-section` (colisión post-remap), rangos `{N,0}`/invertidos del clasificador, heurístico de etiqueta `pareceEtiquetaTotalMatrix()` (mecanismo #6), uso de los campos diagnósticos de Fase 1 fuera de los comandos auditados, validación estricta de `discoverTotalRowCandidate()`, y el diseño residual de múltiples agregaciones (`config['aggregations']`/listas de filas) para B2/B3/CategoríaF.
 
 ### D. Fuera del working tree del motor (Fase 17.55/17.56)
@@ -194,6 +194,37 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 **Propuesta de mensaje de commit** (no ejecutado): `feat(security): harden auth:reset-admin, add rate limiting, implement TOTP 2FA` — cuerpo resume Seguridad 1 (hardening + rate limiting) y Seguridad 2 (TOTP/2FA completo), cierra con conteo de tests/regresión y confirmación de que ningún usuario real quedó enrolado.
 
 ## Próximo paso vigente
+
+### MICROAUDITORÍA — 2026-09-11, `A30/C pattern_id=1` — MISMATCH TÉCNICO CONFIRMADO VIGENTE (leer esto primero, antes que todo lo de abajo)
+
+**Veredicto: `A30_C_MISMATCH_TECNICO_VIGENTE`.** Microauditoría 100% read-only (sin `Cache::forget`, sin recalibrar, sin tocar código/reglas/bindings/estructura/artefactos de certificación/`reglas-funcionales.json`/`cell-data`/BD/producción — únicas operaciones: `SELECT` y cálculo en memoria vía `buildPatternMatrix()`, que no escribe nada) que cierra la duda dejada abierta por la reconexión de contexto previa (misma fecha) sobre si `A30/C pattern_id=1` seguía técnicamente pendiente o si `CLAUDE.md` había quedado desactualizado. Resultado: **`CLAUDE.md` tenía razón en el fondo — `A30/C pattern_id=1` sigue con un MISMATCH técnico real, sin resolver.** La sospecha de la reconexión previa (de que A30 podría estar cerrada sin documentarse) queda descartada con evidencia.
+
+**Por qué el resumen agregado (`rem:calibration_summary` / dashboard) puede mostrar `A30: 7/7, 100%, completada` y la sección seguir pendiente — no son cifras contradictorias, son dos chequeos distintos, ambos ya existentes en el código:**
+- `SectionCalibrationMatrixService::buildStructureCalibrationSummary()` decide "completada" usando `$matrix['reconciliation']['effective_section_reviewed']`, que viene de `PatternReconciliationService::reconcileLive()` (**v1**) — compara **únicamente el conjunto de filas** del patrón. Para `A30/C pattern_id=1` las filas (81–89, 92, 93) no cambiaron → v1 marca "reviewed" → el agregado cuenta la sección como completada.
+- El propio `buildPatternMatrix()` calcula además `calibration_applicability` (chequeo más completo, incluye columnas/editabilidad) — para esta misma sección, calculado ahora en vivo contra 67/v35: `status: "requires_calibration"`, `reason: "Existen celdas editables (ej. B81) que requieren calibración funcional."`, `criteria.no_editable_cells: false`. **El agregado (`rem:calibration_summary`) no consume este campo**, solo el de reconciliación v1.
+- **`COBERTURA FUNCIONAL 7/7 ≠ CIERRE TÉCNICO DEL PATRÓN.`** Las 6 preguntas del patrón 1 (`patron_1_empty`, `patron_1_all_est`, `patron_1_exceptions`, `patron_1_inconsistency`, `patron_1_formula_confirmation`, y la de aplicabilidad) están `review_status: reviewed` porque responden a la estructura histórica (52/v24); nunca se volvieron a plantear contra las columnas nuevas de la estructura activa (67/v35).
+
+**Evidencia exacta verificada:**
+
+| Campo | Almacenado (respuesta funcional — Francisco Arcos, 2026-08-10, revalidada 2026-08-18) | Actual (calculado en vivo contra 67/v35, 2026-09-11) |
+|---|---|---|
+| `pattern_fingerprint` (v2, canónico) | `fpv2_5c40135e1604294b` | `fpv2_c07217a0385bd413` — **distinto** |
+| `row_fingerprint` (v1, solo filas) | (no almacenado en la pregunta) | `rowset_7190d0f59749249f` — idéntico al histórico, por eso v1 dice "reviewed" |
+| `structure_version` de la respuesta | `"52"` | estructura activa **67/v35** |
+| Filas del patrón (`pattern_rows`) | 81,82,83,84,85,86,87,88,89,92,93 | idénticas |
+
+- **Columnas nuevas**: `J/K/L` (bloque "Modalidad" — J=Institucional, K=Compra de Servicio/Sistema, L=Compra de Servicio/Extrasistema, Nivel Primario) existen en la estructura activa 67/v35 (`esTotal:false`, `esControlOculto:false`, confirmado leyendo el JSON de la estructura) y **no existían** en la estructura histórica 52/v24 (saltaba de I a M). Verificado también en `cell-data/A30-C.json`: `J81/K81/L81/J93/K93/L93` son **genuinamente editables** (`es_editable:true`, `esta_bloqueada:false`, `es_formula:false`, `formula:null`) — no son fórmulas, totales, subtotales ni columnas auxiliares.
+- `mismatch-resolution-audit.json`, entrada `A30_C_rowset_7190d0f59749249f` (`pattern_id: 1`), clasificada **`human_review`** (2026-08-26, "Administrador Esalud") — a diferencia de sus dos vecinos auditados el mismo día (`A30/C pattern_id=2` y `A30/A pattern_id=1`, ambos `safe_reconfirm`, con evidencia de que sus columnas J/K/L equivalentes están bloqueadas o de que no hubo cambio de columnas respectivamente). Cita textual del registro: *"Se requiere decisión funcional explícita de Estadística APS sobre si estas 3 columnas deben capturarse para Nivel Primario."* Se revisaron 138 cargas históricas reales (1518 filas, rango 81–93): la clave J/K/L está ausente del 100% de los valores — no existe evidencia histórica de la que heredar automáticamente una respuesta. **Ningún registro posterior (en `reglas-funcionales.json`, `mismatch-resolution-audit.json` ni `cell-data/`) resuelve esta clasificación.**
+
+**Gap de diseño registrado — solo documentado, NO corregir código sin autorización explícita aparte:** `SectionCalibrationMatrixService::buildStructureCalibrationSummary()` (el método detrás de `rem:calibration_summary` y del resumen agregado del dashboard) decide completitud de sección con `effective_section_reviewed` (reconciliación v1, basada solo en el conjunto de filas) en vez de con `calibration_applicability`/el fingerprint canónico v2 (que sí detecta cambios de columna/editabilidad). Efecto: una sección puede reportarse "100% completada" en el agregado mientras el propio sistema, en el mismo cálculo, ya sabe vía `calibration_applicability` que requiere calibración. Ya ocurrió con `A30/C pattern_id=1`. No se investigó si existen otras secciones con el mismo gap — el alcance de esta microauditoría fue exclusivamente `A30/C`.
+
+**Corrección de continuidad — no declarar la calibración funcional de Serie A como completamente cerrada mientras esto siga así.** Los checkpoints "2026-09-04, DECISIÓN DE ROADMAP" y "2026-09-03, ACTUALIZACIÓN FINAL DEL DÍA" (ambos más abajo) ya listaban `A30/C pattern_id=1` como congelado pendiente de Estadística APS en su punto correspondiente — ahí siguen correctos y no se reescriben. Lo que se corrige aquí es la lectura suelta del **agregado "7/7 / 100% / completada"** de `A30` que esos mismos checkpoints citan de pasada como si fuera evidencia de cierre: no lo es (ver gap de diseño arriba). El `A30 6/7` que muestra el checkpoint de incidente 2026-09-07 (producción, estructura 19/v33) y el `A30 7/7` observado en local (estructura 67/v35) son el mismo indicador agregado con el mismo gap en dos entornos distintos — no una contradicción entre ellos, ni evidencia de que uno de los dos esté "más cerrado". Mientras `A30/C pattern_id=1` mantenga su clasificación `human_review` sin decisión de Estadística APS, la calibración funcional de Serie A **no debe describirse como "terminada" sin esta salvedad** — sigue teniendo 1 pendiente técnico real además de `A05/V`.
+
+**Contadores corregidos en esta pasada** (recontados en vivo 2026-09-11, sin relación causal con el hallazgo de A30 — ver también el baseline al inicio del archivo): secciones `NO_UTILIZADA` **56→75** (5 hojas: A21 15, A24 14, A25 20, A30AR 15, A34 11 — el valor correcto ya aparecía desde el checkpoint 2026-09-04 más abajo; el `56` de "Pendientes conocidos" y de "Prohibiciones vigentes / C" había quedado desactualizado y ya se corrigió ahí); `uploads` **146→152**; `rem_data` **403.247→420.427** (cargas de prueba locales posteriores al cierre de REM A — reglas, bindings, estructura activa y certificación permanecen idénticos, ver baseline).
+
+**`A05/V` no fue objeto de esta microauditoría** — se mantiene como pendiente real independiente, sin cambios, tal como ya documentado.
+
+**Nada de esta microauditoría ni de esta actualización documental tocó código/BD/reglas/bindings/estructura/`reglas-funcionales.json`/`cell-data`/`mismatch-resolution-audit.json`/caché/tests/producción — 100% lectura + esta edición de `CLAUDE.md`.**
 
 ### CIERRE DE INCIDENTE — 2026-09-07, `rem:calibration_summary` / permisos `certificacion/cell-data/` (leer esto primero, antes que el checkpoint de 2026-09-04 de abajo)
 
