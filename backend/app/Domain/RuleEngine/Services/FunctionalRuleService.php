@@ -375,6 +375,187 @@ class FunctionalRuleService
         return $existing;
     }
 
+    /**
+     * Resuelve formalmente un patron clasificado MISMATCH + human_review
+     * (2026-09-11, diseño auditado por el usuario): a diferencia de
+     * applyQuickRevalidation() (que NUNCA toca response/reviewed_by/
+     * reviewed_at/review_status -- exclusivo para safe_reconfirm/
+     * structural_row_exclusion, donde la respuesta original se conserva tal
+     * cual), este metodo SI reemplaza la decision funcional del patron --
+     * exige una respuesta nueva completa, y junto con ella escribe el
+     * fingerprint/filas/version de estructura ACTUALES.
+     *
+     * El fingerprint/filas/version de estructura llegan como parametros ya
+     * calculados y verificados por el llamador (CalibrationViewController::
+     * confirmHumanReviewResolution(), via PatternMigrationScanner::
+     * scanSection() en vivo) -- este metodo NUNCA los recalcula ni confia en
+     * ningun valor que pudiera venir del cliente ($newQuestions solo trae
+     * id/response/observation/review_status por pregunta, nunca metadata
+     * tecnica). Misma division de responsabilidades que ya usa
+     * applyQuickRevalidation()/confirmMismatchResolution(): el controlador
+     * gatea y recalcula en vivo, el servicio solo persiste lo ya verificado.
+     *
+     * Nota de diseño: este servicio NO puede depender de
+     * SectionCalibrationMatrixService/PatternMigrationScanner para
+     * recalcular esto por si mismo -- ambos ya dependen (constructor) de
+     * FunctionalRuleService, un ciclo de inyeccion de dependencias real, no
+     * hipotetico (verificado leyendo ambos constructores antes de diseñar
+     * esto). Por eso el calculo vive en el controlador, igual que
+     * confirmMismatchResolution() ya hace para applyQuickRevalidation().
+     *
+     * Preserva la decision anterior completa en _questions_history: una
+     * entrada 'response_changed'-style (mismo mecanismo generico y formato
+     * que ya usa saveQuestions()) por cada pregunta cuya respuesta cambio,
+     * MAS una entrada agregada 'human_review_resolution' con
+     * fingerprint/structure_version antes y despues -- trazabilidad exacta
+     * de que reemplazo a que, sin ambigüedad.
+     *
+     * mismatch-resolution-audit.json NUNCA se toca desde aqui -- mismo
+     * comportamiento que ya tiene confirmMismatchResolution() para
+     * safe_reconfirm: el tag queda como registro historico inerte, sin
+     * ningun consumidor una vez que el patron deja de estar en MISMATCH
+     * (PatternMigrationScanner solo llama a getTag() mientras la seccion
+     * siga clasificada MISMATCH).
+     *
+     * Generico por diseño: opera exclusivamente sobre
+     * sheet/section/historicalPatternId (la misma identidad estable ya
+     * usada por applyQuickRevalidation()) y sobre valores ya calculados en
+     * vivo -- cero referencia a ninguna hoja/seccion en particular. Sirve
+     * igual para cualquier MISMATCH+human_review futuro de BM/BS/D/P.
+     *
+     * @param  array<int,array{id:string,response:string,observation?:?string,review_status?:?string}>  $newQuestions
+     *         Una entrada por CADA pregunta pattern_question/pattern_confirmation
+     *         del pattern_id -- el llamador ya valido que el conjunto de
+     *         ids coincide exacto (ni de mas ni de menos) antes de invocar
+     *         este metodo; aqui se revalida de todas formas (ver el
+     *         RuntimeException de abajo si falta alguna), nunca se asume.
+     * @return array Las preguntas de la seccion tras el cambio (mismo shape que getQuestions()).
+     *
+     * @throws \RuntimeException si no existe ninguna pregunta de
+     *         pattern_question/pattern_confirmation con ese pattern_id en
+     *         la seccion, o si el conjunto de $newQuestions no cubre alguna
+     *         de las preguntas existentes de ese patron -- en cualquiera de
+     *         los dos casos no se persiste nada (la mutacion ocurre solo en
+     *         memoria hasta el persistAll() final).
+     */
+    public function resolveHumanReviewPattern(
+        string $sheet,
+        string $section,
+        int $historicalPatternId,
+        array $newQuestions,
+        string $canonicalFingerprint,
+        array $patternRows,
+        string $structureVersion,
+        string $reviewedBy,
+        string $reviewSourceType = 'manual',
+    ): array {
+        $all = $this->loadAll();
+        $key = "{$sheet}_{$section}";
+        $existing = $all['_questions'][$key] ?? [];
+        $history = $all['_questions_history'][$key] ?? [];
+
+        $reviewedAt = now()->toIso8601String();
+        $touchedAny = false;
+        $fingerprintBefore = null;
+        $structureVersionBefore = null;
+
+        $incomingById = [];
+        foreach ($newQuestions as $q) {
+            if (!empty($q['id'])) {
+                $incomingById[$q['id']] = $q;
+            }
+        }
+
+        foreach ($existing as $i => $q) {
+            if (!in_array($q['type'] ?? '', ['pattern_question', 'pattern_confirmation'], true)) {
+                continue;
+            }
+            if (($q['pattern_id'] ?? null) !== $historicalPatternId) {
+                continue;
+            }
+
+            $incoming = $incomingById[$q['id'] ?? ''] ?? null;
+            if ($incoming === null) {
+                // El controlador ya valido que el conjunto de ids coincide
+                // exacto -- si esto ocurre de todas formas (defensivo, no
+                // se confia ciegamente en esa validacion previa), se aborta
+                // sin persistir ningun cambio parcial: la excepcion corta
+                // el flujo ANTES de llegar a persistAll(), y $all/$existing
+                // solo existen en memoria de esta invocacion.
+                throw new \RuntimeException("Falta respuesta para la pregunta '{$q['id']}' del pattern_id={$historicalPatternId} en {$key}.");
+            }
+
+            if ($fingerprintBefore === null && !empty($q['pattern_fingerprint'])) {
+                $fingerprintBefore = $q['pattern_fingerprint'];
+            }
+            if ($structureVersionBefore === null && !empty($q['structure_version'])) {
+                $structureVersionBefore = $q['structure_version'];
+            }
+
+            $oldResponse = $q['response'] ?? '';
+            $newResponse = $incoming['response'];
+            if ($newResponse !== $oldResponse) {
+                $history[] = [
+                    'type' => $q['type'],
+                    'previous' => $oldResponse,
+                    'new' => $newResponse,
+                    'by' => $reviewedBy,
+                    'at' => $reviewedAt,
+                ];
+            }
+
+            $existing[$i] = array_merge($q, [
+                'response' => $newResponse,
+                'observation' => $incoming['observation'] ?? null,
+                'review_status' => $incoming['review_status'] ?? 'reviewed',
+                'status' => 'answered',
+                'reviewed_by' => $reviewedBy,
+                'reviewed_at' => $reviewedAt,
+                'source_type' => $reviewSourceType,
+                'fingerprint_version' => 2,
+                'pattern_fingerprint' => $canonicalFingerprint,
+                'pattern_rows' => $patternRows,
+                'structure_version' => $structureVersion,
+                'updated_at' => $reviewedAt,
+            ]);
+
+            $touchedAny = true;
+        }
+
+        if (!$touchedAny) {
+            throw new \RuntimeException("No se encontraron preguntas de patron con pattern_id={$historicalPatternId} en {$key}.");
+        }
+
+        $history[] = [
+            'type' => 'human_review_resolution',
+            'pattern_id' => $historicalPatternId,
+            'fingerprint_before' => $fingerprintBefore,
+            'fingerprint_after' => $canonicalFingerprint,
+            'structure_version_before' => $structureVersionBefore,
+            'structure_version_after' => $structureVersion,
+            'by' => $reviewedBy,
+            'at' => $reviewedAt,
+            'review_source_type' => $reviewSourceType,
+        ];
+
+        $all['_questions'][$key] = $existing;
+        $all['_questions_history'][$key] = $history;
+        $this->persistAll($all, [
+            'source' => 'resolveHumanReviewPattern',
+            'sheet' => $sheet,
+            'section' => $section,
+            'pattern_id' => $historicalPatternId,
+        ]);
+
+        // Invalida el agregado de progreso cacheado SOLO despues de que la
+        // persistencia real ya ocurrio -- mismo orden que saveQuestions()/
+        // applyQuickRevalidation() (nunca antes: si persistAll() lanzara,
+        // no queremos una cache invalidada sin escritura real detras).
+        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+
+        return $existing;
+    }
+
     public function getQuestionsHistory(string $sheet, string $section): array
     {
         $all = $this->loadAll();

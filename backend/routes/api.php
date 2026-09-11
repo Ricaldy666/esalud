@@ -185,6 +185,7 @@ Route::prefix('v1')->group(function () {
                 Route::post('/{sheet}/sections/{section}/patterns/{patternId}/quick-revalidation', [CalibrationViewController::class, 'confirmQuickRevalidation'])->name('patterns.quick-revalidation');
                 Route::get('/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution', [CalibrationViewController::class, 'mismatchResolutionDetails'])->name('patterns.mismatch-resolution.details');
                 Route::post('/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution/confirm', [CalibrationViewController::class, 'confirmMismatchResolution'])->name('patterns.mismatch-resolution.confirm');
+                Route::post('/{sheet}/sections/{section}/patterns/{patternId}/mismatch-resolution/full-review', [CalibrationViewController::class, 'confirmHumanReviewResolution'])->name('patterns.mismatch-resolution.full-review');
                 Route::post('/{sheet}/sections/{section}/bulk-functional', [CatalogController::class, 'bulkFunctional'])->name('bulk-functional');
                 Route::get('/{sheet}/sections/{section}/export-calibration', [CatalogController::class, 'exportCalibration'])->name('export-calibration');
                 Route::get('/{sheet}/sections/{section}/rows/{row}', [CatalogController::class, 'rowDetail'])->name('row-detail');

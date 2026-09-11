@@ -195,7 +195,50 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
-### MICROAUDITORÍA — 2026-09-11, `A30/C pattern_id=1` — MISMATCH TÉCNICO CONFIRMADO VIGENTE (leer esto primero, antes que todo lo de abajo)
+### CIERRE — 2026-09-11, CALIBRACIÓN REM SERIE A 100% CERRADA (mecanismo `human_review`/full-review) — leer esto primero, antes que todo lo de abajo
+
+**Veredicto: `REM_SERIE_A_CALIBRACION_100_POR_CIENTO_CERRADA`.** Cierra la cadena de checkpoints del mismo día (microauditoría A30/C → escaneo A05/V → diseño e implementación del mecanismo `human_review` → resolución real de A30/C → auditoría canónica completa → cierre de los 10 `QUICK_CONFIRMATION` de A11a). Reemplaza como estado vigente de calibración todo lo dicho antes sobre A05/V y A30/C pendientes.
+
+**Gap de diseño que motivó todo esto (ya explicado en el checkpoint de microauditoría, resumido aquí)**: `buildStructureCalibrationSummary()` (el agregado que alimenta el dashboard) decide "completada" con la reconciliación v1 (solo compara conjunto de filas) — puede mostrar 100% aunque el fingerprint canónico v2 de un patrón siga desalineado con la estructura vigente. Por eso el cierre real de hoy se verificó con **`PatternMigrationScanner::scanSection()`/`scanAllSections()`** (clasificación canónica, no el agregado), tal como exigió el usuario en cada paso.
+
+**Evidencia del cierre — auditoría canónica final, 381 combinaciones sección/patrón de la estructura activa 67/v35:**
+
+| Categoría | Cantidad |
+|---|---|
+| `AUTO_MIGRATE` | **304** |
+| `NO_UTILIZADA` | 75 |
+| `NOT_CALIBRATABLE` | 2 |
+| `QUICK_CONFIRMATION` | **0** |
+| `MISMATCH` | **0** |
+| `NEW_SECTION` | **0** |
+| `FULL_REVALIDATION` | **0** |
+
+Agregado (`buildStructureCalibrationSummary()`, ya no como única fuente sino como confirmación adicional): **306/306 secciones aplicables, 100%, 22/22 hojas completas**.
+
+**Qué se cerró hoy, en orden:**
+1. **A05/V** — sección nueva (`NEW_SECTION`, cero cell-data), escaneada vía `rem:scan-cells A05 V` (990 celdas reales), respondida `debe_registrar_cero` vía el flujo ordinario (`saveQuestions()`). Resultado: `AUTO_MIGRATE`, `agrees=true`.
+2. **A30/C `pattern_id=1`** — único `MISMATCH` real de la Serie A, clasificado `human_review` desde el 2026-08-26 (columnas J/K/L nuevas — bloque "Modalidad", Nivel Primario — genuinamente editables, sin evidencia histórica de captura, sin decisión formal contra la estructura activa). **No existía ningún mecanismo del sistema capaz de resolver esto formalmente** (`applyQuickRevalidation()` está deliberadamente bloqueado para `human_review` por el controlador — verificado en código, no supuesto). Se diseñó, implementó, probó y ejecutó un mecanismo nuevo (`resolveHumanReviewPattern()` + endpoint `full-review`, detalle abajo). Baseline funcional autorizado por el usuario: `debe_registrar_cero` para las 5 preguntas del patrón, **J/K/L permanecen genuinamente editables, sin bloquear, sin marcar no-aplicables** — decisión explícitamente revisable después por Estadística APS. Resultado: `AUTO_MIGRATE`, `agrees=true`.
+3. **10 `QUICK_CONFIRMATION` de la hoja A11a** (secciones A, C, E, F, G, H, I, J, K, N, `pattern_id=1` cada una) — patrones legacy (nunca migrados a fingerprint v2) cuyas filas coinciden exactamente con la versión histórica pero la estructura cambió desde entonces. **Mecanismo distinto de `human_review`**: no requieren tag de auditoría (`MismatchResolutionAuditService::getTag()` da `null` para los 10, correcto — ese gate es exclusivo de la categoría `MISMATCH`, no de `QUICK_CONFIRMATION`). Confirmados uno por uno vía `confirmQuickRevalidation()`/`applyQuickRevalidation()` (mecanismo ya existente, sin cambios de código) — la respuesta funcional original (Francisco Arcos, 2026-08-06) queda intacta, solo se actualiza metadata técnica. Verificado individualmente con una instancia nueva del scanner antes de continuar con la siguiente. Resultado: los 10 → `AUTO_MIGRATE`, `agrees=true`.
+
+**Mecanismo nuevo `human_review`/full-review — general, reutilizable para BM/BS/D/P:**
+- `FunctionalRuleService::resolveHumanReviewPattern()` — reemplaza la decisión funcional del patrón (a diferencia de `applyQuickRevalidation()`, que nunca toca `response`/`reviewed_by`/`reviewed_at`) y escribe junto con ella el fingerprint/filas/versión de estructura **actuales**, calculados siempre por el controlador (nunca confía en el cliente). Preserva la decisión anterior en `_questions_history` (`fingerprint_before`/`fingerprint_after`, `structure_version_before`/`after`, tipo `human_review_resolution`). `mismatch-resolution-audit.json` nunca se toca desde aquí.
+- `CalibrationViewController::confirmHumanReviewResolution()` — `POST .../patterns/{patternId}/mismatch-resolution/full-review`. Exige categoría en vivo `MISMATCH` + tag de auditoría `human_review` exacto (rechaza `safe_reconfirm`/`structural_row_exclusion`/`structural_review`/sin tag, cada uno con su mensaje), identidad histórica resuelta, y el conjunto de preguntas enviado debe coincidir **exacto** (ni de más ni de menos) con las existentes del patrón — sin eso, 409/422, sin escribir nada.
+- **`PROTECTED_V2_FIELDS` de `saveQuestions()` permanece exactamente igual, sin relajar** — el mecanismo nuevo es un tercer método separado, no una excepción al guardado ordinario.
+- **`reconcileLiveCanonical()` sigue inactivo** — cero llamadas fuera de tests, confirmado de nuevo hoy.
+- Frontend: `FunctionalQuestionsPanel.tsx` detecta por sí mismo (vía `migration-plan` + `mismatch-resolution` por patrón, ambas consultas ya existentes en el proyecto) qué patrones están en `MISMATCH`+`human_review` y muestra un panel/botón dedicado ("Guardar revisión funcional completa"), sin tocar `saveMutation`/`handleSave`/`markPatternReviewed`/`markSectionReviewed` — la calibración normal de cualquier otra sección sigue exactamente igual.
+- Tests nuevos: `backend/tests/Feature/RuleEngine/HumanReviewResolutionTest.php`, 16/16 (caso feliz, rechazo de `safe_reconfirm`/`structural_review`/sin tag, atomicidad, aislamiento de otros `pattern_id`, reclasificación `MISMATCH→AUTO_MIGRATE` solo tras resolución correcta).
+
+**Baseline reconfirmado sin cambios**: `rem_rules=798` (751 activas), `rem_rule_bindings=1655`, estructura activa `67/v35`.
+
+**Regresión**: `HumanReviewResolutionTest` + suite completa de mismatch/quick-revalidation/scanner/reconciliation/matrix — 164/164 (a lo largo de las distintas pasadas del día). `Feature/RuleEngine`+`Unit/RuleEngine`+`Feature/Config` completos: 527 tests, 487 passed, **35 failed byte-idénticos al baseline ya documentado** (mismos tests, mismas líneas, mismos mensajes — confirmado además comparando contra un `git stash` de los archivos backend modificados, mismo resultado exacto con o sin el cambio), 5 skipped (Windows POSIX). Frontend: `tsc --noEmit`/`eslint` limpios, `npm run build` exitoso.
+
+**Producción NO fue tocada ni actualizada con nada de esto** — el código de este cierre vive únicamente en Git local (`main`), pendiente de push explícito. Git/repo y producción son estados distintos: no asumir que producción refleja esta calibración hasta que se documente un despliegue real aparte, con autorización explícita.
+
+**Pendientes que siguen exactamente igual, sin resolver hoy** (no bloquean el cierre de calibración): reglas `229`/`230` de `A09/I`, `A30/D`, `A25/B` 354, las 75 secciones `no_utilizada`, las 14 reglas `DUPLICATE`, las reglas `130`/`133`, todos los gaps de diseño ya listados en "Prohibiciones vigentes" más abajo.
+
+**Próximo objetivo — auditoría inicial READ-ONLY de REM BM** (decisión de roadmap ya registrada el 2026-09-04, ver checkpoint más abajo): entender qué soporte existe hoy en el repositorio para la Serie BM antes de implementar nada. La calibración de Serie A ya no es un prerrequisito pendiente — queda cerrada.
+
+### MICROAUDITORÍA — 2026-09-11, `A30/C pattern_id=1` — MISMATCH TÉCNICO CONFIRMADO VIGENTE
 
 **Veredicto: `A30_C_MISMATCH_TECNICO_VIGENTE`.** Microauditoría 100% read-only (sin `Cache::forget`, sin recalibrar, sin tocar código/reglas/bindings/estructura/artefactos de certificación/`reglas-funcionales.json`/`cell-data`/BD/producción — únicas operaciones: `SELECT` y cálculo en memoria vía `buildPatternMatrix()`, que no escribe nada) que cierra la duda dejada abierta por la reconexión de contexto previa (misma fecha) sobre si `A30/C pattern_id=1` seguía técnicamente pendiente o si `CLAUDE.md` había quedado desactualizado. Resultado: **`CLAUDE.md` tenía razón en el fondo — `A30/C pattern_id=1` sigue con un MISMATCH técnico real, sin resolver.** La sospecha de la reconexión previa (de que A30 podría estar cerrada sin documentarse) queda descartada con evidencia.
 

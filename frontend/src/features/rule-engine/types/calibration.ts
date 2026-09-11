@@ -621,3 +621,21 @@ export interface MismatchResolutionDetails {
 export interface MismatchResolutionConfirmResponse {
   questions: CalibrationQuestion[]
 }
+
+// Payload minimo para resolver formalmente un patron MISMATCH clasificado
+// human_review (2026-09-11) -- deliberadamente SIN pattern_fingerprint/
+// pattern_rows/structure_version/fingerprint_version/reviewed_by/
+// reviewed_at: esos 6 campos los calcula siempre el backend (o los toma del
+// usuario autenticado), nunca el cliente. Debe incluir una entrada por
+// CADA pregunta pattern_question/pattern_confirmation ya existente del
+// patron -- el backend rechaza un conjunto incompleto o con ids ajenos.
+export interface HumanReviewAnswer {
+  id: string
+  response: string
+  observation?: string | null
+  review_status?: 'pending' | 'reviewed' | 'section_reviewed'
+}
+
+export interface HumanReviewResolutionResponse {
+  questions: CalibrationQuestion[]
+}

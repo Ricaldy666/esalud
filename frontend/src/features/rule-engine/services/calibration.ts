@@ -8,6 +8,8 @@ import type {
   CalibrationQuestionResponse,
   CalibrationRow,
   CalibrationSummaryResponse,
+  HumanReviewAnswer,
+  HumanReviewResolutionResponse,
   MigrationPlanResponse,
   MismatchResolutionConfirmResponse,
   MismatchResolutionDetails,
@@ -181,6 +183,30 @@ export const calibrationService = {
 
     const { data } = await api.post<ApiResponse<MismatchResolutionConfirmResponse>>(
       `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution/confirm`
+    )
+    return data.data
+  },
+
+  // Resuelve formalmente un patron MISMATCH clasificado human_review
+  // (2026-09-11) -- a diferencia de confirmQuickRevalidation() (sin body,
+  // nunca toca la respuesta funcional), este endpoint exige la revision
+  // completa: una respuesta nueva por CADA pregunta del patron. Usar
+  // exclusivamente para patrones cuyo tag de auditoria (ver
+  // getMismatchResolutionDetails) sea category='human_review' -- para
+  // 'safe_reconfirm'/'structural_row_exclusion' sigue correspondiendo
+  // confirmQuickRevalidation()/confirmMismatchResolution(); la calibracion
+  // normal de cualquier otra seccion sigue usando savePatternQuestions().
+  confirmHumanReviewResolution: async (
+    sheet: string,
+    section: string,
+    patternId: number,
+    questions: HumanReviewAnswer[]
+  ): Promise<HumanReviewResolutionResponse> => {
+    await fetchCsrfCookie()
+
+    const { data } = await api.post<ApiResponse<HumanReviewResolutionResponse>>(
+      `/rule-engine/catalog/${encodeURIComponent(sheet)}/sections/${encodeURIComponent(section)}/patterns/${patternId}/mismatch-resolution/full-review`,
+      { questions }
     )
     return data.data
   },

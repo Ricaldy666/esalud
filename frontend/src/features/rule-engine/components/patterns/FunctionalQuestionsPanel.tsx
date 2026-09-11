@@ -1,12 +1,22 @@
 ﻿import { type ReactNode, useMemo, useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { AlertCircle, AlertTriangle, CheckCircle2, History, Lock, Save } from 'lucide-react'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  History,
+  Lock,
+  Save,
+  ShieldQuestion,
+} from 'lucide-react'
+import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
 import { calibrationService } from '../../services/calibration'
 import type {
   CalibrationQuestion,
   ColumnGroup,
+  HumanReviewAnswer,
   PatternGroup,
   PatternMatrixReconciliation,
   PatternReconciliationStatus,
@@ -589,6 +599,45 @@ export default function FunctionalQuestionsPanel({
   const user = useAuthStore((state) => state.user)
   const queryClient = useQueryClient()
   const userName = user?.name ?? user?.email ?? 'Usuario funcional'
+
+  // ── Resolucion formal de patrones MISMATCH+human_review (2026-09-11) ──
+  // Bloque 100% aditivo: solo lectura adicional (migration-plan +
+  // mismatch-resolution por patron, ambos ya usados en otras pantallas) mas
+  // una mutacion nueva y separada de saveMutation. Ningun patron normal (sin
+  // MISMATCH, o MISMATCH pero safe_reconfirm/structural_*) se ve afectado --
+  // humanReviewPatternIds queda vacio y el resto del componente (handleSave,
+  // markPatternReviewed, markSectionReviewed, saveMutation) sigue exactamente
+  // igual, sin ninguna rama condicional nueva sobre ellos.
+  const migrationPlanQuery = useQuery({
+    queryKey: ['migration-plan', sheet, section],
+    queryFn: () => calibrationService.getMigrationPlan(sheet, section),
+    enabled: !readOnly,
+    staleTime: 30_000,
+  })
+  const mismatchPatternIds = useMemo(
+    () =>
+      (migrationPlanQuery.data?.patterns ?? [])
+        .filter((pattern) => pattern.category === 'MISMATCH')
+        .map((pattern) => pattern.pattern_id),
+    [migrationPlanQuery.data]
+  )
+  const resolutionDetailsQueries = useQueries({
+    queries: mismatchPatternIds.map((patternId) => ({
+      queryKey: ['mismatch-resolution', sheet, section, patternId],
+      queryFn: () => calibrationService.getMismatchResolutionDetails(sheet, section, patternId),
+      enabled: !readOnly,
+    })),
+  })
+  const humanReviewPatternIds = useMemo(() => {
+    const ids = new Set<number>()
+    mismatchPatternIds.forEach((patternId, index) => {
+      if (resolutionDetailsQueries[index]?.data?.resolution_tag?.category === 'human_review') {
+        ids.add(patternId)
+      }
+    })
+    return ids
+  }, [mismatchPatternIds, resolutionDetailsQueries])
+
   const patternQuestions = isLegacyA01SectionA(sheet, section)
     ? PATTERN_QUESTIONS
     : A01_B_PATTERN_QUESTIONS
@@ -685,6 +734,72 @@ export default function FunctionalQuestionsPanel({
   const effectiveSectionReviewed =
     sectionReviewed && (reconciliation?.effective_section_reviewed ?? true)
   const blockedPatternCount = blockedPatternIds.size
+
+  const resolveHumanReviewMutation = useMutation({
+    mutationFn: ({ patternId, questions }: { patternId: number; questions: HumanReviewAnswer[] }) =>
+      calibrationService.confirmHumanReviewResolution(sheet, section, patternId, questions),
+    onSuccess: (_response, variables) => {
+      toast.success(`Patrón ${variables.patternId} resuelto (revisión funcional completa).`)
+      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', sheet, section] })
+      queryClient.invalidateQueries({ queryKey: ['migration-plan', sheet, section] })
+      queryClient.invalidateQueries({
+        queryKey: ['mismatch-resolution', sheet, section, variables.patternId],
+      })
+    },
+    onError: (error: AxiosError<{ message?: string; errors?: string[] | null }>) => {
+      // Nunca aparenta exito: el mensaje exacto del backend (409/422) se
+      // muestra tal cual, sin invalidar ninguna query.
+      toast.error(
+        error.response?.data?.message ?? 'No se pudo guardar la revisión funcional completa.'
+      )
+    },
+  })
+
+  // Construye el payload SOLO con las preguntas ya existentes de ESE
+  // pattern_id (fetch fresco, nunca las definiciones derivadas en vivo por
+  // questionsForPattern()) -- garantiza que el conjunto de ids enviado
+  // coincide exacto con lo que el backend exige, y toma la respuesta/
+  // observacion vigente en pantalla (responses/observations, la misma
+  // fuente que ya usa buildAllQuestions() para el guardado normal).
+  const resolveHumanReviewForPattern = async (patternId: number) => {
+    let existingQuestions: CalibrationQuestion[]
+    try {
+      const result = await calibrationService.getQuestions(sheet, section)
+      existingQuestions = result.questions
+    } catch {
+      toast.error('No se pudieron obtener las preguntas actuales del patrón.')
+      return
+    }
+
+    const patternQs = existingQuestions.filter(
+      (q) =>
+        q.pattern_id === patternId &&
+        (q.type === 'pattern_question' || q.type === 'pattern_confirmation')
+    )
+
+    if (patternQs.length === 0) {
+      toast.error('No se encontraron preguntas para este patrón.')
+      return
+    }
+
+    const answers: HumanReviewAnswer[] = patternQs.map((q) => {
+      const key = questionKey(q)
+      return {
+        id: q.id ?? key,
+        response: responses[key] ?? q.response ?? '',
+        observation: observations[key] ?? q.observation ?? null,
+      }
+    })
+
+    if (answers.some((answer) => !answer.response.trim())) {
+      toast.warning(
+        'Responda todas las preguntas del patrón antes de guardar la revisión funcional completa.'
+      )
+      return
+    }
+
+    resolveHumanReviewMutation.mutate({ patternId, questions: answers })
+  }
 
   const buildQuestion = (
     key: string,
@@ -1334,6 +1449,40 @@ export default function FunctionalQuestionsPanel({
                     )}
                   </div>
                 </div>
+
+                {!readOnly && humanReviewPatternIds.has(pattern.id) && (
+                  <div className="mb-4 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold text-indigo-900">
+                      <ShieldQuestion className="h-3.5 w-3.5" />
+                      MISMATCH — requiere revisión funcional completa
+                    </p>
+                    <p className="mt-1 text-xs text-indigo-800">
+                      La huella técnica de este patrón cambió y fue clasificado como{' '}
+                      <code className="rounded bg-indigo-100 px-1">human_review</code>: no admite
+                      confirmación rápida. Responda todas las preguntas de arriba y guarde la
+                      revisión completa — quedará asociada al fingerprint técnico vigente.
+                    </p>
+                    <div className="mt-2 flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => resolveHumanReviewForPattern(pattern.id)}
+                        disabled={pending > 0 || resolveHumanReviewMutation.isPending}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <ShieldQuestion className="h-3.5 w-3.5" />
+                        {resolveHumanReviewMutation.isPending
+                          ? 'Guardando revisión...'
+                          : 'Guardar revisión funcional completa'}
+                      </button>
+                      {pending > 0 && (
+                        <span className="text-xs text-indigo-700">
+                          Falta{pending === 1 ? '' : 'n'} {pending} pregunta
+                          {pending === 1 ? '' : 's'} por responder.
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <PatternExplanation pattern={pattern} section={section} />
 
