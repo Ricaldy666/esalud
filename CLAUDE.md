@@ -232,11 +232,52 @@ Agregado (`buildStructureCalibrationSummary()`, ya no como única fuente sino co
 
 **Regresión**: `HumanReviewResolutionTest` + suite completa de mismatch/quick-revalidation/scanner/reconciliation/matrix — 164/164 (a lo largo de las distintas pasadas del día). `Feature/RuleEngine`+`Unit/RuleEngine`+`Feature/Config` completos: 527 tests, 487 passed, **35 failed byte-idénticos al baseline ya documentado** (mismos tests, mismas líneas, mismos mensajes — confirmado además comparando contra un `git stash` de los archivos backend modificados, mismo resultado exacto con o sin el cambio), 5 skipped (Windows POSIX). Frontend: `tsc --noEmit`/`eslint` limpios, `npm run build` exitoso.
 
-**Producción NO fue tocada ni actualizada con nada de esto** — el código de este cierre vive únicamente en Git local (`main`), pendiente de push explícito. Git/repo y producción son estados distintos: no asumir que producción refleja esta calibración hasta que se documente un despliegue real aparte, con autorización explícita.
+**Cierre Git de esta campaña**: commit `69431c7230629b1db8a756df7b0f868b03557c4e` (`69431c7`, `feat(rem): complete human review workflow and close REM A calibration`) — `main` = `origin/main`, ahead/behind = 0/0, ya **pusheado**. `reglas-funcionales.json`/`cell-data/` (gitignorados) no viajaron con el push — su cierre queda documentado aquí, no versionado; ver sección D del pendiente de sincronización más abajo.
 
 **Pendientes que siguen exactamente igual, sin resolver hoy** (no bloquean el cierre de calibración): reglas `229`/`230` de `A09/I`, `A30/D`, `A25/B` 354, las 75 secciones `no_utilizada`, las 14 reglas `DUPLICATE`, las reglas `130`/`133`, todos los gaps de diseño ya listados en "Prohibiciones vigentes" más abajo.
 
-**Próximo objetivo — auditoría inicial READ-ONLY de REM BM** (decisión de roadmap ya registrada el 2026-09-04, ver checkpoint más abajo): entender qué soporte existe hoy en el repositorio para la Serie BM antes de implementar nada. La calibración de Serie A ya no es un prerrequisito pendiente — queda cerrada.
+---
+
+### ESTADO PRODUCCIÓN vs. LOCAL/REPOSITORIO — leer antes de asumir nada sobre el servidor
+
+**LOCAL/REPOSITORIO (lo único que este cierre certifica):**
+- REM Serie A queda calibrada/certificada **canónicamente** al 100% — evidencia de `PatternMigrationScanner`, no solo del agregado.
+- Estructura **local** activa: **`id=67, version=35` (67/v35)**.
+- 381 combinaciones sección/patrón auditadas canónicamente contra esa estructura.
+- 306/306 secciones aplicables · 22/22 hojas · `QUICK_CONFIRMATION=0` · `MISMATCH=0` · `NEW_SECTION=0` · `FULL_REVALIDATION=0`.
+- A05/V resuelta · A30/C `human_review` resuelto · A11a 10/10 `QUICK_CONFIRMATION` resueltas.
+- Mecanismo nuevo `resolveHumanReviewPattern()`/endpoint `full-review` implementado, probado, commiteado y pusheado.
+
+**PRODUCCIÓN — NO se asume sincronizada, NO se declara que posee estos cambios:**
+- Última estructura Serie A **conocida** en producción (checkpoint 2026-09-03/07, no reverificada en esta sesión): **`id=19, version=33` (19/v33)**.
+- **Los IDs de estructura local (67) y productivo (19) NO tienen que hacerse idénticos nunca** — son entornos que evolucionaron por separado (append-only, cada uno con su propio historial de versiones). La sincronización que corresponda hacer en el futuro es **funcional/canónica** (¿producción alcanza la misma clasificación `AUTO_MIGRATE` en sus propias 381 combinaciones, con su propia estructura activa?), **nunca** copiar/igualar IDs de fila de `rem_template_structures` entre entornos.
+- Código: el commit `69431c7` (este cierre) **no ha sido verificado como desplegado en producción** — el último commit confirmado en el servidor en checkpoints previos fue `0fc193c` (2026-09-03), muy anterior a toda esta campaña de `human_review`. **No reconfirmado en esta sesión** — cero conexión al servidor en todo este cierre.
+- `reglas-funcionales.json`/`cell-data/` locales (el estado real de A05/V, A30/C, A11a recién cerrados) **nunca viajan por git** — están gitignorados. Aunque el código llegara a producción vía `git pull`/deploy, **eso por sí solo NO deja producción funcionalmente equivalente** a esta calibración: los artefactos de certificación tendrían que transferirse aparte (mismo patrón ya usado el 2026-09-03 con `certification-checksums.sha256`, 392 archivos).
+
+**PENDIENTE POSTERIOR — AUDITORÍA Y SINCRONIZACIÓN CONTROLADA LOCAL → PRODUCCIÓN** (no iniciada, sin fecha, no autorizada todavía):
+
+- **A) Código**: commit real desplegado en producción vs. `HEAD`/`origin/main` actual (`69431c7`) — diferencias reales, migraciones pendientes si existieran, backend y frontend, específicamente si el mecanismo `human_review`/`full-review` (rutas, controlador, servicio, componente) llegó o no.
+- **B) Estructura/calibración**: estructura activa productiva (19/v33) vs. estructura local certificada (67/v35) — reglas funcionales, fingerprints canónicos, estado real de A05/V, A30/C, A11a, `cell-data`, historial de mismatch/revalidación, artefactos de certificación.
+- **C) Baseline**: comparar `rem_rules`, activas, `rem_rule_bindings`, estructuras, `uploads`/`rem_data` entre ambos entornos — **sin modificar nada inicialmente**.
+- **D) Artefactos gitignorados**: recordar explícitamente que Git **no transporta** `reglas-funcionales.json`, `cell-data/`, ni otros artefactos privados de certificación/calibración — un `git pull`/deploy **no basta** por sí solo para dejar producción funcionalmente equivalente a local.
+- **E) Seguridad del proceso**: esa futura sincronización **debe empezar con una auditoría 100% READ-ONLY** del servidor. Prohibido de antemano, sin excepción: copiar la BD completa local sobre producción, reemplazar IDs productivos por IDs locales, ejecutar seeders a ciegas, recalibrar producción desde cero, borrar datos productivos, sobrescribir `uploads`/`rem_data`, ejecutar `reconcileLiveCanonical()`, o limpiar caché sin necesidad demostrada.
+
+**Secuencia obligatoria del próximo checkpoint operativo de esta fase (documentada, no ejecutada):**
+1. Cerrar Git local/repo — **ya hecho** (`69431c7`, pusheado).
+2. Auditar producción READ-ONLY.
+3. Determinar el delta exacto: código + datos + artefactos.
+4. Preparar plan de sincronización.
+5. Respaldar (BD + `storage/app/private`) antes de cualquier escritura.
+6. Desplegar únicamente con autorización explícita.
+7. Verificar equivalencia canónica (no de IDs) tras desplegar.
+8. Certificar producción.
+9. Recién después, continuar con despliegues futuros (incluida cualquier serie nueva BM/BS/D/P).
+
+**No se ejecutó ningún paso de esta secuencia en este cierre — cero conexión al servidor.** Queda listada aquí exclusivamente como pendiente documentado.
+
+---
+
+**Próximo objetivo — auditoría inicial READ-ONLY de REM BM** (decisión de roadmap ya registrada el 2026-09-04, ver checkpoint más abajo): entender qué soporte existe hoy en el repositorio para la Serie BM antes de implementar nada. La calibración de Serie A ya no es un prerrequisito pendiente — queda cerrada. **Nota de secuencia**: la auditoría de sincronización producción (arriba) y la auditoría de REM BM son independientes entre sí — ninguna bloquea a la otra; cuál se retoma primero es decisión del usuario en el próximo turno.
 
 ### MICROAUDITORÍA — 2026-09-11, `A30/C pattern_id=1` — MISMATCH TÉCNICO CONFIRMADO VIGENTE
 
