@@ -25,6 +25,14 @@ class EnhancedCellDTO
         public readonly ?string $formatoNumero,
         public readonly string $tipoCelda,
         public readonly string $zona,
+        // BM-2.6A (2026-09-11): campo ADITIVO -- dependencias cross-hoja
+        // estructuradas (ver EnhancedCellScanner::extractCrossSheetDependencies()).
+        // Default [] deliberado: cualquier construccion futura de este DTO
+        // que no lo declare sigue funcionando exactamente igual que antes
+        // de esta fase. $dependencias (arriba) NUNCA pierde su contrato
+        // original de string[] same-sheet -- este campo es una lista
+        // independiente, nunca una sustitucion.
+        public readonly array $dependenciasCrossHoja = [],
     ) {}
 
     public function toArray(): array
@@ -37,6 +45,7 @@ class EnhancedCellDTO
             'es_formula' => $this->esFormula,
             'formula' => $this->formula,
             'dependencias' => $this->dependencias,
+            'dependencias_cross_hoja' => $this->dependenciasCrossHoja,
             'es_editable' => $this->esEditable,
             'esta_bloqueada' => $this->estaBloqueada,
             'proteccion_hoja_activa' => $this->proteccionHojaActiva,

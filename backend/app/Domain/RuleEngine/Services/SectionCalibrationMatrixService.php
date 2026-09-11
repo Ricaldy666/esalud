@@ -31,6 +31,55 @@ class SectionCalibrationMatrixService
      */
     private const CALIBRATION_SUMMARY_CACHE_TTL_SECONDS = 3600;
 
+    /**
+     * BM-2.6A (2026-09-11): motivo generico de clasificacion segura para
+     * una celda cuya UNICA fuente de valor es una referencia cross-hoja
+     * (ej. BM18!E14 = BM18A!D20, hallazgo real de BM-2.5) -- reutiliza el
+     * mismo patron de diseño ya establecido por
+     * RuleBindingReconciliationService::BLOCKED_BY_ENGINE_GAP ("detectado,
+     * pero el motor actual no lo ejecuta todavia", nunca "dato invalido")
+     * en vez de inventar una excepcion especifica de BM. Generico para
+     * cualquier serie/hoja futura -- no referencia BM18/BM18A en ningun
+     * punto del codigo, solo en este comentario como ejemplo real.
+     *
+     * classifyCrossSheetDependency() abajo es deliberadamente AUTONOMO:
+     * no esta conectado todavia a ningun flujo de deteccion de patrones ni
+     * de generacion de reglas (buildMatrix()/buildPatternMatrix()/etc. NO
+     * lo llaman) -- cero riesgo de regresion sobre el pipeline certificado
+     * de Serie A. Queda disponible para que una fase futura (BM-2.6B) lo
+     * conecte cuando se decida como tratar estas celdas durante la
+     * calibracion real de BM. Ver tambien
+     * EnhancedCellDTO::$dependenciasCrossHoja.
+     */
+    public const CROSS_SHEET_DEPENDENCY_REASON = 'cross_sheet_dependency';
+
+    /**
+     * Clasificacion estructural segura, en memoria, sin efectos
+     * secundarios: dada una celda ya escaneada (shape de
+     * EnhancedCellDTO::toArray(), con o sin la clave nueva
+     * 'dependencias_cross_hoja'), determina si su unica fuente de valor es
+     * una dependencia cross-hoja -- es decir, 'dependencias' (same-sheet)
+     * vacia Y 'dependencias_cross_hoja' no vacia. Una formula MIXTA (ej.
+     * "=A1+BM18A!D20", no observada en los 37 casos reales de BM18 pero
+     * posible en general) NO se clasifica asi -- tiene dependencias
+     * same-sheet genuinas que el resto del pipeline ya sabe procesar.
+     *
+     * Devuelve self::CROSS_SHEET_DEPENDENCY_REASON o null (no aplica).
+     * Nunca lanza excepcion, nunca escribe nada, nunca requiere estructura
+     * activa.
+     */
+    public function classifyCrossSheetDependency(array $cell): ?string
+    {
+        $sameSheetDependencies = $cell['dependencias'] ?? [];
+        $crossSheetDependencies = $cell['dependencias_cross_hoja'] ?? [];
+
+        if (!empty($crossSheetDependencies) && empty($sameSheetDependencies)) {
+            return self::CROSS_SHEET_DEPENDENCY_REASON;
+        }
+
+        return null;
+    }
+
     // $structureData: slot de override manual, exclusivo de
     // seedStructureData() -- unico consumidor, gana sin condicion sobre
     // cualquier estructura real (ver docblock de seedStructureData()). NO

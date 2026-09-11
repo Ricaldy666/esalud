@@ -118,6 +118,7 @@ class EnhancedCellScanner
                 );
 
                 $dependencies = $isFormula ? $this->extractDependencies($formulaStr) : [];
+                $crossSheetDependencies = $isFormula ? $this->extractCrossSheetDependencies($formulaStr) : [];
 
                 $isExplicitlyUnlocked = $locked === Protection::PROTECTION_UNPROTECTED;
                 $efectivelyBlocked = $sheetProtection && !$isExplicitlyUnlocked;
@@ -130,6 +131,7 @@ class EnhancedCellScanner
                     esFormula: $isFormula,
                     formula: $formulaStr,
                     dependencias: $dependencies,
+                    dependenciasCrossHoja: $crossSheetDependencies,
                     esEditable: !$efectivelyBlocked,
                     estaBloqueada: $efectivelyBlocked,
                     proteccionHojaActiva: $sheetProtection,
@@ -316,12 +318,29 @@ class EnhancedCellScanner
         }
     }
 
+    /**
+     * BM-2.6A (2026-09-11): coordenadas SAME-SHEET unicamente. Antes de
+     * BM-2.6A, este metodo corria directamente sobre la formula cruda --
+     * para una referencia cross-hoja (ej. "=BM18A!D20", hallazgo real de
+     * BM-2.5) el regex de coordenada leia el nombre de la hoja destino
+     * como si fuera una celda local ("BM18A!D20" -> "BM18","D20"),
+     * corrompiendo silenciosamente el patron detectado. Ahora se apoya en
+     * stripCrossSheetReferences() para remover PRIMERO cualquier
+     * referencia cross-hoja (celda o rango, con o sin comillas, con o sin
+     * marcadores absolutos $) -- el regex same-sheet de abajo (sin cambios
+     * de logica respecto al original) corre unicamente sobre lo que queda.
+     * Para una formula 100% cross-hoja, el resultado es un array vacio
+     * (correcto: no tiene dependencias same-sheet) en vez de basura. Para
+     * Serie A (cero formulas cross-hoja en seccion, confirmado en BM-2.5)
+     * el resultado es byte-identico al comportamiento anterior a esta fase.
+     */
     private function extractDependencies(?string $formula): array
     {
         if (!$formula) return [];
 
+        $upper = $this->stripCrossSheetReferences(strtoupper($formula))['remainder'];
+
         $refs = [];
-        $upper = strtoupper($formula);
 
         $upper = preg_replace_callback(
             '/\$?([A-Z]+)(\d+)\s*:\s*\$?([A-Z]+)(\d+)/',
@@ -355,6 +374,83 @@ class EnhancedCellScanner
         }
 
         return $refs;
+    }
+
+    /**
+     * BM-2.6A: dependencias CROSS-HOJA, representacion estructurada
+     * aditiva -- ver EnhancedCellDTO::$dependenciasCrossHoja. Cada entrada:
+     * ['hoja' => string, 'tipo' => 'celda'|'rango', 'celda' => ?string,
+     *  'celda_inicio' => ?string, 'celda_fin' => ?string].
+     * Nunca modifica ni reemplaza el array same-sheet de
+     * extractDependencies() -- son dos listas independientes derivadas de
+     * la misma formula.
+     */
+    private function extractCrossSheetDependencies(?string $formula): array
+    {
+        if (!$formula) return [];
+
+        return $this->stripCrossSheetReferences(strtoupper($formula))['cross_sheet'];
+    }
+
+    /**
+     * Detecta TODAS las referencias cross-hoja de una formula (mayusculas)
+     * y las remueve del texto (reemplazadas por cadena vacia, mismo patron
+     * ya usado por el preg_replace_callback de rangos same-sheet) para que
+     * ningun regex posterior pueda malinterpretar el nombre de hoja como
+     * coordenada local.
+     *
+     * Soporta sintaxis Excel real: hoja sin comillas (BM18A!D20) y hoja
+     * entre comillas simples para nombres con espacios/caracteres
+     * especiales ('Hoja X'!D20), celda simple y rango (D92:D113), y
+     * marcadores absolutos ($D$20) -- generico, sin ningun nombre de hoja
+     * hardcodeado. El patron de RANGO se procesa antes que el de CELDA
+     * simple (mismo orden defensivo ya usado en extractDependencies() para
+     * rangos same-sheet), evitando que el inicio de un rango cross-hoja se
+     * capture dos veces como si fuera ademas una referencia de celda suelta.
+     *
+     * @return array{remainder: string, cross_sheet: array}
+     */
+    private function stripCrossSheetReferences(string $upperFormula): array
+    {
+        $crossSheet = [];
+
+        $sheetToken = '(?:\'([^\']+)\'|([A-Z_][A-Z0-9_.]*))';
+
+        // Rango cross-hoja: HOJA!$D$92:$D$113
+        $upperFormula = preg_replace_callback(
+            '/' . $sheetToken . '!\$?([A-Z]+)\$?(\d+)\s*:\s*\$?([A-Z]+)\$?(\d+)/',
+            function (array $m) use (&$crossSheet): string {
+                $crossSheet[] = [
+                    'hoja' => $m[1] !== '' ? $m[1] : $m[2],
+                    'tipo' => 'rango',
+                    'celda' => null,
+                    'celda_inicio' => $m[3] . $m[4],
+                    'celda_fin' => $m[5] . $m[6],
+                ];
+                return '';
+            },
+            $upperFormula,
+        );
+
+        // Celda cross-hoja simple: HOJA!$D$20 (los rangos ya fueron
+        // removidos arriba, por lo que esto nunca matchea el inicio de un
+        // rango ya procesado).
+        $upperFormula = preg_replace_callback(
+            '/' . $sheetToken . '!\$?([A-Z]+)\$?(\d+)/',
+            function (array $m) use (&$crossSheet): string {
+                $crossSheet[] = [
+                    'hoja' => $m[1] !== '' ? $m[1] : $m[2],
+                    'tipo' => 'celda',
+                    'celda' => $m[3] . $m[4],
+                    'celda_inicio' => null,
+                    'celda_fin' => null,
+                ];
+                return '';
+            },
+            $upperFormula,
+        );
+
+        return ['remainder' => $upperFormula, 'cross_sheet' => $crossSheet];
     }
 
     private function buildMergeMapDetail(Worksheet $ws): array
