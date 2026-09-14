@@ -215,7 +215,26 @@ class RemParserService
 
         if (!empty($sectionMap)) {
             $dataStartRow = min(array_map(fn($section) => (int) $section['data_start_row'], $sectionMap));
-            $maxRow = min($sheetMaxRow, max(array_map(fn($section) => (int) $section['data_end_row'], $sectionMap)));
+            // BM-5.3 (2026-09-14, hallazgo BM18A/B fila 206 -- ver tambien
+            // A06/L fila 181 y A33/E fila 74, mismo patron real preexistente
+            // en Serie A, nunca antes ejercido porque ninguna carga real
+            // reprocesada con este codigo lo habia alcanzado): +1 para que
+            // el bucle de mas abajo pueda evaluar tambien el candidato
+            // trailing-beyond-bounds (data_end_row+1) de la seccion con el
+            // filaFinDatos MAS ALTO de la hoja -- normalmente esa fila ya
+            // caia dentro del rango porque una seccion POSTERIOR en la
+            // misma hoja tenia un data_end_row aun mayor (huecos ENTRE
+            // secciones, ya cubiertos desde 17.48); pero si esa seccion es
+            // la ULTIMA de la hoja, no existe ninguna seccion posterior que
+            // extienda $maxRow, y su propio candidato trailing (excluido de
+            // su data_end_row por SectionDetectorService::excludeTrailingTotalRows())
+            // quedaba fuera del bucle sin que findTechnicalSectionContextForRow()
+            // llegara siquiera a evaluarlo. No cambia la semantica de
+            // data_end_row de ninguna seccion (SectionDetectorService no se
+            // toca), no afecta huecos intermedios (ya alcanzables antes), y
+            // sigue acotado por $sheetMaxRow -- nunca lee mas alla del
+            // limite real de la hoja.
+            $maxRow = min($sheetMaxRow, max(array_map(fn($section) => (int) $section['data_end_row'], $sectionMap)) + 1);
         }
 
         for ($row = $dataStartRow; $row <= $maxRow; $row++) {
@@ -1330,7 +1349,8 @@ class RemParserService
             $esFormula = ($cell['es_formula'] ?? false) === true;
             if (!$esFormula) {
                 $esCapturableReal = ($cell['es_editable'] ?? false) === true
-                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                    && ($cell['esta_bloqueada'] ?? false) !== true
+                    && $this->celdaTieneValorRealCapturado($cell);
                 if ($esCapturableReal) {
                     return false;
                 }
@@ -1359,6 +1379,33 @@ class RemParserService
         }
 
         return $tieneFormulaHaciaAtras;
+    }
+
+    /**
+     * BM-5.3 (2026-09-14, hallazgo BM18A/B fila 186 -- ver tambien A06/L
+     * fila 181 y A33/E fila 74, mismo patron real preexistente y nunca
+     * capturado en Serie A): una celda de valor "capturable real" solo
+     * descalifica genuinamente una fila TOTAL cuando hay EVIDENCIA POSITIVA
+     * de que fue usada para capturar un dato de negocio real -- es decir,
+     * $valor_bruto no vacio. Una celda editable/desbloqueada pero
+     * genuinamente vacia (nunca diligenciada, ej. una columna de captura
+     * que esta hoja no usa para esta fila de cierre) NO es evidencia de
+     * dato real -- es evidencia neutral, exactamente igual que una celda
+     * bloqueada/vacia. Sin este chequeo adicional, la mera presencia de una
+     * columna editable-pero-nunca-usada en una fila TOTAL (inconsistencia
+     * real del template de origen, no un patron de datos) bloqueaba por
+     * completo su reconocimiento como TOTAL tecnico, incluso cuando TODAS
+     * las demas columnas de la fila ya son formulas de agregacion hacia
+     * atras con etiqueta "TOTAL" propia. Mismo criterio de "vacio" ya usado
+     * en isEmbeddedBackwardSubtotalRow() para $esVacio (valor_bruto null o
+     * string en blanco) -- no se inventa un criterio nuevo. Nunca hardcodea
+     * hoja/seccion/fila/columna: opera solo sobre el propio $cell recibido.
+     */
+    private function celdaTieneValorRealCapturado(array $cell): bool
+    {
+        $valorBruto = $cell['valor_bruto'] ?? null;
+
+        return $valorBruto !== null && trim((string) $valorBruto) !== '';
     }
 
     /**
@@ -1452,7 +1499,8 @@ class RemParserService
             $esFormula = ($cell['es_formula'] ?? false) === true;
             if (!$esFormula) {
                 $esCapturableReal = ($cell['es_editable'] ?? false) === true
-                    && ($cell['esta_bloqueada'] ?? false) !== true;
+                    && ($cell['esta_bloqueada'] ?? false) !== true
+                    && $this->celdaTieneValorRealCapturado($cell);
                 if ($esCapturableReal) {
                     return false;
                 }
