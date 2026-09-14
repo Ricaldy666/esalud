@@ -4,6 +4,7 @@ namespace App\Domain\REM\Services;
 
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\RemParser\Models\RemTemplateStructure;
+use App\Domain\RemParser\Services\MetadataExtractorService;
 use App\Domain\RuleEngine\Services\CellDataStorageService;
 use App\Domain\RuleEngine\Services\FormulaRangeCoverageAnalyzer;
 use App\Domain\RuleEngine\Services\MergeAnchorResolver;
@@ -878,8 +879,33 @@ class RemParserService
         return $maps;
     }
 
+    /**
+     * BM-3.6 (2026-09-14): bug real encontrado en BM-3.5A -- el fallback
+     * `/^([a-z])/i` tomaba solo el PRIMER caracter de $remType, truncando
+     * cualquier serie de 2 letras ('BM'->'B', 'BS'->'B', ambas colisionando
+     * en 'B') antes de siquiera intentar compararlas contra una serie
+     * valida. `$upload->rem_type` ya es, en la practica, exactamente uno
+     * de los 5 codigos REM canonicos (validado en
+     * StoreRemUploadRequest::rules(), 'in:A,BM,BS,D,P') -- no hace falta
+     * "extraerlo" de nada. Se resuelve primero por coincidencia EXACTA
+     * contra la fuente central de series validas (MetadataExtractorService::TIPOS_REM,
+     * la misma ya reutilizada por routes/api.php y
+     * RemPatchSheetStructureCommand -- sin duplicar la lista, sin
+     * acoplamiento nuevo: este archivo ya depende del dominio RemParser
+     * para RemTemplateStructure). A/D/P quedan con semantica identica a
+     * antes (ya coincidian con el primer caracter de su propio codigo). El
+     * regex legado se conserva intacto como fallback para cualquier valor
+     * que no sea una de las 5 series (nunca ocurre con un rem_type real,
+     * pero preserva el contrato previo de esta funcion privada para
+     * cualquier otro llamador/test que pase un valor distinto).
+     */
     private function serieFromRemType(string $remType): string
     {
+        $normalized = strtoupper(trim($remType));
+        if (in_array($normalized, MetadataExtractorService::TIPOS_REM, true)) {
+            return $normalized;
+        }
+
         if (preg_match('/serie[_\s-]*([a-z])/i', $remType, $matches)) {
             return strtoupper($matches[1]);
         }
