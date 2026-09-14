@@ -331,35 +331,58 @@ function buildA01BGeneralQuestions(columnGroups: ColumnGroup[] | undefined) {
   }))
 }
 
+// BM-10.2 (2026-09-14): las preguntas generales dinamicas solo pueden
+// describir una relacion (main_rule/complementary) cuando el backend ya
+// detecto esa relacion como real (columnGroups la incluye) -- antes, la
+// ausencia de un grupo main_rule real caia en un fallback hardcodeado
+// (total='C', components=['D','E'], totalLabel='Ambos sexos') que producia
+// una pregunta describiendo una formula que no existe en la seccion
+// (hallazgo BM-10.1: BM18/C, que solo tiene columnas A/B, mostraba "¿El
+// Ambos sexos (C) debe ser igual a D (D) más E (E)?"). Mismo principio para
+// "complementary": tras el fix de backend (SectionCalibrationMatrixService,
+// misma fecha) ese grupo solo existe cuando complementa una relacion
+// principal real, asi que aqui basta con omitir la pregunta si el grupo no
+// esta presente -- nunca se inventa un rango de columnas de reemplazo.
 function buildDynamicGeneralQuestions(
   sheet: string,
   section: string,
   columnGroups: ColumnGroup[] | undefined
 ) {
   const mainGroup = columnGroups?.find((item) => item.type === 'main_rule')
-  const total = mainGroup?.total ?? 'C'
-  const components = mainGroup?.components?.length ? mainGroup.components : ['D', 'E']
-  const labels = mainGroup?.labels ?? {}
-  const totalLabel = labels[total] || 'Ambos sexos'
-  const componentText = components
-    .map((column) => `${labels[column] || column} (${column})`)
-    .join(' más ')
   const ageGroup = columnGroups?.find((item) => item.type === 'age_range')
+  const complementaryGroup = columnGroups?.find((item) => item.type === 'complementary')
   const ageRange = rangeForGroup(columnGroups, 'age_range', 'rango etario')
-  const complementaryRange = rangeForGroup(
-    columnGroups,
-    'complementary',
-    'variables complementarias'
-  )
   const prefix = `${sheet.toLowerCase()}_${section.toLowerCase()}`
 
+  const mainRuleQuestion = mainGroup
+    ? (() => {
+        const total = mainGroup.total ?? mainGroup.start_column
+        const labels = mainGroup.labels ?? {}
+        const totalLabel = labels[total] || total
+        const components = mainGroup.components ?? []
+        const componentText = components
+          .map((column) => `${labels[column] || column} (${column})`)
+          .join(' más ')
+        return {
+          id: `general_${prefix}_main_rule`,
+          text: `¿El ${totalLabel} (${total}) debe ser igual a ${componentText}?`,
+          kind: 'applicability' as const,
+          required: true,
+        }
+      })()
+    : null
+
+  const complementaryQuestion = complementaryGroup
+    ? {
+        id: `general_${prefix}_complementary`,
+        text: `¿Las variables complementarias ${complementaryGroup.start_column}:${complementaryGroup.end_column} se validan de forma independiente?`,
+        kind: 'special' as const,
+        required: true,
+      }
+    : null
+
   return [
-    {
-      id: `general_${prefix}_main_rule`,
-      text: `¿El ${totalLabel} (${total}) debe ser igual a ${componentText}?`,
-      kind: 'applicability' as const,
-      required: true,
-    },
+    ...(mainRuleQuestion ? [mainRuleQuestion] : []),
     ...(ageGroup
       ? [
           {
@@ -376,12 +399,7 @@ function buildDynamicGeneralQuestions(
           },
         ]
       : []),
-    {
-      id: `general_${prefix}_complementary`,
-      text: `¿Las variables complementarias ${complementaryRange} se validan de forma independiente?`,
-      kind: 'special' as const,
-      required: true,
-    },
+    ...(complementaryQuestion ? [complementaryQuestion] : []),
     {
       id: `general_${prefix}_exceptions`,
       text: '¿Existen excepciones por establecimiento o tipo de establecimiento?',

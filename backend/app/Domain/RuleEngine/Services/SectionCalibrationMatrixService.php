@@ -786,7 +786,9 @@ class SectionCalibrationMatrixService
 
                 $colsOrigenKey = implode(',', $patron['columnas_origen']);
                 $descOrigen = $this->getFunctionalOriginDescription($patron['columnas_origen']);
-                $descRegla = self::REGLA_FUNCIONAL_LABELS[$patron['id']] ?? 'Suma de columnas = TOTAL';
+                $descRegla = $isLegacyA01A
+                    ? (self::REGLA_FUNCIONAL_LABELS[$patron['id']] ?? 'Suma de columnas = TOTAL')
+                    : $this->describeFunctionalRuleLabel($patron);
                 $functionalRules = $this->buildFunctionalRulesForPatternRow($patron, $rowNum, $cellDataRows);
                 $primaryRule = $functionalRules[0] ?? null;
 
@@ -838,7 +840,9 @@ class SectionCalibrationMatrixService
                 ),
                 'nombre' => $patron['nombre'],
                 'descripcion' => $patron['descripcion'],
-                'regla_funcional_label' => self::REGLA_FUNCIONAL_LABELS[$patron['id']] ?? 'Suma de columnas = TOTAL',
+                'regla_funcional_label' => $isLegacyA01A
+                    ? (self::REGLA_FUNCIONAL_LABELS[$patron['id']] ?? 'Suma de columnas = TOTAL')
+                    : $this->describeFunctionalRuleLabel($patron),
                 'filas' => $patron['filas'],
                 'formula_template' => $patron['formula_template'],
                 'columnas_origen' => $patron['columnas_origen'],
@@ -1587,7 +1591,20 @@ class SectionCalibrationMatrixService
             ];
         }
 
-        if (!empty($complementaryColumns)) {
+        // BM-10.2 (2026-09-14): "complementaria" solo tiene sentido cuando
+        // existe una relacion principal (main_rule) o un rango etario a la
+        // que esas columnas efectivamente complementan -- $remaining es
+        // literalmente "lo que sobro" de $availableColumns tras descontar
+        // mainColumns/ageColumns, asi que sin ninguno de los dos, lo que
+        // sobra no complementa nada: es el propio contenido principal de la
+        // seccion (hallazgo BM-10.1: BM18/C, columna B unica, sin main_rule
+        // ni age_range, se etiquetaba enganosamente "variable complementaria"
+        // pese a ser el dato principal de la seccion). Sin evidencia de una
+        // relacion real que complementar, se omite el grupo por completo en
+        // vez de inventar una relacion -- el frontend (BM-10.2) ya no
+        // pregunta por "variables complementarias" cuando este grupo no
+        // existe.
+        if (!empty($complementaryColumns) && (!empty($mainRules) || !empty($ageColumns))) {
             $groups[] = [
                 'key' => 'complementary',
                 'label' => 'Variables complementarias ' . $this->formatColumnRange($complementaryColumns),
@@ -3852,6 +3869,41 @@ class SectionCalibrationMatrixService
             return 'Columnas ' . implode(', ', $originColumns);
         }
         return 'Sin fórmula detectada';
+    }
+
+    /**
+     * BM-10.2 (2026-09-14): equivalente de REGLA_FUNCIONAL_LABELS para
+     * patrones DINAMICOS (cualquier seccion que no sea A01/A) -- ese array
+     * estatico solo tiene sentido para los 4 patrones REALES de A01/A
+     * (PATRONES_A01_A, mismo pattern_id 1-4 con su formula real conocida de
+     * antemano); un patron dinamico numera sus IDs localmente por seccion
+     * (1, 2, 3...) sin ninguna relacion con esa tabla, asi que jamas debe
+     * consultarla -- hacerlo producia etiquetas ajenas (ej. "Suma de rango
+     * etario estandar = TOTAL" en una seccion sin rango etario ni formula
+     * alguna, hallazgo BM-9.1/BM-10.1). Deriva la etiqueta exclusivamente
+     * de la evidencia real ya calculada para ESE patron ($patron['mode'],
+     * 'formula_template', 'columna_total', 'columnas_origen') -- mismo
+     * principio que describePatternName(), sin inventar ninguna relacion
+     * que la evidencia no respalde.
+     */
+    private function describeFunctionalRuleLabel(array $patron): string
+    {
+        $mode = $patron['mode'] ?? 'formula';
+        $total = (string) ($patron['columna_total'] ?? '');
+
+        if ($mode === 'direct_input') {
+            return $total !== '' ? "Entrada directa en {$total}" : 'Patrón de captura directa';
+        }
+
+        $formulaTemplate = (string) ($patron['formula_template'] ?? '');
+        if ($total !== '' && $formulaTemplate !== '') {
+            return "{$total} = " . ltrim($formulaTemplate, '=');
+        }
+        if (!empty($patron['columnas_origen'])) {
+            return $this->getFunctionalOriginDescription($patron['columnas_origen']) . ' = TOTAL';
+        }
+
+        return 'Patrón sin fórmula detectada';
     }
 
     private function getFunctionalOriginDescription(array $columnas): string
