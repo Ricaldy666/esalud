@@ -195,6 +195,59 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+### CIERRE DE JORNADA — 2026-09-14 (continuación #2), REM BM — 53 REGLAS INTERNAS IMPORTADAS Y CERTIFICADAS END-TO-END DESDE LA UI REAL — leer esto primero, antes que el checkpoint "BM-3 A BM-5.5 CERRADAS" de abajo
+
+**Veredicto: `BM72_COMMIT_PUSH_REGLAS_INTERNAS_CERTIFICADO`.** Reemplaza como punto de reanudación al checkpoint "BM-3 A BM-5.5 CERRADAS" de abajo (ese sigue vigente para su propio alcance histórico, pero la campaña avanzó: las 53 reglas internas del catálogo BM 2026 quedaron realmente importadas en BD local, certificadas end-to-end desde una carga real de la UI de ATHENEA — no solo simulada — y el código del importador quedó commiteado y pusheado). `main` = `origin/main` = **`3feb601c1b201f5d011ac1584171adc50a05f37a`** (`3feb601`), ahead/behind **0/0**.
+
+**1) Estado BM actual — LOCAL, no asumir en producción:**
+
+`rem_template_structures.id=72` (serie=BM, año=2026, `version_number=1`, `status=active`), `rem_template_id=2`. **53 reglas internas activas**, **53 bindings** (`bindable_type=structure`, `bindable_id=72`, `serie=BM`, `anio=2026`, `active=true`, 1:1 con cada regla).
+
+IDs reales (no asumir continuidad perfecta — hay un hueco benigno de autoincremento InnoDB en `id=920`, confirmado que nunca existió ni siquiera como fila soft-deleted, sin relación con pérdida de datos): `rem_rules` de BM = **921-973** (53 filas). `rem_rule_bindings` de BM = **2242-2294** (53 filas).
+
+Global local (incluye Serie A + BM): `rem_rules=851`, `activas=804`, `rem_rule_bindings=1708`.
+
+**2) Upload canónico de certificación — #196:**
+
+`102412BM05.xlsm`, Posta Caleta Chanavayita, período 2026-5, carga real hecha por el usuario desde la UI de ATHENEA local (no simulada, no por CLI). Resultado:
+
+```
+status=success, errores de parser=0
+rem_data=181, rem_technical_totals=20
+53 reglas evaluadas → 53 passed, 0 failed, 0 skipped, 0 invalid
+0 missing_total_row, 100% cumplimiento
+```
+
+Fila 186 (BM18A/B): `technical_total`, `exclusion_reason=embedded_trailing_total_row`. Fila 206: `technical_total`, `exclusion_reason=trailing_total_beyond_bounds`. Este es el **resultado canónico de referencia** para cualquier futura carga real de BM con esta estructura/reglas — reemplaza como evidencia end-to-end la expectativa simplificada de fases anteriores.
+
+**3) Incidente operativo encontrado y resuelto — worker local con código desactualizado en memoria:**
+
+Una primera carga real (**upload #195**, mismo archivo, **mismo SHA-256** que #196) dio un resultado distinto e inicialmente inesperado: `182 rem_data`, `18 technical_totals`, `50 passed / 3 skipped` (las 3: `bm18a_b_d_sum_equals_g09`, `bm18a_b_e_sum_equals_g09`, `bm18a_b_f_sum_equals_g09`, con `missing_total_row` para `total_row=206`). Causa raíz identificada con evidencia directa (timestamps): el proceso `queue:work` (PID 1896) llevaba corriendo desde **08:49:55**, **antes** de que el fix BM-5.3 se escribiera en `RemParserService.php` (mtime **12:11:52**) — el worker mantenía en memoria la clase PHP anterior al fix (fila 186 mal clasificada como `rem_data`, fila 206 nunca capturada) y nunca la recargó, porque `queue:work` carga las clases una sola vez al arrancar y las conserva durante toda su vida.
+
+**Resuelto**: reinicio controlado, autorizado explícitamente, **únicamente del worker** (`php artisan queue:restart` — señal graceful, el proceso viejo terminó solo tras su ciclo — seguido de un `queue:work` nuevo, PID **26560**, iniciado **después** del mtime del fix). Backend y frontend **no se tocaron**. Repetida la carga con el mismo archivo (byte-idéntico) → upload #196, resultado limpio (ver punto 2). `#195` se dejó intacto, sin reprocesar, como evidencia histórica del incidente.
+
+**Lección operativa / runbook local, para futuras fases:** `queue:work` (y cualquier proceso PHP de larga duración equivalente) **no recoge cambios de código en caliente**. Después de cualquier cambio que afecte al parser, a los jobs de procesamiento, o a cualquier clase que el worker consuma, **reiniciar el worker local de forma controlada antes de certificar cualquier flujo real end-to-end** — de lo contrario el resultado observado reflejará código desactualizado, no el estado real del repositorio. Esto aplica en general, no solo a este incidente puntual.
+
+**4) Commit de código:**
+
+`3feb601` (`feat(rem): add controlled BM internal rule import`) — `RemRuleManifestImporterService` (transaccional, idempotente, fail-closed, resuelve la estructura dinámicamente por serie/año, nunca hardcodea un ID) + `RemImportRuleManifestCommand` (`rem:import-rule-manifest`, dry-run por defecto, `--commit` explícito) + `RuleManifestImportException` + el manifiesto versionado real (`database/seeders/data/rem-bm-2026-internal-rules-manifest.json`, 53 reglas) + su test suite (14/14). `main`=`origin/main`=`3feb601`, ahead/behind 0/0.
+
+**5) Alcance cerrado hasta ahora (BM parser/config/structure/cell-data/UI/reglas internas/importador) — REM BM como serie NO está terminado:**
+
+DONE: parser/config BM, estructura 72/v1, cell-data (6/6), carga real desde UI, fix de technical totals (BM-5.3/5.5), las 53 reglas internas + sus 53 bindings, certificación end-to-end real desde la UI, herramienta de importación controlada (genérica, reutilizable).
+
+**Pendiente, sin fecha, fases separadas:**
+- **37 relaciones cross-sheet BM18→BM18A** (31 referencias directas + 6 rangos `SUM`) — el motor (`rule_type=cross_sheet_equals`, `CrossSheetEqualsEvaluator`) ya existe y está registrado en los 3 entrypoints reales desde el commit `af3bfe9`, pero **0 reglas BM cross-sheet persistidas todavía**. Próxima fase: **BM-8** (diseño/importación/control de esas 37, separado de las 53 internas).
+- **Calibración funcional BM**: `0/2` hojas, `0/6` secciones, 6 pendientes (BM18: 4 secciones; BM18A: 2 secciones) — **no confundir con las 53 reglas técnicas**, que ya están certificadas independientemente de que la calibración funcional (decisiones de Estadística APS sobre columnas/comportamiento por fila) no se haya iniciado.
+- Auditoría/cierre canónico final de BM.
+- Despliegue a producción — no iniciado, no evaluado en esta campaña.
+
+**6) Serie A:** `67/v35`, sin ningún cambio por la campaña BM.
+
+**7) Producción:** no asumida sincronizada. Último estado conocido histórico: Serie A estructura **19/v33** (no revalidado en esta sesión). Ningún commit de esta campaña BM desplegado. Cero SSH/deploy/Docker/migrate/seed/cache clear/backfill en toda la campaña BM-6/BM-7.
+
+---
+
 ### CIERRE DE JORNADA — 2026-09-14 (continuación), REM BM — BM-3 A BM-5.5 CERRADAS / CHECKPOINT PREVIO A IMPORTACIÓN DE REGLAS (BM-6) — leer esto primero, antes que el checkpoint "BM-2.6B CERRADA Y RESPALDADA" de abajo
 
 **Veredicto: `BM55_FIX_GENERICO_COMMIT_PUSH_CERTIFICADO`.** Este checkpoint reemplaza como punto de reanudación inmediato al checkpoint "BM-2.6B CERRADA Y RESPALDADA" de abajo (ese sigue vigente para su propio alcance específico — registro del evaluador cross-sheet en los entrypoints del motor — pero la campaña avanzó mucho más allá: estructura/config real de BM, calibración de roles de columna vía `cell-data`, certificación end-to-end desde la UI real, mapeo canónico completo de las 10 reglas del catálogo BM 2026, dos anomalías estructurales reales encontradas y corregidas con un fix genérico del motor de parseo, certificado exhaustivamente contra Serie A, commiteado y pusheado). `main` = `origin/main` = **`67ebe96b95caa5f240e690941f6ed3fbcf5c4bdb`** (`67ebe96`), ahead/behind **0/0**.
