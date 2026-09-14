@@ -145,12 +145,29 @@ class RemRuleManifestImporterService
                 continue;
             }
 
-            $normalized = $normalizeConfig->invoke($this->engine, $config);
-            $sourceLetters = $normalized['source_letters'] ?? [];
-            $targetColumn = $normalized['target_column'] ?? '';
-            if (empty($sourceLetters) || $targetColumn === '') {
-                $invalid[] = ['rule_key' => $key, 'reason' => 'config no normalizable (source_letters/target_column vacios tras normalizeConfig())'];
-                continue;
+            if ($ruleType === 'cross_sheet_equals') {
+                // BM-8.2: cross_sheet_equals tiene un contrato de config
+                // completamente distinto al legado sum_equals (source.cell +
+                // target.sheet + target.cell|range/aggregation, ver
+                // CrossSheetEqualsEvaluator) -- normalizeConfig() no sabe
+                // interpretarlo (fue disenado exclusivamente para el
+                // formato column/row_range/rule_logic de sum_equals) y
+                // marcaria CUALQUIER config valida de este tipo como
+                // invalida. Se valida nativamente en su lugar, sin invocar
+                // normalizeConfig() para este rule_type.
+                $configError = $this->validateCrossSheetConfig($config, $sectionsBySheet);
+                if ($configError !== null) {
+                    $invalid[] = ['rule_key' => $key, 'reason' => $configError];
+                    continue;
+                }
+            } else {
+                $normalized = $normalizeConfig->invoke($this->engine, $config);
+                $sourceLetters = $normalized['source_letters'] ?? [];
+                $targetColumn = $normalized['target_column'] ?? '';
+                if (empty($sourceLetters) || $targetColumn === '') {
+                    $invalid[] = ['rule_key' => $key, 'reason' => 'config no normalizable (source_letters/target_column vacios tras normalizeConfig())'];
+                    continue;
+                }
             }
 
             $existing = Rule::withTrashed()->where('rule_key', $key)->first();
@@ -247,6 +264,80 @@ class RemRuleManifestImporterService
                 'skipped' => $plan['would_skip'],
             ];
         });
+    }
+
+    /**
+     * BM-8.2. Valida nativamente una config de cross_sheet_equals contra el
+     * contrato REAL que lee CrossSheetEqualsEvaluator (mismas expresiones
+     * regulares que ese evaluador usa para parseCoordinate()/parseRange(),
+     * para no divergir de lo que realmente se ejecutaria). Fail-closed:
+     * cualquier forma no reconocida devuelve un motivo de rechazo explicito
+     * en vez de asumir un valor por defecto. Retorna null si la config es
+     * valida. Generico -- no depende de ninguna hoja/serie/seccion
+     * concreta, solo de la ESTRUCTURA ACTIVA real (para confirmar que
+     * target.sheet exista) y de la forma sintactica de las celdas/rangos.
+     */
+    private function validateCrossSheetConfig(array $config, array $sectionsBySheet): ?string
+    {
+        $sourceCell = $config['source']['cell'] ?? null;
+        if ($sourceCell === null || !is_string($sourceCell) || !$this->isValidCellCoordinate($sourceCell)) {
+            return 'source.cell ausente o invalida';
+        }
+
+        $target = $config['target'] ?? [];
+        $targetSheet = $target['sheet'] ?? null;
+        if ($targetSheet === null) {
+            return 'target.sheet ausente';
+        }
+        if (!array_key_exists($targetSheet, $sectionsBySheet)) {
+            return "target.sheet '{$targetSheet}' no existe en la estructura activa";
+        }
+
+        $targetCell = $target['cell'] ?? null;
+        $targetRange = $target['range'] ?? null;
+
+        if ($targetCell === null && $targetRange === null) {
+            return "target debe declarar 'cell' o 'range'";
+        }
+        if ($targetCell !== null && $targetRange !== null) {
+            return "target no puede declarar 'cell' y 'range' simultaneamente";
+        }
+
+        if ($targetCell !== null) {
+            if (!is_string($targetCell) || !$this->isValidCellCoordinate($targetCell)) {
+                return "target.cell invalida: '{$targetCell}'";
+            }
+
+            return null;
+        }
+
+        if (!is_string($targetRange) || !$this->isValidCellRange($targetRange)) {
+            return "target.range invalido: '{$targetRange}'";
+        }
+
+        $aggregation = $target['aggregation'] ?? null;
+        if ($aggregation === null) {
+            return 'target.range requiere target.aggregation';
+        }
+        if ($aggregation !== 'sum') {
+            return "target.aggregation '{$aggregation}' no soportada (unicamente 'sum' en esta fase)";
+        }
+
+        return null;
+    }
+
+    private function isValidCellCoordinate(string $cell): bool
+    {
+        return (bool) preg_match('/^\$?[A-Z]+\$?\d+$/i', trim($cell));
+    }
+
+    private function isValidCellRange(string $range): bool
+    {
+        if (!preg_match('/^\$?([A-Z]+)\$?(\d+)\s*:\s*\$?([A-Z]+)\$?(\d+)$/i', trim($range), $m)) {
+            return false;
+        }
+
+        return strtoupper($m[1]) === strtoupper($m[3]) && (int) $m[2] <= (int) $m[4];
     }
 
     /**

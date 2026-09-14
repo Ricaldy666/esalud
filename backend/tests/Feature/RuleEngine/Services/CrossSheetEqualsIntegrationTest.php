@@ -4,6 +4,7 @@ namespace Tests\Feature\RuleEngine\Services;
 
 use App\Domain\HealthCenters\Models\HealthCenter;
 use App\Domain\REM\Models\RemData;
+use App\Domain\REM\Models\RemTechnicalTotal;
 use App\Domain\REM\Models\RemUpload;
 use App\Domain\RemParser\Models\RemTemplateStructure;
 use App\Domain\RuleEngine\Evaluators\CrossSheetEqualsEvaluator;
@@ -251,5 +252,202 @@ class CrossSheetEqualsIntegrationTest extends TestCase
         $this->assertSame(0, $result['passed']);
         $this->assertSame(0, $result['failed']);
         $this->assertSame(1, $result['skipped'], 'target_cell_not_found debe contar como skipped, nunca leer del otro upload');
+    }
+
+    // ── BM-8.2: target resuelto desde rem_technical_totals cuando esta ausente de rem_data ──
+
+    private function createTechnicalTotal(int $uploadId, string $sheet, string $section, int $row, array $values): void
+    {
+        RemTechnicalTotal::create([
+            'rem_upload_id' => $uploadId,
+            'sheet' => $sheet,
+            'rem_section_code' => $section,
+            'row_number' => $row,
+            'concept' => 'TOTAL',
+            'total' => null,
+            'values' => $values,
+            'exclusion_reason' => 'embedded_trailing_total_row',
+        ]);
+    }
+
+    public function test_cross_sheet_direct_target_resolves_from_technical_totals_when_absent_from_rem_data(): void
+    {
+        $structure = $this->createStructure();
+        $upload = $this->createUpload();
+
+        $rule = $this->createCrossSheetRule([
+            'sheet' => 'SheetA',
+            'section' => 'A',
+            'source' => ['cell' => 'B2'],
+            'target' => ['sheet' => 'SheetB', 'cell' => 'C10'],
+        ]);
+        $this->bind($rule, $structure);
+
+        RemData::create([
+            'rem_upload_id' => $upload->id,
+            'section' => 'SheetA',
+            'data' => ['values' => ['B' => 10], 'row_number' => 2, 'concept' => 'Origen'],
+        ]);
+        // Fila 10 de SheetB NUNCA existe en rem_data -- solo en rem_technical_totals
+        // (patron real: una fila TOTAL tecnica correctamente excluida por el parser).
+        $this->createTechnicalTotal($upload->id, 'SheetB', 'B', 10, ['C' => 10]);
+
+        $result = $this->service->execute($upload->id, $structure->id, write: false);
+
+        $this->assertSame(1, $result['executed']);
+        $this->assertSame(1, $result['passed']);
+        $this->assertSame(0, $result['failed']);
+        $this->assertSame(0, $result['skipped']);
+    }
+
+    public function test_cross_sheet_target_absent_from_both_rem_data_and_technical_totals_is_skipped(): void
+    {
+        $structure = $this->createStructure();
+        $upload = $this->createUpload();
+
+        $rule = $this->createCrossSheetRule([
+            'sheet' => 'SheetA',
+            'section' => 'A',
+            'source' => ['cell' => 'B2'],
+            'target' => ['sheet' => 'SheetB', 'cell' => 'C99'],
+        ]);
+        $this->bind($rule, $structure);
+
+        RemData::create([
+            'rem_upload_id' => $upload->id,
+            'section' => 'SheetA',
+            'data' => ['values' => ['B' => 10], 'row_number' => 2, 'concept' => 'Origen'],
+        ]);
+        // Fila 99 de SheetB no existe en ningun lado.
+
+        $result = $this->service->execute($upload->id, $structure->id, write: false);
+
+        $this->assertSame(0, $result['executed']);
+        $this->assertSame(1, $result['skipped']);
+        $this->assertSame(0, $result['passed']);
+        $this->assertSame(0, $result['failed']);
+    }
+
+    public function test_cross_sheet_target_present_in_both_rem_data_and_technical_totals_prefers_rem_data(): void
+    {
+        // Comportamiento determinista ante coexistencia (caso defensivo, no
+        // se ha observado en datos reales -- el parser nunca persiste la
+        // misma fila en ambos origenes -- pero el metodo debe resolverlo
+        // sin ambiguedad): rem_data SIEMPRE gana.
+        $structure = $this->createStructure();
+        $upload = $this->createUpload();
+
+        $rule = $this->createCrossSheetRule([
+            'sheet' => 'SheetA',
+            'section' => 'A',
+            'source' => ['cell' => 'B2'],
+            'target' => ['sheet' => 'SheetB', 'cell' => 'C5'],
+        ]);
+        $this->bind($rule, $structure);
+
+        RemData::create([
+            'rem_upload_id' => $upload->id,
+            'section' => 'SheetA',
+            'data' => ['values' => ['B' => 77], 'row_number' => 2, 'concept' => 'Origen'],
+        ]);
+        // Misma fila 5 en AMBOS origenes, con valores DISTINTOS -- rem_data
+        // declara 77 (debe ganar), technical_totals declara 999 (debe ignorarse).
+        RemData::create([
+            'rem_upload_id' => $upload->id,
+            'section' => 'SheetB',
+            'data' => ['values' => ['C' => 77], 'row_number' => 5, 'concept' => 'Destino real'],
+        ]);
+        $this->createTechnicalTotal($upload->id, 'SheetB', 'B', 5, ['C' => 999]);
+
+        $result = $this->service->execute($upload->id, $structure->id, write: false);
+
+        $this->assertSame(1, $result['executed']);
+        $this->assertSame(1, $result['passed'], 'debe comparar 77 (rem_data) contra 77 (source), ignorando el 999 de technical_totals');
+        $this->assertSame(0, $result['failed']);
+    }
+
+    public function test_cross_sheet_technical_total_from_another_sheet_does_not_contaminate(): void
+    {
+        $structure = $this->createStructure();
+        $upload = $this->createUpload();
+
+        $rule = $this->createCrossSheetRule([
+            'sheet' => 'SheetA',
+            'section' => 'A',
+            'source' => ['cell' => 'B2'],
+            'target' => ['sheet' => 'SheetB', 'cell' => 'C10'],
+        ]);
+        $this->bind($rule, $structure);
+
+        RemData::create([
+            'rem_upload_id' => $upload->id,
+            'section' => 'SheetA',
+            'data' => ['values' => ['B' => 10], 'row_number' => 2, 'concept' => 'Origen'],
+        ]);
+        // Fila 10 columna C SI existe como technical_total, pero en SheetC (otra hoja) -- no debe usarse para SheetB.
+        $this->createTechnicalTotal($upload->id, 'SheetC', 'X', 10, ['C' => 10]);
+
+        $result = $this->service->execute($upload->id, $structure->id, write: false);
+
+        $this->assertSame(0, $result['executed']);
+        $this->assertSame(1, $result['skipped'], 'la fila tecnica de SheetC nunca debe resolver un target declarado en SheetB');
+    }
+
+    public function test_cross_sheet_technical_total_from_another_upload_does_not_leak(): void
+    {
+        $structure = $this->createStructure();
+        $upload = $this->createUpload();
+        $otherUpload = $this->createUpload();
+
+        $rule = $this->createCrossSheetRule([
+            'sheet' => 'SheetA',
+            'section' => 'A',
+            'source' => ['cell' => 'B2'],
+            'target' => ['sheet' => 'SheetB', 'cell' => 'C10'],
+        ]);
+        $this->bind($rule, $structure);
+
+        RemData::create([
+            'rem_upload_id' => $upload->id,
+            'section' => 'SheetA',
+            'data' => ['values' => ['B' => 10], 'row_number' => 2, 'concept' => 'Origen'],
+        ]);
+        // La fila tecnica SI existe, pero en el OTRO upload -- nunca debe cruzarse.
+        $this->createTechnicalTotal($otherUpload->id, 'SheetB', 'B', 10, ['C' => 10]);
+
+        $result = $this->service->execute($upload->id, $structure->id, write: false);
+
+        $this->assertSame(0, $result['executed']);
+        $this->assertSame(1, $result['skipped'], 'la fila tecnica del otro upload nunca debe leerse');
+    }
+
+    public function test_cross_sheet_sum_range_over_rem_data_still_works_after_technical_totals_merge(): void
+    {
+        // Confirma que agregar el merge de technical_totals no rompe el
+        // camino SUM_RANGE existente (que sigue resolviendo unicamente
+        // desde rem_data en este escenario, sin ninguna fila tecnica de por medio).
+        $structure = $this->createStructure();
+        $upload = $this->createUpload();
+
+        $rule = $this->createCrossSheetRule([
+            'sheet' => 'SheetA',
+            'section' => 'A',
+            'source' => ['cell' => 'B3'],
+            'target' => ['sheet' => 'SheetB', 'range' => 'D1:D3', 'aggregation' => 'sum'],
+        ]);
+        $this->bind($rule, $structure);
+
+        RemData::create(['rem_upload_id' => $upload->id, 'section' => 'SheetA', 'data' => ['values' => ['B' => 6], 'row_number' => 3, 'concept' => 'Origen']]);
+        RemData::create(['rem_upload_id' => $upload->id, 'section' => 'SheetB', 'data' => ['values' => ['D' => 1], 'row_number' => 1, 'concept' => 'D1']]);
+        RemData::create(['rem_upload_id' => $upload->id, 'section' => 'SheetB', 'data' => ['values' => ['D' => 2], 'row_number' => 2, 'concept' => 'D2']]);
+        RemData::create(['rem_upload_id' => $upload->id, 'section' => 'SheetB', 'data' => ['values' => ['D' => 3], 'row_number' => 3, 'concept' => 'D3']]);
+        // Fila tecnica ajena en el mismo rango de filas pero en otra hoja -- no debe sumarse.
+        $this->createTechnicalTotal($upload->id, 'SheetX', 'Z', 2, ['D' => 999]);
+
+        $result = $this->service->execute($upload->id, $structure->id, write: false);
+
+        $this->assertSame(1, $result['executed']);
+        $this->assertSame(1, $result['passed']);
+        $this->assertSame(0, $result['failed']);
     }
 }

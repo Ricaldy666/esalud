@@ -1,0 +1,1247 @@
+{
+    "schema_version": "1.0.0",
+    "manifest_id": "bm-2026-cross-sheet-rules",
+    "serie": "BM",
+    "anio": 2026,
+    "generated_phase": "BM-8.1/BM-8.2/BM-8.3",
+    "source": "bm-2.5-cross-sheet-audit",
+    "relation_counts": {
+        "direct": 31,
+        "sum_range": 6
+    },
+    "excludes": [
+        "BM18A->BM18 (relacion inversa, 0 encontradas)",
+        "53 reglas internas sum_equals (manifiesto separado: rem-bm-2026-internal-rules-manifest.json)"
+    ],
+    "expected_rule_count": 37,
+    "expected_binding_count": 37,
+    "rules": [
+        {
+            "rule_key": "bm18_e14_cross_sheet_equals_bm18a_d20",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E14 = BM18A!D20",
+            "description": "Verifica que BM18!E14 sea igual a BM18A!D20. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D20\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E14",
+                "original_formula": "=BM18A!D20",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D20",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E14"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D20"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f14_cross_sheet_equals_bm18a_e20",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F14 = BM18A!E20",
+            "description": "Verifica que BM18!F14 sea igual a BM18A!E20. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E20\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F14",
+                "original_formula": "=BM18A!E20",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E20",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F14"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E20"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e15_cross_sheet_equals_bm18a_d43",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E15 = BM18A!D43",
+            "description": "Verifica que BM18!E15 sea igual a BM18A!D43. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D43\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E15",
+                "original_formula": "=BM18A!D43",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D43",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E15"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D43"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f15_cross_sheet_equals_bm18a_e43",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F15 = BM18A!E43",
+            "description": "Verifica que BM18!F15 sea igual a BM18A!E43. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E43\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F15",
+                "original_formula": "=BM18A!E43",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E43",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F15"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E43"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e16_cross_sheet_equals_bm18a_d49",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E16 = BM18A!D49",
+            "description": "Verifica que BM18!E16 sea igual a BM18A!D49. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D49\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E16",
+                "original_formula": "=BM18A!D49",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D49",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E16"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D49"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f16_cross_sheet_equals_bm18a_e49",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F16 = BM18A!E49",
+            "description": "Verifica que BM18!F16 sea igual a BM18A!E49. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E49\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F16",
+                "original_formula": "=BM18A!E49",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E49",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F16"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E49"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e17_cross_sheet_equals_bm18a_d54",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E17 = BM18A!D54",
+            "description": "Verifica que BM18!E17 sea igual a BM18A!D54. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D54\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E17",
+                "original_formula": "=BM18A!D54",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D54",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E17"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D54"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f17_cross_sheet_equals_bm18a_e54",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F17 = BM18A!E54",
+            "description": "Verifica que BM18!F17 sea igual a BM18A!E54. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E54\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F17",
+                "original_formula": "=BM18A!E54",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E54",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F17"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E54"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e18_cross_sheet_equals_bm18a_d73",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E18 = BM18A!D73",
+            "description": "Verifica que BM18!E18 sea igual a BM18A!D73. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D73\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E18",
+                "original_formula": "=BM18A!D73",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D73",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E18"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D73"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f18_cross_sheet_equals_bm18a_e73",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F18 = BM18A!E73",
+            "description": "Verifica que BM18!F18 sea igual a BM18A!E73. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E73\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F18",
+                "original_formula": "=BM18A!E73",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E73",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F18"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E73"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e19_cross_sheet_equals_bm18a_d78",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E19 = BM18A!D78",
+            "description": "Verifica que BM18!E19 sea igual a BM18A!D78. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D78\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E19",
+                "original_formula": "=BM18A!D78",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D78",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E19"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D78"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f19_cross_sheet_equals_bm18a_e78",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F19 = BM18A!E78",
+            "description": "Verifica que BM18!F19 sea igual a BM18A!E78. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E78\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F19",
+                "original_formula": "=BM18A!E78",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E78",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F19"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E78"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e20_cross_sheet_equals_bm18a_d88",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E20 = BM18A!D88",
+            "description": "Verifica que BM18!E20 sea igual a BM18A!D88. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D88\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E20",
+                "original_formula": "=BM18A!D88",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D88",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E20"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D88"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f20_cross_sheet_equals_bm18a_e88",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F20 = BM18A!E88",
+            "description": "Verifica que BM18!F20 sea igual a BM18A!E88. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E88\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F20",
+                "original_formula": "=BM18A!E88",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E88",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F20"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E88"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e22_cross_sheet_equals_bm18a_sum_d92_d113",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E22 = SUM(BM18A!D92:D113)",
+            "description": "Verifica que BM18!E22 sea igual a la suma de BM18A!D92:D113. Rango de agregacion real del Excel. Evidencia: formula real \"=SUM(BM18A!D92:D113)\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E22",
+                "original_formula": "=SUM(BM18A!D92:D113)",
+                "target_sheet": "BM18A",
+                "relation_type": "SUM_RANGE",
+                "target_range": "D92:D113",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E22"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "range": "D92:D113",
+                    "aggregation": "sum"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f22_cross_sheet_equals_bm18a_sum_e92_e113",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F22 = SUM(BM18A!E92:E113)",
+            "description": "Verifica que BM18!F22 sea igual a la suma de BM18A!E92:E113. Rango de agregacion real del Excel. Evidencia: formula real \"=SUM(BM18A!E92:E113)\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F22",
+                "original_formula": "=SUM(BM18A!E92:E113)",
+                "target_sheet": "BM18A",
+                "relation_type": "SUM_RANGE",
+                "target_range": "E92:E113",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F22"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "range": "E92:E113",
+                    "aggregation": "sum"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_e23_cross_sheet_equals_bm18a_sum_d114_d118",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 E23 = SUM(BM18A!D114:D118)",
+            "description": "Verifica que BM18!E23 sea igual a la suma de BM18A!D114:D118. Rango de agregacion real del Excel. Evidencia: formula real \"=SUM(BM18A!D114:D118)\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "E23",
+                "original_formula": "=SUM(BM18A!D114:D118)",
+                "target_sheet": "BM18A",
+                "relation_type": "SUM_RANGE",
+                "target_range": "D114:D118",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "E23"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "range": "D114:D118",
+                    "aggregation": "sum"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_f23_cross_sheet_equals_bm18a_sum_e114_e118",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 F23 = SUM(BM18A!E114:E118)",
+            "description": "Verifica que BM18!F23 sea igual a la suma de BM18A!E114:E118. Rango de agregacion real del Excel. Evidencia: formula real \"=SUM(BM18A!E114:E118)\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "F23",
+                "original_formula": "=SUM(BM18A!E114:E118)",
+                "target_sheet": "BM18A",
+                "relation_type": "SUM_RANGE",
+                "target_range": "E114:E118",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "source": {
+                    "cell": "F23"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "range": "E114:E118",
+                    "aggregation": "sum"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c42_cross_sheet_equals_bm18a_d128",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C42 = BM18A!D128",
+            "description": "Verifica que BM18!C42 sea igual a BM18A!D128. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D128\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C42",
+                "original_formula": "=BM18A!D128",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D128",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C42"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D128"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d42_cross_sheet_equals_bm18a_e128",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D42 = BM18A!E128",
+            "description": "Verifica que BM18!D42 sea igual a BM18A!E128. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E128\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D42",
+                "original_formula": "=BM18A!E128",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E128",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D42"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E128"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c43_cross_sheet_equals_bm18a_d158",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C43 = BM18A!D158",
+            "description": "Verifica que BM18!C43 sea igual a BM18A!D158. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D158\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C43",
+                "original_formula": "=BM18A!D158",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D158",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C43"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D158"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d43_cross_sheet_equals_bm18a_e158",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D43 = BM18A!E158",
+            "description": "Verifica que BM18!D43 sea igual a BM18A!E158. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E158\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D43",
+                "original_formula": "=BM18A!E158",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E158",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D43"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E158"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c44_cross_sheet_equals_bm18a_d131",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C44 = BM18A!D131",
+            "description": "Verifica que BM18!C44 sea igual a BM18A!D131. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D131\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C44",
+                "original_formula": "=BM18A!D131",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D131",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C44"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D131"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d44_cross_sheet_equals_bm18a_e131",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D44 = BM18A!E131",
+            "description": "Verifica que BM18!D44 sea igual a BM18A!E131. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E131\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D44",
+                "original_formula": "=BM18A!E131",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E131",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D44"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E131"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c45_cross_sheet_equals_bm18a_sum_d132_d139",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C45 = SUM(BM18A!D132:D139)",
+            "description": "Verifica que BM18!C45 sea igual a la suma de BM18A!D132:D139. Rango de agregacion real del Excel. Evidencia: formula real \"=SUM(BM18A!D132:D139)\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C45",
+                "original_formula": "=SUM(BM18A!D132:D139)",
+                "target_sheet": "BM18A",
+                "relation_type": "SUM_RANGE",
+                "target_range": "D132:D139",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C45"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "range": "D132:D139",
+                    "aggregation": "sum"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d45_cross_sheet_equals_bm18a_sum_e132_e139",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D45 = SUM(BM18A!E132:E139)",
+            "description": "Verifica que BM18!D45 sea igual a la suma de BM18A!E132:E139. Rango de agregacion real del Excel. Evidencia: formula real \"=SUM(BM18A!E132:E139)\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D45",
+                "original_formula": "=SUM(BM18A!E132:E139)",
+                "target_sheet": "BM18A",
+                "relation_type": "SUM_RANGE",
+                "target_range": "E132:E139",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D45"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "range": "E132:E139",
+                    "aggregation": "sum"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c46_cross_sheet_equals_bm18a_d148",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C46 = BM18A!D148",
+            "description": "Verifica que BM18!C46 sea igual a BM18A!D148. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D148\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C46",
+                "original_formula": "=BM18A!D148",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D148",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C46"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D148"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d46_cross_sheet_equals_bm18a_e148",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D46 = BM18A!E148",
+            "description": "Verifica que BM18!D46 sea igual a BM18A!E148. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E148\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D46",
+                "original_formula": "=BM18A!E148",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E148",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D46"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E148"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c47_cross_sheet_equals_bm18a_d164",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C47 = BM18A!D164",
+            "description": "Verifica que BM18!C47 sea igual a BM18A!D164. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D164\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C47",
+                "original_formula": "=BM18A!D164",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D164",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C47"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D164"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d47_cross_sheet_equals_bm18a_e164",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D47 = BM18A!E164",
+            "description": "Verifica que BM18!D47 sea igual a BM18A!E164. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E164\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D47",
+                "original_formula": "=BM18A!E164",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E164",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D47"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E164"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c48_cross_sheet_equals_bm18a_d169",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C48 = BM18A!D169",
+            "description": "Verifica que BM18!C48 sea igual a BM18A!D169. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D169\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C48",
+                "original_formula": "=BM18A!D169",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D169",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C48"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D169"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d48_cross_sheet_equals_bm18a_e169",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D48 = BM18A!E169",
+            "description": "Verifica que BM18!D48 sea igual a BM18A!E169. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E169\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D48",
+                "original_formula": "=BM18A!E169",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E169",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D48"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E169"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c49_cross_sheet_equals_bm18a_d186",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C49 = BM18A!D186",
+            "description": "Verifica que BM18!C49 sea igual a BM18A!D186. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D186\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C49",
+                "original_formula": "=BM18A!D186",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D186",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C49"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D186"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c50_cross_sheet_equals_bm18a_d177",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C50 = BM18A!D177",
+            "description": "Verifica que BM18!C50 sea igual a BM18A!D177. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D177\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C50",
+                "original_formula": "=BM18A!D177",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D177",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C50"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D177"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d50_cross_sheet_equals_bm18a_e177",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D50 = BM18A!E177",
+            "description": "Verifica que BM18!D50 sea igual a BM18A!E177. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E177\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D50",
+                "original_formula": "=BM18A!E177",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E177",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D50"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E177"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_c51_cross_sheet_equals_bm18a_d206",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 C51 = BM18A!D206",
+            "description": "Verifica que BM18!C51 sea igual a BM18A!D206. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!D206\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "C51",
+                "original_formula": "=BM18A!D206",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "D206",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "C51"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "D206"
+                }
+            }
+        },
+        {
+            "rule_key": "bm18_d51_cross_sheet_equals_bm18a_e206",
+            "rule_type": "cross_sheet_equals",
+            "source": "excel_formula",
+            "name": "BM18 D51 = BM18A!E206",
+            "description": "Verifica que BM18!D51 sea igual a BM18A!E206. Referencia cross-hoja directa real del Excel. Evidencia: formula real \"=BM18A!E206\" (hallazgo BM-2.5, verificado nuevamente en BM-8.1/BM-8.3 contra ambos establecimientos).",
+            "category": "cross_sheet_equals",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "source": "excel_formula",
+                "origin_sheet": "BM18",
+                "origin_cell": "D51",
+                "original_formula": "=BM18A!E206",
+                "target_sheet": "BM18A",
+                "relation_type": "DIRECT",
+                "target_cell": "E206",
+                "created_via": "bm-2.5-cross-sheet-audit"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "source": {
+                    "cell": "D51"
+                },
+                "target": {
+                    "sheet": "BM18A",
+                    "cell": "E206"
+                }
+            }
+        }
+    ]
+}

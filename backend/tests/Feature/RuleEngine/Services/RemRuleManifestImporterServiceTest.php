@@ -26,6 +26,7 @@ class RemRuleManifestImporterServiceTest extends TestCase
     private const SERIE = 'D';
     private const ANIO = 2099;
     private const SHEET = 'ZZTEST';
+    private const TARGET_SHEET = 'ZZTARGET';
 
     private array $tmpFiles = [];
 
@@ -106,6 +107,290 @@ class RemRuleManifestImporterServiceTest extends TestCase
         ]);
     }
 
+    /**
+     * BM-8.2. Estructura con DOS hojas ficticias (ZZTEST=fuente,
+     * ZZTARGET=destino) para probar cross_sheet_equals de forma aislada,
+     * sin depender de BM18/BM18A.
+     */
+    private function createActiveStructureWithTargetSheet(): RemTemplateStructure
+    {
+        return RemTemplateStructure::create([
+            'anio' => self::ANIO,
+            'serie' => self::SERIE,
+            'hash_estructura' => sha1('bm82-test-' . uniqid()),
+            'version_number' => 1,
+            'status' => 'active',
+            'estructura' => [
+                'forms' => [
+                    ['sheetName' => self::SHEET, 'sections' => [['codigo' => 'A', 'filaInicioDatos' => 10, 'filaFinDatos' => 20, 'fields' => []]]],
+                    ['sheetName' => self::TARGET_SHEET, 'sections' => [['codigo' => 'A', 'filaInicioDatos' => 10, 'filaFinDatos' => 20, 'fields' => []]]],
+                ],
+            ],
+        ]);
+    }
+
+    private function crossSheetDirectEntry(string $key, string $sourceCell = 'B2', string $targetCell = 'C3'): array
+    {
+        return [
+            'rule_key' => $key,
+            'rule_type' => 'cross_sheet_equals',
+            'source' => 'excel_formula',
+            'name' => "Test {$key}",
+            'description' => 'Test BM-8.2 direct',
+            'category' => 'cross_sheet_equals',
+            'severity' => 'error',
+            'status' => 'active',
+            'scope' => 'per_row',
+            'version' => '1.0.0',
+            'metadata' => ['origin_sheet' => self::SHEET, 'origin_cell' => $sourceCell],
+            'config' => [
+                'sheet' => self::SHEET,
+                'section' => 'A',
+                'source' => ['cell' => $sourceCell],
+                'target' => ['sheet' => self::TARGET_SHEET, 'cell' => $targetCell],
+            ],
+        ];
+    }
+
+    private function crossSheetSumRangeEntry(string $key, string $sourceCell = 'B3', string $range = 'D1:D3'): array
+    {
+        return [
+            'rule_key' => $key,
+            'rule_type' => 'cross_sheet_equals',
+            'source' => 'excel_formula',
+            'name' => "Test {$key}",
+            'description' => 'Test BM-8.2 sum_range',
+            'category' => 'cross_sheet_equals',
+            'severity' => 'error',
+            'status' => 'active',
+            'scope' => 'per_row',
+            'version' => '1.0.0',
+            'metadata' => ['origin_sheet' => self::SHEET, 'origin_cell' => $sourceCell],
+            'config' => [
+                'sheet' => self::SHEET,
+                'section' => 'A',
+                'source' => ['cell' => $sourceCell],
+                'target' => ['sheet' => self::TARGET_SHEET, 'range' => $range, 'aggregation' => 'sum'],
+            ],
+        ];
+    }
+
+    // --- BM-8.2: validacion nativa de cross_sheet_equals en el importador ---
+
+    public function test_cross_sheet_direct_config_is_valid_and_would_create(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $path = $this->writeManifest($this->baseManifest([$this->crossSheetDirectEntry('zztest_b2_cross_sheet_equals_zztarget_c3')]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertSame(0, count($plan['invalid']), json_encode($plan['invalid']));
+        $this->assertCount(1, $plan['would_create']);
+    }
+
+    public function test_cross_sheet_sum_range_config_is_valid_and_would_create(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $path = $this->writeManifest($this->baseManifest([$this->crossSheetSumRangeEntry('zztest_b3_cross_sheet_equals_zztarget_sum_d1_d3')]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertSame(0, count($plan['invalid']), json_encode($plan['invalid']));
+        $this->assertCount(1, $plan['would_create']);
+    }
+
+    /**
+     * BM-8.2, punto 14 del pedido: manifiesto sintetico con exactamente 1
+     * DIRECT + 1 SUM_RANGE -- dry-run puro, nada escrito a BD real.
+     */
+    public function test_synthetic_manifest_one_direct_one_sum_range_dry_run(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $path = $this->writeManifest($this->baseManifest([
+            $this->crossSheetDirectEntry('zztest_b2_cross_sheet_equals_zztarget_c3'),
+            $this->crossSheetSumRangeEntry('zztest_b3_cross_sheet_equals_zztarget_sum_d1_d3'),
+        ]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertSame(2, $plan['valid']);
+        $this->assertCount(2, $plan['would_create']);
+        $this->assertCount(0, $plan['invalid']);
+        $this->assertCount(0, $plan['conflicts']);
+        $this->assertSame(0, Rule::count(), 'plan() nunca escribe');
+        $this->assertSame(0, RuleBinding::count());
+    }
+
+    public function test_cross_sheet_missing_source_cell_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_bad_1');
+        unset($entry['config']['source']['cell']);
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString('source.cell', $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_missing_target_sheet_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_bad_2');
+        unset($entry['config']['target']['sheet']);
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString('target.sheet', $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_target_without_cell_or_range_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_bad_3');
+        unset($entry['config']['target']['cell']);
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString("'cell' o 'range'", $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_target_with_cell_and_range_simultaneously_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_bad_4');
+        $entry['config']['target']['range'] = 'D1:D3';
+        $entry['config']['target']['aggregation'] = 'sum';
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString('simultaneamente', $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_range_without_aggregation_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetSumRangeEntry('zztest_bad_5');
+        unset($entry['config']['target']['aggregation']);
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString('aggregation', $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_aggregation_other_than_sum_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetSumRangeEntry('zztest_bad_6');
+        $entry['config']['target']['aggregation'] = 'avg';
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString("no soportada", $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_malformed_target_cell_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_bad_7', 'B2', 'NOT_A_CELL');
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString('target.cell invalida', $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_target_sheet_not_in_structure_is_invalid(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_bad_8');
+        $entry['config']['target']['sheet'] = 'HOJA_QUE_NO_EXISTE';
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertCount(1, $plan['invalid']);
+        $this->assertStringContainsString('no existe en la estructura activa', $plan['invalid'][0]['reason']);
+    }
+
+    public function test_cross_sheet_idempotent_skip_on_identical_content(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_b2_cross_sheet_equals_zztarget_c3');
+
+        Rule::create([
+            'rule_key' => $entry['rule_key'], 'rule_type' => $entry['rule_type'], 'source' => $entry['source'],
+            'name' => $entry['name'], 'description' => $entry['description'], 'category' => $entry['category'],
+            'severity' => $entry['severity'], 'scope' => $entry['scope'], 'config' => $entry['config'],
+            'status' => $entry['status'], 'version' => $entry['version'], 'metadata' => $entry['metadata'],
+        ]);
+
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+        $plan = app(RemRuleManifestImporterService::class)->plan($path);
+
+        $this->assertSame([$entry['rule_key']], $plan['would_skip']);
+        $this->assertCount(0, $plan['would_create']);
+        $this->assertCount(0, $plan['conflicts']);
+        $this->assertSame(1, Rule::count());
+    }
+
+    public function test_cross_sheet_conflict_on_different_content_aborts_commit(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $entry = $this->crossSheetDirectEntry('zztest_b2_cross_sheet_equals_zztarget_c3');
+
+        Rule::create([
+            'rule_key' => $entry['rule_key'], 'rule_type' => $entry['rule_type'], 'source' => 'otro_origen',
+            'name' => 'Distinto', 'description' => 'Distinto', 'category' => $entry['category'],
+            'severity' => $entry['severity'], 'scope' => $entry['scope'], 'config' => $entry['config'],
+            'status' => $entry['status'], 'version' => $entry['version'], 'metadata' => $entry['metadata'],
+        ]);
+
+        $path = $this->writeManifest($this->baseManifest([$entry]));
+        $importer = app(RemRuleManifestImporterService::class);
+        $plan = $importer->plan($path);
+
+        $this->assertCount(1, $plan['conflicts']);
+
+        $this->expectException(RuleManifestImportException::class);
+        $importer->commit($path);
+    }
+
+    public function test_cross_sheet_batch_rolls_back_completely_on_failure(): void
+    {
+        $this->createActiveStructureWithTargetSheet();
+        $ok = $this->crossSheetDirectEntry('zztest_ok_cross_sheet');
+        $tooLong = $this->crossSheetSumRangeEntry(str_repeat('y', 300)); // excede varchar(255)
+
+        $path = $this->writeManifest($this->baseManifest([$ok, $tooLong]));
+        $importer = app(RemRuleManifestImporterService::class);
+
+        $plan = $importer->plan($path);
+        $this->assertCount(2, $plan['would_create']);
+
+        try {
+            $importer->commit($path);
+            $this->fail('Se esperaba una excepcion de BD por rule_key demasiado larga.');
+        } catch (\Throwable $e) {
+            // esperado
+        }
+
+        $this->assertSame(0, Rule::count(), 'rollback total -- ni siquiera la regla cross-sheet valida debe quedar');
+        $this->assertSame(0, RuleBinding::count());
+    }
+
     // --- A/B: manifiesto real 53/53 -------------------------------------
 
     public function test_real_bm_manifest_has_exactly_53_distinct_rule_keys(): void
@@ -120,6 +405,118 @@ class RemRuleManifestImporterServiceTest extends TestCase
 
         $keys = array_column($manifest['rules'], 'rule_key');
         $this->assertCount(53, array_unique($keys), 'las 53 rule_key deben ser distintas');
+    }
+
+    // --- BM-8.3: manifiesto real de las 37 relaciones cross-sheet BM18->BM18A ---
+
+    private function loadRealCrossSheetManifest(): array
+    {
+        $path = base_path('database/seeders/data/rem-bm-2026-cross-sheet-rules-manifest.json');
+        $this->assertFileExists($path);
+
+        $manifest = json_decode(file_get_contents($path), true);
+        $this->assertSame(JSON_ERROR_NONE, json_last_error());
+
+        return $manifest;
+    }
+
+    public function test_real_cross_sheet_manifest_has_exactly_37_distinct_rule_keys(): void
+    {
+        $manifest = $this->loadRealCrossSheetManifest();
+
+        $this->assertSame(37, count($manifest['rules']));
+        $this->assertSame(37, $manifest['expected_rule_count']);
+
+        $keys = array_column($manifest['rules'], 'rule_key');
+        $this->assertCount(37, array_unique($keys), 'las 37 rule_key deben ser distintas');
+    }
+
+    public function test_real_cross_sheet_manifest_has_31_direct_and_6_sum_range(): void
+    {
+        $manifest = $this->loadRealCrossSheetManifest();
+
+        $direct = array_filter($manifest['rules'], fn ($r) => $r['metadata']['relation_type'] === 'DIRECT');
+        $sumRange = array_filter($manifest['rules'], fn ($r) => $r['metadata']['relation_type'] === 'SUM_RANGE');
+
+        $this->assertCount(31, $direct);
+        $this->assertCount(6, $sumRange);
+        $this->assertSame(31, $manifest['relation_counts']['direct']);
+        $this->assertSame(6, $manifest['relation_counts']['sum_range']);
+    }
+
+    public function test_real_cross_sheet_manifest_all_rules_target_bm18a_from_bm18(): void
+    {
+        $manifest = $this->loadRealCrossSheetManifest();
+
+        foreach ($manifest['rules'] as $r) {
+            $this->assertSame('BM18', $r['config']['sheet'], "{$r['rule_key']}: sheet fuente debe ser BM18");
+            $this->assertSame('BM18A', $r['config']['target']['sheet'], "{$r['rule_key']}: target.sheet debe ser BM18A");
+            $this->assertSame('cross_sheet_equals', $r['rule_type']);
+        }
+    }
+
+    public function test_real_cross_sheet_manifest_never_uses_catalog_rule_id_or_derived_from(): void
+    {
+        $manifest = $this->loadRealCrossSheetManifest();
+
+        foreach ($manifest['rules'] as $r) {
+            $this->assertArrayNotHasKey('catalog_rule_id', $r['metadata'], "{$r['rule_key']}: las 37 cross-sheet no provienen del catalogo 912-921");
+            $this->assertArrayNotHasKey('derived_from_rule_id', $r['metadata'], "{$r['rule_key']}: no son hijas de ninguna regla real de rem_rules");
+        }
+    }
+
+    public function test_real_cross_sheet_manifest_has_zero_collisions_with_internal_manifest(): void
+    {
+        $internal = json_decode(file_get_contents(base_path('database/seeders/data/rem-bm-2026-internal-rules-manifest.json')), true);
+        $crossSheet = $this->loadRealCrossSheetManifest();
+
+        $internalKeys = array_column($internal['rules'], 'rule_key');
+        $crossKeys = array_column($crossSheet['rules'], 'rule_key');
+
+        $this->assertCount(0, array_intersect($internalKeys, $crossKeys), '0 colisiones esperadas entre los dos manifiestos BM');
+        $this->assertCount(90, array_unique(array_merge($internalKeys, $crossKeys)), '53 + 37 = 90 rule_key distintas combinadas');
+    }
+
+    public function test_real_cross_sheet_manifest_dry_run_via_command_is_read_only(): void
+    {
+        // La BD de test esta vacia (RefreshDatabase) -- se crea una
+        // estructura BM/2026 equivalente (mismas hojas/secciones que el
+        // manifiesto real declara) solo para que el importador pueda
+        // resolverla; el ID resultante en la BD de test no sera 72 (eso es
+        // exclusivo de esalud_dev), lo que se certifica aqui es el
+        // comportamiento READ-ONLY del dry-run contra el manifiesto real,
+        // no el ID numerico de la estructura.
+        RemTemplateStructure::create([
+            'anio' => 2026,
+            'serie' => 'BM',
+            'hash_estructura' => sha1('bm83-real-manifest-dry-run-' . uniqid()),
+            'version_number' => 1,
+            'status' => 'active',
+            'estructura' => [
+                'forms' => [
+                    ['sheetName' => 'BM18', 'sections' => [
+                        ['codigo' => 'A', 'filaInicioDatos' => 13, 'filaFinDatos' => 38, 'fields' => []],
+                        ['codigo' => 'B', 'filaInicioDatos' => 40, 'filaFinDatos' => 53, 'fields' => []],
+                    ]],
+                    ['sheetName' => 'BM18A', 'sections' => [
+                        ['codigo' => 'A', 'filaInicioDatos' => 13, 'filaFinDatos' => 118, 'fields' => []],
+                        ['codigo' => 'B', 'filaInicioDatos' => 124, 'filaFinDatos' => 205, 'fields' => []],
+                    ]],
+                ],
+            ],
+        ]);
+
+        $manifest = $this->loadRealCrossSheetManifest();
+        $path = base_path('database/seeders/data/rem-bm-2026-cross-sheet-rules-manifest.json');
+
+        $rulesBefore = Rule::count();
+        $bindingsBefore = RuleBinding::count();
+
+        $this->artisan('rem:import-rule-manifest', ['manifest' => $path])->assertExitCode(0);
+
+        $this->assertSame($rulesBefore, Rule::count(), 'dry-run del manifiesto real no debe crear ninguna fila');
+        $this->assertSame($bindingsBefore, RuleBinding::count());
+        $this->assertSame(37, count($manifest['rules']));
     }
 
     // --- C: dry-run (plan) no persiste nada ------------------------------

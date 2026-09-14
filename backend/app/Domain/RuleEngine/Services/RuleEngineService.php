@@ -366,7 +366,9 @@ class RuleEngineService
             // resuelto arriba en execute() -- sin query adicional.
             if ($rule->rule_type === 'cross_sheet_equals') {
                 $targetSheet = $config['target']['sheet'] ?? null;
-                $config['_target_rows'] = $targetSheet ? $grouped->get($targetSheet, collect()) : collect();
+                $config['_target_rows'] = $targetSheet
+                    ? $this->buildCrossSheetTargetRows($uploadId, $targetSheet, $grouped)
+                    : collect();
             }
 
             $result = $evaluator->evaluate($config, $rows);
@@ -608,6 +610,65 @@ class RuleEngineService
         ];
 
         return $synthetic;
+    }
+
+    /**
+     * BM-8.2 (2026-09-14): resuelve las filas de la hoja DESTINO para
+     * cross_sheet_equals combinando rem_data + rem_technical_totals del
+     * MISMO upload -- generico, multi-serie, sin conocer de antemano la
+     * seccion del target (a diferencia de findTechnicalTotalRow(), usado
+     * por sum_equals, cuya config SI declara una unica seccion propia; el
+     * target de cross_sheet_equals solo declara hoja+celda/rango, nunca
+     * seccion, por eso no se reutiliza ese metodo tal cual).
+     *
+     * Precedencia explicita: rem_data SIEMPRE tiene prioridad para una fila
+     * dada -- una fila tecnica solo se agrega si su row_number NO esta ya
+     * presente en rem_data de esa misma hoja/upload (nunca duplica, nunca
+     * sobreescribe un dato real). Sin esto, cualquier referencia cross-hoja
+     * a una fila TOTAL tecnica (ej. el cierre vertical de un grupo,
+     * correctamente excluida de rem_data por el parser) resolvia siempre en
+     * "fila no encontrada" -- CrossSheetEqualsEvaluator en si nunca tuvo
+     * este problema, el gap estaba exclusivamente en que execute() nunca le
+     * entregaba esa evidencia.
+     *
+     * Nunca cruza uploads (siempre el mismo $uploadId ya en curso) ni hojas
+     * (siempre $targetSheet, nunca la hoja fuente). No recalcula ni infiere
+     * ningun valor -- unicamente reexpone filas YA persistidas en
+     * rem_technical_totals con la misma forma sintetica (RemData) ya usada
+     * por findTechnicalTotalRow(), para que CrossSheetEqualsEvaluator (que
+     * solo sabe leer $rd->data['row_number']/['values']) no necesite
+     * distinguir el origen.
+     */
+    private function buildCrossSheetTargetRows(int $uploadId, string $targetSheet, Collection $grouped): Collection
+    {
+        $dataRows = $grouped->get($targetSheet, collect());
+
+        $existingRowNumbers = $dataRows
+            ->map(fn ($rd) => (int) ($rd->data['row_number'] ?? -1))
+            ->all();
+
+        $technicalRows = RemTechnicalTotal::where('rem_upload_id', $uploadId)
+            ->where('sheet', $targetSheet)
+            ->get()
+            ->reject(fn ($t) => in_array((int) $t->row_number, $existingRowNumbers, true))
+            ->map(function ($t) use ($uploadId, $targetSheet) {
+                $synthetic = new RemData();
+                $synthetic->rem_upload_id = $uploadId;
+                $synthetic->section = $targetSheet;
+                $synthetic->data = [
+                    'row_number' => $t->row_number,
+                    'concept' => $t->concept,
+                    'total' => $t->total,
+                    'values' => $t->values,
+                    'rem_section_code' => $t->rem_section_code,
+                    '_source' => 'rem_technical_totals',
+                    '_exclusion_reason' => $t->exclusion_reason,
+                ];
+
+                return $synthetic;
+            });
+
+        return $dataRows->concat($technicalRows);
     }
 
     private function writeExecutionLog(
