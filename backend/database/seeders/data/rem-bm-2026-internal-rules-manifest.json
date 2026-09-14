@@ -1,0 +1,1926 @@
+{
+    "schema_version": "1.0.0",
+    "manifest_id": "bm-2026-internal-rules",
+    "serie": "BM",
+    "anio": 2026,
+    "generated_phase": "BM-6.1/BM-6.2",
+    "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+    "catalog_rule_ids": [
+        912,
+        913,
+        914,
+        915,
+        916,
+        917,
+        918,
+        919,
+        920,
+        921
+    ],
+    "excludes": [
+        "BM18A/A fila 89 (gran-total, no catalogado)",
+        "37 relaciones cross-sheet BM18->BM18A (fuera de alcance, ver BM-8)"
+    ],
+    "expected_rule_count": 53,
+    "expected_binding_count": 53,
+    "rules": [
+        {
+            "rule_key": "bm18_a_d_sum_equals_r13_23",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18 A col D: suma horizontal filas 13-23",
+            "description": "Valida que la columna D sea igual a la suma de las columnas E+F en cada fila del rango 13-23 de la sección A. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 912, sub-patrón 1).",
+            "category": "sum_equals_horizontal",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 912,
+                "catalog_rule_key": "bm18_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "horizontal",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 13,
+                    "to": 23
+                },
+                "rule_logic": "Suma(E + F) = Columna D"
+            }
+        },
+        {
+            "rule_key": "bm18_a_d_sum_equals_r24_37",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18 A col D: suma horizontal filas 24-37",
+            "description": "Valida que la columna D sea igual a la columna F en cada fila del rango 24-37 de la sección A (F=D, sin componente E en este sub-bloque). Evidencia: fórmula real de Excel (catálogo BM 2026, regla 912, sub-patrón 2).",
+            "category": "sum_equals_horizontal",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 912,
+                "catalog_rule_key": "bm18_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "horizontal",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 24,
+                    "to": 37
+                },
+                "rule_logic": "Suma(F) = Columna D"
+            }
+        },
+        {
+            "rule_key": "bm18_b_b_sum_equals",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18 B col B: suma horizontal filas 42-51",
+            "description": "Valida que la columna B sea igual a la suma de las columnas C+D en cada fila del rango 42-51 de la sección B. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 913).",
+            "category": "sum_equals_horizontal",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 913,
+                "catalog_rule_key": "bm18_b_b_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "horizontal",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed"
+            },
+            "config": {
+                "sheet": "BM18",
+                "section": "B",
+                "column": "B",
+                "row_range": {
+                    "from": 42,
+                    "to": 51
+                },
+                "rule_logic": "Suma(C + D) = Columna B"
+            }
+        },
+        {
+            "rule_key": "bm18a_a_c_sum_equals",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col C: suma horizontal filas 13-118",
+            "description": "Valida que la columna C sea igual a la suma de las columnas D+E en cada fila del rango completo 13-118 de la sección A. Las 7 filas de cierre de grupo (technical totals) no aparecen en rem_data y no afectan esta regla. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 914).",
+            "category": "sum_equals_horizontal",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 914,
+                "catalog_rule_key": "bm18a_a_c_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "horizontal",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "C",
+                "row_range": {
+                    "from": 13,
+                    "to": 118
+                },
+                "rule_logic": "Suma(D + E) = Columna C"
+            }
+        },
+        {
+            "rule_key": "bm18a_a_d_sum_equals_g01",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col D: suma vertical filas 13-19 = fila 20 (grupo g01)",
+            "description": "Verifica que la columna D de la fila TOTAL (20) del grupo g01 de la sección A sea igual a la suma de la misma columna en las filas 13-19. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 915).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 915,
+                "catalog_rule_key": "bm18a_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g01"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 13,
+                    "to": 19
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 20
+            }
+        },
+        {
+            "rule_key": "bm18a_a_d_sum_equals_g02",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col D: suma vertical filas 23-42 = fila 43 (grupo g02)",
+            "description": "Verifica que la columna D de la fila TOTAL (43) del grupo g02 de la sección A sea igual a la suma de la misma columna en las filas 23-42. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 915).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 915,
+                "catalog_rule_key": "bm18a_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g02"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 23,
+                    "to": 42
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 43
+            }
+        },
+        {
+            "rule_key": "bm18a_a_d_sum_equals_g03",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col D: suma vertical filas 46-48 = fila 49 (grupo g03)",
+            "description": "Verifica que la columna D de la fila TOTAL (49) del grupo g03 de la sección A sea igual a la suma de la misma columna en las filas 46-48. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 915).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 915,
+                "catalog_rule_key": "bm18a_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g03"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 46,
+                    "to": 48
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 49
+            }
+        },
+        {
+            "rule_key": "bm18a_a_d_sum_equals_g04",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col D: suma vertical filas 52-53 = fila 54 (grupo g04)",
+            "description": "Verifica que la columna D de la fila TOTAL (54) del grupo g04 de la sección A sea igual a la suma de la misma columna en las filas 52-53. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 915).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 915,
+                "catalog_rule_key": "bm18a_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g04"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 52,
+                    "to": 53
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 54
+            }
+        },
+        {
+            "rule_key": "bm18a_a_d_sum_equals_g05",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col D: suma vertical filas 57-72 = fila 73 (grupo g05)",
+            "description": "Verifica que la columna D de la fila TOTAL (73) del grupo g05 de la sección A sea igual a la suma de la misma columna en las filas 57-72. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 915).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 915,
+                "catalog_rule_key": "bm18a_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g05"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 57,
+                    "to": 72
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 73
+            }
+        },
+        {
+            "rule_key": "bm18a_a_d_sum_equals_g06",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col D: suma vertical filas 76-77 = fila 78 (grupo g06)",
+            "description": "Verifica que la columna D de la fila TOTAL (78) del grupo g06 de la sección A sea igual a la suma de la misma columna en las filas 76-77. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 915).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 915,
+                "catalog_rule_key": "bm18a_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g06"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 76,
+                    "to": 77
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 78
+            }
+        },
+        {
+            "rule_key": "bm18a_a_d_sum_equals_g07",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col D: suma vertical filas 81-87 = fila 88 (grupo g07)",
+            "description": "Verifica que la columna D de la fila TOTAL (88) del grupo g07 de la sección A sea igual a la suma de la misma columna en las filas 81-87. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 915).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 915,
+                "catalog_rule_key": "bm18a_a_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g07"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "D",
+                "row_range": {
+                    "from": 81,
+                    "to": 87
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 88
+            }
+        },
+        {
+            "rule_key": "bm18a_a_e_sum_equals_g01",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col E: suma vertical filas 13-19 = fila 20 (grupo g01)",
+            "description": "Verifica que la columna E de la fila TOTAL (20) del grupo g01 de la sección A sea igual a la suma de la misma columna en las filas 13-19. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 916).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 916,
+                "catalog_rule_key": "bm18a_a_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g01"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "E",
+                "row_range": {
+                    "from": 13,
+                    "to": 19
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 20
+            }
+        },
+        {
+            "rule_key": "bm18a_a_e_sum_equals_g02",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col E: suma vertical filas 23-42 = fila 43 (grupo g02)",
+            "description": "Verifica que la columna E de la fila TOTAL (43) del grupo g02 de la sección A sea igual a la suma de la misma columna en las filas 23-42. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 916).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 916,
+                "catalog_rule_key": "bm18a_a_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g02"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "E",
+                "row_range": {
+                    "from": 23,
+                    "to": 42
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 43
+            }
+        },
+        {
+            "rule_key": "bm18a_a_e_sum_equals_g03",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col E: suma vertical filas 46-48 = fila 49 (grupo g03)",
+            "description": "Verifica que la columna E de la fila TOTAL (49) del grupo g03 de la sección A sea igual a la suma de la misma columna en las filas 46-48. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 916).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 916,
+                "catalog_rule_key": "bm18a_a_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g03"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "E",
+                "row_range": {
+                    "from": 46,
+                    "to": 48
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 49
+            }
+        },
+        {
+            "rule_key": "bm18a_a_e_sum_equals_g04",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col E: suma vertical filas 52-53 = fila 54 (grupo g04)",
+            "description": "Verifica que la columna E de la fila TOTAL (54) del grupo g04 de la sección A sea igual a la suma de la misma columna en las filas 52-53. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 916).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 916,
+                "catalog_rule_key": "bm18a_a_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g04"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "E",
+                "row_range": {
+                    "from": 52,
+                    "to": 53
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 54
+            }
+        },
+        {
+            "rule_key": "bm18a_a_e_sum_equals_g05",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col E: suma vertical filas 57-72 = fila 73 (grupo g05)",
+            "description": "Verifica que la columna E de la fila TOTAL (73) del grupo g05 de la sección A sea igual a la suma de la misma columna en las filas 57-72. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 916).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 916,
+                "catalog_rule_key": "bm18a_a_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g05"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "E",
+                "row_range": {
+                    "from": 57,
+                    "to": 72
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 73
+            }
+        },
+        {
+            "rule_key": "bm18a_a_e_sum_equals_g06",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col E: suma vertical filas 76-77 = fila 78 (grupo g06)",
+            "description": "Verifica que la columna E de la fila TOTAL (78) del grupo g06 de la sección A sea igual a la suma de la misma columna en las filas 76-77. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 916).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 916,
+                "catalog_rule_key": "bm18a_a_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g06"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "E",
+                "row_range": {
+                    "from": 76,
+                    "to": 77
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 78
+            }
+        },
+        {
+            "rule_key": "bm18a_a_e_sum_equals_g07",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col E: suma vertical filas 81-87 = fila 88 (grupo g07)",
+            "description": "Verifica que la columna E de la fila TOTAL (88) del grupo g07 de la sección A sea igual a la suma de la misma columna en las filas 81-87. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 916).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 916,
+                "catalog_rule_key": "bm18a_a_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g07"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "E",
+                "row_range": {
+                    "from": 81,
+                    "to": 87
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 88
+            }
+        },
+        {
+            "rule_key": "bm18a_a_f_sum_equals_g01",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col F: suma vertical filas 13-19 = fila 20 (grupo g01)",
+            "description": "Verifica que la columna F de la fila TOTAL (20) del grupo g01 de la sección A sea igual a la suma de la misma columna en las filas 13-19. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 917).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 917,
+                "catalog_rule_key": "bm18a_a_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g01"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "F",
+                "row_range": {
+                    "from": 13,
+                    "to": 19
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 20
+            }
+        },
+        {
+            "rule_key": "bm18a_a_f_sum_equals_g02",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col F: suma vertical filas 23-42 = fila 43 (grupo g02)",
+            "description": "Verifica que la columna F de la fila TOTAL (43) del grupo g02 de la sección A sea igual a la suma de la misma columna en las filas 23-42. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 917).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 917,
+                "catalog_rule_key": "bm18a_a_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g02"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "F",
+                "row_range": {
+                    "from": 23,
+                    "to": 42
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 43
+            }
+        },
+        {
+            "rule_key": "bm18a_a_f_sum_equals_g03",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col F: suma vertical filas 46-48 = fila 49 (grupo g03)",
+            "description": "Verifica que la columna F de la fila TOTAL (49) del grupo g03 de la sección A sea igual a la suma de la misma columna en las filas 46-48. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 917).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 917,
+                "catalog_rule_key": "bm18a_a_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g03"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "F",
+                "row_range": {
+                    "from": 46,
+                    "to": 48
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 49
+            }
+        },
+        {
+            "rule_key": "bm18a_a_f_sum_equals_g04",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col F: suma vertical filas 52-53 = fila 54 (grupo g04)",
+            "description": "Verifica que la columna F de la fila TOTAL (54) del grupo g04 de la sección A sea igual a la suma de la misma columna en las filas 52-53. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 917).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 917,
+                "catalog_rule_key": "bm18a_a_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g04"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "F",
+                "row_range": {
+                    "from": 52,
+                    "to": 53
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 54
+            }
+        },
+        {
+            "rule_key": "bm18a_a_f_sum_equals_g05",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col F: suma vertical filas 57-72 = fila 73 (grupo g05)",
+            "description": "Verifica que la columna F de la fila TOTAL (73) del grupo g05 de la sección A sea igual a la suma de la misma columna en las filas 57-72. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 917).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 917,
+                "catalog_rule_key": "bm18a_a_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g05"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "F",
+                "row_range": {
+                    "from": 57,
+                    "to": 72
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 73
+            }
+        },
+        {
+            "rule_key": "bm18a_a_f_sum_equals_g06",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col F: suma vertical filas 76-77 = fila 78 (grupo g06)",
+            "description": "Verifica que la columna F de la fila TOTAL (78) del grupo g06 de la sección A sea igual a la suma de la misma columna en las filas 76-77. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 917).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 917,
+                "catalog_rule_key": "bm18a_a_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g06"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "F",
+                "row_range": {
+                    "from": 76,
+                    "to": 77
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 78
+            }
+        },
+        {
+            "rule_key": "bm18a_a_f_sum_equals_g07",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A A col F: suma vertical filas 81-87 = fila 88 (grupo g07)",
+            "description": "Verifica que la columna F de la fila TOTAL (88) del grupo g07 de la sección A sea igual a la suma de la misma columna en las filas 81-87. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 917).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 917,
+                "catalog_rule_key": "bm18a_a_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g07"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "A",
+                "column": "F",
+                "row_range": {
+                    "from": 81,
+                    "to": 87
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 88
+            }
+        },
+        {
+            "rule_key": "bm18a_b_c_sum_equals",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col C: suma horizontal filas 124-205",
+            "description": "Valida que la columna C sea igual a la suma de las columnas D+E en cada fila del rango completo 124-205 de la sección B. Las 9 filas de cierre de grupo (technical totals, incluidas 186 y 206 tras el fix 67ebe96) no aparecen en rem_data y no afectan esta regla. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 918).",
+            "category": "sum_equals_horizontal",
+            "severity": "error",
+            "status": "active",
+            "scope": "per_row",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 918,
+                "catalog_rule_key": "bm18a_b_c_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "horizontal",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "C",
+                "row_range": {
+                    "from": 124,
+                    "to": 205
+                },
+                "rule_logic": "Suma(D + E) = Columna C"
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g01",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 124-127 = fila 128 (grupo g01)",
+            "description": "Verifica que la columna D de la fila TOTAL (128) del grupo g01 de la sección B sea igual a la suma de la misma columna en las filas 124-127. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g01"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 124,
+                    "to": 127
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 128
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g02",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 131-139 = fila 140 (grupo g02)",
+            "description": "Verifica que la columna D de la fila TOTAL (140) del grupo g02 de la sección B sea igual a la suma de la misma columna en las filas 131-139. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g02"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 131,
+                    "to": 139
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 140
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g03",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 143-147 = fila 148 (grupo g03)",
+            "description": "Verifica que la columna D de la fila TOTAL (148) del grupo g03 de la sección B sea igual a la suma de la misma columna en las filas 143-147. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g03"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 143,
+                    "to": 147
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 148
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g04",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 151-157 = fila 158 (grupo g04)",
+            "description": "Verifica que la columna D de la fila TOTAL (158) del grupo g04 de la sección B sea igual a la suma de la misma columna en las filas 151-157. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g04"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 151,
+                    "to": 157
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 158
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g05",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 161-163 = fila 164 (grupo g05)",
+            "description": "Verifica que la columna D de la fila TOTAL (164) del grupo g05 de la sección B sea igual a la suma de la misma columna en las filas 161-163. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g05"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 161,
+                    "to": 163
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 164
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g06",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 167-168 = fila 169 (grupo g06)",
+            "description": "Verifica que la columna D de la fila TOTAL (169) del grupo g06 de la sección B sea igual a la suma de la misma columna en las filas 167-168. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g06"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 167,
+                    "to": 168
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 169
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g07",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 172-176 = fila 177 (grupo g07)",
+            "description": "Verifica que la columna D de la fila TOTAL (177) del grupo g07 de la sección B sea igual a la suma de la misma columna en las filas 172-176. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g07"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 172,
+                    "to": 176
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 177
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g08",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 180-185 = fila 186 (grupo g08)",
+            "description": "Verifica que la columna D de la fila TOTAL (186) del grupo g08 de la sección B sea igual a la suma de la misma columna en las filas 180-185. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g08"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 180,
+                    "to": 185
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 186
+            }
+        },
+        {
+            "rule_key": "bm18a_b_d_sum_equals_g09",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col D: suma vertical filas 189-205 = fila 206 (grupo g09)",
+            "description": "Verifica que la columna D de la fila TOTAL (206) del grupo g09 de la sección B sea igual a la suma de la misma columna en las filas 189-205. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 919).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 919,
+                "catalog_rule_key": "bm18a_b_d_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g09"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "D",
+                "row_range": {
+                    "from": 189,
+                    "to": 205
+                },
+                "rule_logic": "Suma(D) = Columna D",
+                "total_row": 206
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g01",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 124-127 = fila 128 (grupo g01)",
+            "description": "Verifica que la columna E de la fila TOTAL (128) del grupo g01 de la sección B sea igual a la suma de la misma columna en las filas 124-127. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g01"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 124,
+                    "to": 127
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 128
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g02",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 131-139 = fila 140 (grupo g02)",
+            "description": "Verifica que la columna E de la fila TOTAL (140) del grupo g02 de la sección B sea igual a la suma de la misma columna en las filas 131-139. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g02"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 131,
+                    "to": 139
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 140
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g03",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 143-147 = fila 148 (grupo g03)",
+            "description": "Verifica que la columna E de la fila TOTAL (148) del grupo g03 de la sección B sea igual a la suma de la misma columna en las filas 143-147. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g03"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 143,
+                    "to": 147
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 148
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g04",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 151-157 = fila 158 (grupo g04)",
+            "description": "Verifica que la columna E de la fila TOTAL (158) del grupo g04 de la sección B sea igual a la suma de la misma columna en las filas 151-157. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g04"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 151,
+                    "to": 157
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 158
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g05",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 161-163 = fila 164 (grupo g05)",
+            "description": "Verifica que la columna E de la fila TOTAL (164) del grupo g05 de la sección B sea igual a la suma de la misma columna en las filas 161-163. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g05"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 161,
+                    "to": 163
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 164
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g06",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 167-168 = fila 169 (grupo g06)",
+            "description": "Verifica que la columna E de la fila TOTAL (169) del grupo g06 de la sección B sea igual a la suma de la misma columna en las filas 167-168. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g06"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 167,
+                    "to": 168
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 169
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g07",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 172-176 = fila 177 (grupo g07)",
+            "description": "Verifica que la columna E de la fila TOTAL (177) del grupo g07 de la sección B sea igual a la suma de la misma columna en las filas 172-176. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g07"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 172,
+                    "to": 176
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 177
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g08",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 180-185 = fila 186 (grupo g08)",
+            "description": "Verifica que la columna E de la fila TOTAL (186) del grupo g08 de la sección B sea igual a la suma de la misma columna en las filas 180-185. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g08"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 180,
+                    "to": 185
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 186
+            }
+        },
+        {
+            "rule_key": "bm18a_b_e_sum_equals_g09",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col E: suma vertical filas 189-205 = fila 206 (grupo g09)",
+            "description": "Verifica que la columna E de la fila TOTAL (206) del grupo g09 de la sección B sea igual a la suma de la misma columna en las filas 189-205. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 920).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 920,
+                "catalog_rule_key": "bm18a_b_e_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g09"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "E",
+                "row_range": {
+                    "from": 189,
+                    "to": 205
+                },
+                "rule_logic": "Suma(E) = Columna E",
+                "total_row": 206
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g01",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 124-127 = fila 128 (grupo g01)",
+            "description": "Verifica que la columna F de la fila TOTAL (128) del grupo g01 de la sección B sea igual a la suma de la misma columna en las filas 124-127. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g01"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 124,
+                    "to": 127
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 128
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g02",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 131-139 = fila 140 (grupo g02)",
+            "description": "Verifica que la columna F de la fila TOTAL (140) del grupo g02 de la sección B sea igual a la suma de la misma columna en las filas 131-139. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g02"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 131,
+                    "to": 139
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 140
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g03",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 143-147 = fila 148 (grupo g03)",
+            "description": "Verifica que la columna F de la fila TOTAL (148) del grupo g03 de la sección B sea igual a la suma de la misma columna en las filas 143-147. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g03"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 143,
+                    "to": 147
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 148
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g04",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 151-157 = fila 158 (grupo g04)",
+            "description": "Verifica que la columna F de la fila TOTAL (158) del grupo g04 de la sección B sea igual a la suma de la misma columna en las filas 151-157. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g04"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 151,
+                    "to": 157
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 158
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g05",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 161-163 = fila 164 (grupo g05)",
+            "description": "Verifica que la columna F de la fila TOTAL (164) del grupo g05 de la sección B sea igual a la suma de la misma columna en las filas 161-163. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g05"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 161,
+                    "to": 163
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 164
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g06",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 167-168 = fila 169 (grupo g06)",
+            "description": "Verifica que la columna F de la fila TOTAL (169) del grupo g06 de la sección B sea igual a la suma de la misma columna en las filas 167-168. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g06"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 167,
+                    "to": 168
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 169
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g07",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 172-176 = fila 177 (grupo g07)",
+            "description": "Verifica que la columna F de la fila TOTAL (177) del grupo g07 de la sección B sea igual a la suma de la misma columna en las filas 172-176. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g07"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 172,
+                    "to": 176
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 177
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g08",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 180-185 = fila 186 (grupo g08)",
+            "description": "Verifica que la columna F de la fila TOTAL (186) del grupo g08 de la sección B sea igual a la suma de la misma columna en las filas 180-185. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g08"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 180,
+                    "to": 185
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 186
+            }
+        },
+        {
+            "rule_key": "bm18a_b_f_sum_equals_g09",
+            "rule_type": "sum_equals",
+            "source": "excel_formula",
+            "name": "BM18A B col F: suma vertical filas 189-205 = fila 206 (grupo g09)",
+            "description": "Verifica que la columna F de la fila TOTAL (206) del grupo g09 de la sección B sea igual a la suma de la misma columna en las filas 189-205. Evidencia: fórmula real de Excel (catálogo BM 2026, regla 921).",
+            "category": "sum_equals_vertical",
+            "severity": "error",
+            "status": "active",
+            "scope": "row_range",
+            "version": "1.0.0",
+            "metadata": {
+                "catalog_rule_id": 921,
+                "catalog_rule_key": "bm18a_b_f_sum_equals",
+                "catalog_source": "catalogo_revision_reglas_serie_BM_2026.xlsx",
+                "pattern": "vertical",
+                "manifest_phase": "BM-6.1/BM-6.2",
+                "verified_against": [
+                    "102302BM05.xlsm",
+                    "102412BM05.xlsm"
+                ],
+                "simulation_result": "passed",
+                "group": "g09"
+            },
+            "config": {
+                "sheet": "BM18A",
+                "section": "B",
+                "column": "F",
+                "row_range": {
+                    "from": 189,
+                    "to": 205
+                },
+                "rule_logic": "Suma(F) = Columna F",
+                "total_row": 206
+            }
+        }
+    ]
+}
