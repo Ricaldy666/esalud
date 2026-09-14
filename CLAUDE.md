@@ -195,6 +195,56 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+### ⭐ REANUDAR AQUÍ — PRÓXIMA JORNADA — CIERRE 2026-09-14 (continuación #6), REM BM — BM-11.1 CRITERIO FUNCIONAL BM18/C DETERMINADO (REQUIERE ESTADÍSTICA) + ENGINE_UI_REDUNDANCY PENDIENTE DE AUDITORÍA — leer esto primero, antes que todo lo demás de esta sección
+
+**Veredicto: `BM112_CIERRE_JORNADA_BM_FUNCIONAL_DOCUMENTADO`.** Reemplaza como punto de reanudación inmediato al checkpoint "2026-09-14 (continuación #5), BM-10.1/10.2/10.3..." de abajo (ese sigue vigente para su propio alcance — el fix genérico de preguntas/etiquetas funcionales, ya commiteado y pusheado — pero la campaña avanzó al primer intento real de determinar el criterio de `BM18/C`: se agotó toda la evidencia local disponible, se encontró un hallazgo de UI adicional pendiente de corrección, y la calibración de `BM18/C` sigue sin guardarse — correctamente, porque requiere criterio de Estadística APS). `main` = `origin/main` = **`022077b`** (se actualizará al pushear este checkpoint). **Ningún código, test, ni BD tocados en BM-11.1/11.2 — 100% documental/read-only.**
+
+**PASO 1 — NO volver a auditar BM-1...BM-10.** Ya están cerrados y certificados; releer sus checkpoints abajo solo si se necesita evidencia puntual.
+
+**PASO 2 — Retomar exactamente desde BM-11.3** (no BM-11.1 ni BM-11.2, ya completadas).
+
+**Estado de `BM18/C` — NO calibrada, 0 respuestas guardadas:**
+
+`BM18/C` — PRESCRIPCIONES ADMINISTRADAS EN URGENCIA, fila real **57**, concepto **"URGENCIA SAPU/SAR/SUR"**, captura directa, 1 patrón, **0 reglas técnicas propias** (ni `sum_equals` ni `cross_sheet_equals`). Manual oficial localizado y citado: `recursos-rem/Manual-Series-REM-2026-SERIE-A-BS-BM-DV1.0-2.pdf` (página 626) — define B57 como *"medicamento(s) que se administra(n) al paciente en la atención de SAPU/SAR/SUR o Atención Ambulatoria en Servicio de Urgencia, prescrito(s) previamente por el profesional facultado en el registro de 'Dato Atención de Urgencia'"* y declara explícitamente **"Esta sección no presenta regla de consistencia"** — coincide exactamente con las 0 reglas técnicas ya certificadas, no es un gap.
+
+**Las 4 decisiones funcionales de `BM18/C`, auditadas en BM-11.1 — ninguna guardada, todas `REQUIRES_STATISTICS`:**
+
+1. **Sin datos** (Registrar 0 / Permitir vacío) — evidencia técnica fuerte hacia **"Permitir vacío"**: el template oficial MINSAL (`recursos-rem/SBM_26_V1.1-2.xlsm`) tiene en B57 una validación de datos nativa de Excel `type=whole, ≥0, allowBlank=true`, contrastada contra una celda de fórmula vecina (`D42`, `allowBlank=false`) y confirmada consistente con otra celda de captura directa en otra sección (`BM18/D`, mismo perfil `allowBlank=true`) — la misma validación persiste íntegra en ambos XLSM reales cargados (`102302BM05`: B57=`null`; `102412BM05`: B57=`73`). **Aun con esta evidencia fuerte, la decisión formal sigue sin tomarse** — no guardada.
+2. **Severidad** (Error / Advertencia) — hallazgo de código verificado (`ValidateRemUploadJob.php` líneas 220-241): `severity` solo se lee cuando `empty_behavior==='debe_registrar_cero'`; en la rama `puede_quedar_vacio` nunca se consulta. **Si la Decisión 1 se confirma como "Permitir vacío", esta pregunta queda técnicamente inerte** para esta fila — documentado, no decidido.
+3. **Aplicación** (Todos los establecimientos / Elegir excepciones) — sin evidencia normativa suficiente; el manual describe el dato, no el universo obligatorio de establecimientos; 2 archivos reales no bastan para generalizar.
+4. **Excepciones** (No existen / Existen excepciones) — sin evidencia estructural real de excepciones dentro de la propia sección; no asumido "No existen" por ausencia de evidencia.
+
+**⚠️ Hallazgo nuevo pendiente — `ENGINE_UI_REDUNDANCY` entre Aplicación y Excepciones, NO corregido, auditar antes de guardar `BM18/C`:**
+
+`QuickCalibrationPanel.tsx` maneja `all_est` ("Aplicación") y `exceptions` ("Excepciones") como **dos respuestas completamente independientes**, sin sincronización. El panel de detalle por establecimiento (`centerModes`, donde realmente se definiría qué establecimientos son la excepción) solo se muestra cuando `exceptions==='si'` — **nunca** cuando `all_est==='depende'` ("Elegir excepciones"). Esto permite guardar combinaciones contradictorias o incompletas: `all_est='depende'` sin `exceptions='si'` (se "elige excepciones" pero nunca se puede especificar cuáles), o `all_est='si'` con `exceptions='si'` (contradicción directa). **No corregido — decisión de diseño y alcance del fix pendiente para mañana, PASO 3/4 abajo, antes de guardar cualquier respuesta de `BM18/C`.**
+
+**Preguntas exactas para Estadística APS (lenguaje no técnico, listas para trasladar):**
+
+1. *"En la sección C del REM BM, para 'URGENCIA SAPU/SAR/SUR', cuando un establecimiento no administró medicamentos de urgencia durante el mes, ¿debe registrar 0 o puede dejar la celda vacía?"*
+2. *(Solo si la respuesta anterior es "debe registrar 0")* — *"Si dejan la celda vacía en vez de registrar 0, ¿eso debe impedir continuar con la carga del REM o solo mostrar una advertencia?"*
+3. *"¿Esta fila debe ser informada por todos los establecimientos, incluso los que no cuentan con SAPU/SAR/SUR, o existen establecimientos a los que esta fila no les aplica?"*
+4. *(Pendiente de redactar en el mismo tono, dependiente de la respuesta a la #3)* — sobre excepciones específicas por establecimiento, sin inventar respuesta hoy.
+
+**No confundir**: las **90 reglas técnicas certificadas end-to-end** (BM-6→BM-9) **≠** calibración funcional BM. Calibración funcional BM sigue **0/2 hojas, 0/6 secciones, 6 pendientes, 0 respuestas** — sin cambios desde el cierre BM-9.
+
+**PASO 3 (mañana, antes de guardar nada de `BM18/C`)**: auditar a fondo `ENGINE_UI_REDUNDANCY` (Aplicación/Excepciones/`all_est`/`exceptions`/`centerModes`) — determinar si requiere fix genérico de UI/motor (mismo estándar de BM-9.2/BM-10.2: genérico, sin hardcodes, sin romper Serie A).
+**PASO 4**: decidir e implementar ese fix si corresponde, con la misma metodología de reproducir→corregir→testear→regresión→verificación visual→commit/push ya usada en toda esta campaña.
+**PASO 5**: obtener del usuario (Dorian) el criterio real de Estadística APS para las 4 decisiones de `BM18/C` (o las que falten tras el PASO 3/4) y registrarlo aquí.
+**PASO 6**: solo después, realizar la primera calibración funcional real de `BM18/C` (guardar respuestas), con autorización explícita turno a turno.
+**PASO 7**: certificar `BM18/C`.
+**PASO 8**: continuar sección por sección, en el orden ya definido (menor a mayor riesgo): `BM18/B` → `BM18/D` → `BM18/A` → `BM18A/A` (incluye la observación de fila 89, pendiente) → `BM18A/B` (incluye la excepción real de fila 178, pendiente de decisión funcional explícita). **No avanzar a la siguiente sección hasta cerrar formalmente la anterior.**
+
+**Recordatorios que se mantienen vigentes:**
+- Serie A: **67/v35**, cerrada/certificada, sin cambios.
+- BM: **90 reglas técnicas certificadas end-to-end** (BM-6→BM-9), commiteadas y pusheadas.
+- BM funcional: **NO calibrada** — `BM18/C` es la primera sección en proceso, sin cerrar.
+- `BM18A/A` fila 89 (TOTAL nivel 2 sin regla propia) y `BM18A/B` fila 178 (fila estructuralmente anómala) — ambas observaciones documentadas en BM-9.1/BM-10.1, siguen pendientes, no resolver sin evidencia/autorización.
+- Producción: **no sincronizada**, sin deploy — push ≠ deploy.
+- Runbook worker: tras cambios PHP que afecten jobs, reiniciar el worker local antes de certificar cualquier flujo E2E real desde la UI.
+- Runbook de seguridad BD (BM-10.2): **prohibido usar tinker (u otro comando) para `delete`/`update`/`restore`/`create`/`save` contra la BD real de desarrollo** para reproducir o simular escenarios de test — usar exclusivamente tests/fixtures con BD aislada; confirmar explícitamente el entorno/conexión antes de cualquier comando de investigación con riesgo de escritura.
+
+---
+
 ### CIERRE DE JORNADA — 2026-09-14 (continuación #5), REM BM — BM-10.1/10.2/10.3 PRE-CALIBRACIÓN FUNCIONAL BM18/C + FIX GENÉRICO DE PREGUNTAS/ETIQUETAS FUNCIONALES + INCIDENTE LOCAL Y RESTAURACIÓN — leer esto primero, antes que todo lo demás de esta sección
 
 **Veredicto: `BM104_DOCUMENTACION_PRECALIBRACION_FUNCIONAL_CERTIFICADA`.** Reemplaza como punto de reanudación inmediato al checkpoint "2026-09-14 (continuación #4), BM-9.1/9.2/9.3..." de abajo (ese sigue vigente para su propio alcance — el aislamiento cross-sheet/cross-section de `getFunctionalRulesByRow()` — pero la campaña avanzó a la preparación de la primera calibración funcional real: auditoría de `BM18/C`, dos engine gaps genéricos encontrados y corregidos en el motor de calibración compartido con Serie A, y un incidente local de escritura accidental en BD, detectado y revertido en el mismo turno). `main` = `origin/main` = **`1fe829e`**, ahead/behind **0/0**.
