@@ -195,6 +195,130 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+### CIERRE DE JORNADA — 2026-09-14, REM BM — BM-2.6B CERRADA Y RESPALDADA — leer esto primero, antes que el checkpoint de 2026-09-11 de abajo
+
+**Veredicto: `BM26B_COMMIT_PUSH_RESPALDADO`.** Cierra el punto pendiente que dejó abierto el checkpoint "2026-09-11, CAMPAÑA BM-1 A BM-2.6B" (de más abajo, todavía vigente para el resto de su contenido): el registro real de `CrossSheetEqualsEvaluator` en los entrypoints del motor, ya commiteado y pusheado. Commit **`af3bfe951d7d073c6c8d3f39aa172830c286d6f6`** (`af3bfe9`, `feat(rem): add cross-sheet rule evaluation`) — `main` = `origin/main` = `af3bfe9`, ahead/behind **0/0**, push fast-forward normal (`1915040..af3bfe9`). Serie A sin cambios (67/v35, 798/751/1655, 306/306, 22/22, distribución canónica idéntica) — reconfirmado en vivo contra `esalud_dev` **después** del push. REM BM sigue sin ninguna persistencia real: `rem_template_structures` serie=BM **0**, `rem_rule_bindings` serie=BM **0**, `rem_templates` id=2 (BM) `config['sheets']` **[]** — reconfirmado en vivo contra `esalud_dev` al cierre de esta jornada.
+
+**Los 11 archivos exactos del commit** (staging explícito uno por uno, nunca `git add .`/`-A`/`-f`, verificado `git diff --cached --name-only` = 11 antes de comitear): `ValidateWithEngineJob.php`, `RuleValidateCommand.php`, `ComparisonReport.php`, `RuleEngineService.php`, `SectionCalibrationMatrixService.php` (modificados) + `CrossSheetEqualsEvaluator.php`, `CrossSheetEqualsIntegrationTest.php`, `CrossSheetEqualsEntrypointRegistrationTest.php`, `SectionCalibrationMatrixServiceCrossSheetDependencyTest.php`, `CrossSheetEqualsEvaluatorBmRealFormulasTest.php`, `CrossSheetEqualsEvaluatorTest.php` (nuevos). **`CLAUDE.md` deliberadamente fuera de este commit** (documental, se actualiza aparte). Confirmados fuera, sin tocar: `vite.config.ts`, 2 `Diag*Command.php`, `backend/demo/`, y `TempValidateFlowCommand.php` (invisible para git por `.git/info/exclude`, imposible de commitear sin `-f`, no usado).
+
+**Auditoría de registries (ampliada respecto a la lista del 2026-09-11)**: se confirmaron los 4 sitios ya sospechados como los únicos entrypoints reales que ejecutan el motor (`registerEvaluator`+`execute()`), y se descartaron explícitamente 3 candidatos adicionales encontrados en la búsqueda (`RuleBindingReconciliationService.php`/`ValidationSummaryService.php` — solo mencionan la clase en comentarios, ninguna instanciación; `RemRebuildStructureCommand.php` — inyecta `RuleEngineService` pero solo llama `resolveRules()`, nunca `execute()`, no necesita evaluador). No existe ningún service provider/factory central — el registro sigue siendo 100% manual y duplicado por sitio, patrón que se mantuvo (no se introdujo ninguna abstracción nueva).
+
+**Cambio aplicado — estrictamente aditivo, 2 líneas por archivo (import + `registerEvaluator`), mismo patrón exacto que `SumEqualsEvaluator`/`RequiredAndLeParentEvaluator` en cada sitio:**
+- `backend/app/Domain/RuleEngine/Jobs/ValidateWithEngineJob.php` — el job real de producción (`queue:work`).
+- `backend/app/Console/Commands/RuleValidateCommand.php` (`rule:validate`).
+- `backend/app/Domain/RuleEngine/Testing/ComparisonReport.php` (respalda `/rule-engine/comparison`).
+- `backend/app/Console/Commands/TempValidateFlowCommand.php` (`temp:validate-flow`) — **registrado también, por consistencia, pero ver discrepancia abajo: este archivo nunca puede llegar a un commit.**
+
+Ninguno de los dos evaluadores existentes (`SumEqualsEvaluator`/`RequiredAndLeParentEvaluator`) fue tocado. `CrossSheetEqualsEvaluator::supports()` sigue respondiendo únicamente `rule_type === 'cross_sheet_equals'` — el registro es inerte para Serie A (0 reglas de ese tipo fuera de tests), confirmado también por la regresión completa sin desviación.
+
+**⚠️ Discrepancia real detectada y corregida en el propio turno (no arrastrada a este archivo antes de verificarla): `TempValidateFlowCommand.php` NO está tracked por git.** La auditoría de la mañana lo había calificado de "tracked en git, a diferencia de los `Diag*` excluidos" — **eso era incorrecto**, confirmado con `git ls-files` (vacío para ese path) tras un primer chequeo con lógica de shell defectuosa que dio falso positivo. El archivo está además **excluido localmente vía `.git/info/exclude`** (no committeado, solo en este filesystem), en la misma sección que otros 4 comandos `Temp*Command.php` ya retirados de uso (`TempCheckTemplateCommand`, `TempCreateTemplateConfigCommand`, `TempFindUploadsCommand`, `TempReprocessUploadCommand`) — es decir, es un **5º archivo excluido localmente**, no documentado hasta ahora en la sección "Estado Git" de este `CLAUDE.md` (que solo lista 4: `vite.config.ts`, 2 `Diag*Command.php`, `backend/demo/`). Consecuencia práctica: el registro del evaluador en este archivo **nunca podrá aparecer en `git status`/`git diff`/un commit futuro** sin un `git add -f` explícito (improbable, no se va a hacer) — es auto-cuarentenado por diseño de `.git/info/exclude`, no representa ningún riesgo de contaminar el commit de BM-2.6B, pero **queda documentado aquí como el 5º archivo local excluido**, para no repetir la confusión en el futuro.
+
+**Tests nuevos**: `backend/tests/Feature/RuleEngine/Services/CrossSheetEqualsEntrypointRegistrationTest.php` (4 tests, 12 assertions) — cada uno invoca el entrypoint real de producción tal cual (job `->handle()`, `Artisan::call()` vía `$this->artisan()`, `ComparisonReport::generateReport()`) **sin registrar el evaluador manualmente desde el test**, a diferencia de `CrossSheetEqualsIntegrationTest.php` — si algún entrypoint perdiera su registro, exactamente estos tests fallarían. Cubre: `ValidateWithEngineJob` (regla escrita en `RuleExecutionLog` con `status=passed`, `triggered_by=job`), `rule:validate --write` (idem vía `RuleExecutionLog`), `ComparisonReport` (forzando la rama `engine_only` — `reglaDetectada.tipo=null` produce `TypeError` real en el builder legacy, mismo escenario real de "estructura no soportada por el simulador legacy" — verificado `total_engine_rules=1`, `engine_summary.passed=1`), `temp:validate-flow` (línea de salida `status=passed` para la regla). 100% fixtures sintéticas serie `A` genérica (mismo criterio que `CrossSheetEqualsIntegrationTest`), `RefreshDatabase`, nunca `esalud_dev`.
+
+**Tests focalizados BM-2.6B (33/33, 107 assertions)**: los 29 ya existentes + los 4 nuevos, sin cambios de comportamiento en los 29 originales.
+
+**Regresión Serie A**: `Feature/Calibration`+`Feature/RuleEngine`+`Unit/RuleEngine`+`Unit/RemParser` — **669 tests** (665 baseline + 4 nuevos), **634 passed** (630 + 4 nuevos), **35 failed = exactamente los mismos 35 de siempre por nombre** (1 `RuleEngineIntegrationTest` + 30 `FunctionalRuleEngineCertificationTest` + 4 `RuleEngineServiceTest`, confirmado nombre por nombre contra el baseline documentado), **0 regresiones nuevas**. `Feature/REM`: **284/284 passed**, mismo OOM preexistente de PhpSpreadsheet en `SectionDetectorServiceRealFileRegressionTest` tras completar los 284 (ajeno, ya documentado, no investigado — probado también con `memory_limit` elevado en el proceso padre, sin efecto porque el runner de tests lanza el proceso hijo con su propio límite fijo; no se tocó `phpunit.xml` ni ninguna config de memoria).
+
+**No se tocó producción, no se ejecutó SSH/deploy/Docker/migrate/seed/cache clear, no se creó ninguna estructura/regla/binding/cell-data BM real.**
+
+**Commit y push ejecutados, autorizados explícitamente por el usuario en este mismo turno.** Staging explícito de exactamente los 11 archivos (nunca `git add .`/`-A`/`-f`), verificado `git diff --cached --name-only` = 11 antes de comitear, inspección completa de `git diff --cached` (confirmado: `CrossSheetEqualsEvaluator::supports()` solo responde `cross_sheet_equals`; los 3 entrypoints registran el evaluador; `RuleEngineService` resuelve `_target_rows` exclusivamente para `cross_sheet_equals` y solo desde `$grouped` del mismo `uploadId` — `RemData::where('rem_upload_id', $uploadId)`, nunca cruza uploads; `SectionCalibrationMatrixService` conecta `classifyCrossSheetDependency()` sin alterar `determineCoverage()` para Serie A; cero hardcodes `BM18`/`BM18A` fuera de comentarios/tests). Commit `af3bfe9`, push fast-forward `1915040..af3bfe9`. Post-push: `HEAD=origin/main=af3bfe9`, ahead/behind 0/0, baseline Serie A y BM=0 reconfirmados en vivo contra `esalud_dev`.
+
+**Archivos incluidos en el commit `af3bfe9` (los 11 autorizados):**
+```
+MODIFICADOS:
+ backend/app/Domain/RuleEngine/Jobs/ValidateWithEngineJob.php
+ backend/app/Console/Commands/RuleValidateCommand.php
+ backend/app/Domain/RuleEngine/Testing/ComparisonReport.php
+ backend/app/Domain/RuleEngine/Services/RuleEngineService.php
+ backend/app/Domain/RuleEngine/Services/SectionCalibrationMatrixService.php
+
+NUEVOS:
+ backend/app/Domain/RuleEngine/Evaluators/CrossSheetEqualsEvaluator.php
+ backend/tests/Feature/RuleEngine/Services/CrossSheetEqualsIntegrationTest.php
+ backend/tests/Feature/RuleEngine/Services/CrossSheetEqualsEntrypointRegistrationTest.php
+ backend/tests/Feature/RuleEngine/Services/SectionCalibrationMatrixServiceCrossSheetDependencyTest.php
+ backend/tests/Unit/RuleEngine/Evaluators/CrossSheetEqualsEvaluatorBmRealFormulasTest.php
+ backend/tests/Unit/RuleEngine/Evaluators/CrossSheetEqualsEvaluatorTest.php
+```
+**Fuera del commit, confirmados sin tocar**: `frontend/vite.config.ts`, `backend/app/Console/Commands/DiagCheckAdminPasswordCommand.php`, `backend/app/Console/Commands/DiagResetAdminPasswordCommand.php`, `backend/demo/`, y `TempValidateFlowCommand.php` (físicamente invisible para git por `.git/info/exclude` — ver discrepancia arriba; su registro del evaluador vive solo en el filesystem local, nunca en el índice de git ni en ningún commit). `CLAUDE.md` tampoco viajó en este commit (documental, se actualiza aparte, como siempre).
+
+**Punto exacto de reanudación**: BM-2.6B queda **cerrada y respaldada en `origin/main`**. Próximo paso: **BM-3** (estructura/config real de BM), sin iniciar todavía — requiere autorización explícita del usuario en el turno correspondiente, como el resto del roadmap BM.
+
+---
+
+### CIERRE DE JORNADA — 2026-09-11, REM BM — CAMPAÑA BM-1 A BM-2.6B — leer esto primero, antes que todo lo demás de esta sección
+
+**Veredicto: `BM26B_IMPLEMENTADA_LOCAL_NO_COMMITEADA_PENDIENTE_REVISION`.** Este checkpoint reemplaza como punto de reanudación inmediato al checkpoint "CALIBRACIÓN REM SERIE A 100% CERRADA" de más abajo (ese sigue vigente y correcto para el estado de Serie A — ver referencia rápida al final de este bloque — pero la campaña REM BM avanzó mucho más allá de donde terminaba el checkpoint anterior y es lo que hay que retomar mañana).
+
+**REM Serie A — sin cambios, sigue certificada tal como el checkpoint de abajo la describe:**
+- Estructura activa **67/v35** · `rem_rules` **798** (activas **751**) · `rem_rule_bindings` **1655** · **306/306** secciones aplicables · **22/22** hojas.
+- Distribución canónica: `AUTO_MIGRATE` **304** · `NO_UTILIZADA` **75** · `NOT_CALIBRATABLE` **2** · `QUICK_CONFIRMATION` **0** · `MISMATCH` **0** · `NEW_SECTION` **0** · `FULL_REVALIDATION` **0**.
+- Producción: **NO asumir sincronizada** con este avance local — no tocar sin autorización futura explícita (ver auditoría de sincronización pendiente, documentada en el checkpoint de abajo, todavía no iniciada).
+
+**REM BM — avance acumulado, en orden:**
+
+- **BM-1 (auditoría inicial)** — **CERRADA**.
+- **BM-2 (generalización multi-serie del motor de calibración)** — **CERRADA Y RESPALDADA**. Commit `2c14cd33f75c50faa641fab0c52e1ad8068f2e8e`.
+- **BM-2.5 (investigación técnica cross-hoja y encabezados, 100% read-only)** — **CERRADA**. Hallazgo real: **37 fórmulas** `BM18 → BM18A` en los 2 XLSM reales disponibles (`102302BM05.xlsm`, `102412BM05.xlsm`), idénticas estructuralmente entre ambos establecimientos. Ejemplos: `BM18!E14 = BM18A!D20` (referencia directa), `BM18!E22 = SUM(BM18A!D92:D113)` (rango). Encabezado de dos filas de `BM18` (filas 11-12): **soportado** por el mecanismo ya existente (`SectionDetectorService::findTrailingHeaderRows()`, diseñado en auditorías A19a/A30, verificado por trazado completo contra los valores reales). `BM18A`: **estructuralmente soportada** (2 SECCIONES internas, 14 grupos con sus propios TOTAL, patrón ya análogo a Serie A). Único gap real identificado: el parser de dependencias de fórmulas (`EnhancedCellScanner::extractDependencies()`) no reconocía referencias cross-hoja — leía el nombre de la hoja destino como si fuera una coordenada local (`"BM18A!D20"` → `["BM18","D20"]`, columna fantasma). Veredicto: `BM25_ENGINE_GAP_REQUIERE_BM26`.
+- **BM-2.6A (detección/representación estructural de dependencias cross-hoja)** — **CERRADA Y RESPALDADA**. Commit `19150407c04118e1b3689000e92f789269d9476a`. `EnhancedCellScanner::extractDependencies()` corregido (referencias cross-hoja se extraen y remueven ANTES del regex same-sheet — el array `dependencias` legacy queda vacío en vez de corrupto para una celda 100% cross-hoja, comportamiento byte-idéntico para Serie A que no tiene ninguna). Campo aditivo nuevo `EnhancedCellDTO::$dependenciasCrossHoja` (`dependencias_cross_hoja` en `toArray()`) con representación estructurada `{hoja, tipo, celda|celda_inicio+celda_fin}` — soporta hoja con/sin comillas, celda/rango, con/sin marcadores `$`. Nuevo método autónomo `SectionCalibrationMatrixService::classifyCrossSheetDependency()` (constante `CROSS_SHEET_DEPENDENCY_REASON='cross_sheet_dependency'`) — en esa fase deliberadamente NO conectado a ningún flujo real todavía. **37/37** fórmulas reales de BM18 reconocidas correctamente, 0 dependencias fantasma (verificado contra el XLSM real, sin persistir nada). Serie A: regresión completa sin desviación.
+
+**BM-2.6B (integración y ejecución de reglas cross-sheet) — IMPLEMENTADA LOCALMENTE Y TESTEADA, `NO COMMIT, NO PUSH`, pendiente de revisión final mañana antes de cerrarla.**
+
+Diseño: nuevo `rule_type = 'cross_sheet_equals'` + nuevo evaluador `CrossSheetEqualsEvaluator implements RuleEvaluatorInterface` (mismo patrón pluggable que `SumEqualsEvaluator`/`RequiredAndLeParentEvaluator`, ninguno de los dos tocado). **Sin migración** — `rem_rules.rule_type` es `VARCHAR(50)` sin ENUM/CHECK, `rem_rules.config` es JSON sin schema físico. Config conceptual:
+```json
+{"sheet": "BM18", "section": "A", "source": {"cell": "E14"}, "target": {"sheet": "BM18A", "cell": "D20"}}
+```
+Para rango: `"target": {"sheet": "BM18A", "range": "D92:D113", "aggregation": "sum"}`. Semántica numérica: épsilon `0.00001`, duplicado deliberado de `SumEqualsEvaluator::validateNumericValue()` (mismo patrón de duplicación ya usado en el proyecto por `MismatchResolutionAuditService`, para no tocar el archivo certificado) — null/null→skip, target vacío→skip (nunca asumido 0), source vacío→tratado como 0 (igual que un componente ausente en sum_equals), no numérico→fail, numérico→comparación con épsilon. `RuleEngineService::execute()` resuelve `_target_rows` (filas de la hoja destino) desde el **mismo upload** SOLO cuando `rule_type==='cross_sheet_equals'` (mismo patrón ya usado para `_functional_rules`/`_cell_metadata`/`_section_bounds`) — **nunca cruza uploads** (verificado con test explícito). `SectionCalibrationMatrixService::buildMatrix()` ahora conecta `classifyCrossSheetDependency()` al flujo real: una fila cuya única fuente de valor en una columna-formula es cross-hoja queda con `cobertura='cross_sheet_dependency'` (nueva clave `cross_sheet_dependency` en el array de fila), nunca cae en `determineCoverage()` local ni genera columnas fantasma.
+
+**Tests nuevos: 29/29 passing, 95 assertions** — unitarios de `CrossSheetEqualsEvaluator` (simple==simple, simple==SUM(rango), 0/0, null/null, vacío/0, strings numéricas, hoja/celda inexistente, rango vacío/inválido, config inválida), integración real vía `RuleEngineService::execute()` completo (incluye confirmación explícita de que nunca lee `_target_rows` de otro upload), integración con `SectionCalibrationMatrixService::buildMatrix()`, y **fórmulas BM reales** (`BM18!E14=BM18A!D20`, `BM18!E22=SUM(BM18A!D92:D113)`, parseadas con el parser real de BM-2.6A, evaluadas con `calc_value` real del XLSM — 0 en ambos archivos de muestra — PASS correcto, variantes negativas FAIL correcto).
+
+**Regresión Serie A tras BM-2.6B**: baseline (67/v35, 798/751/1655, 306/306, 22/22, 304/75/2/0/0/0/0) sin desviación. `Feature/Calibration`+`Feature/RuleEngine`+`Unit/RuleEngine`+`Unit/RemParser`: 665 tests, 630 passed, **35 failed = exactamente el baseline preexistente ya documentado**, 0 regresiones nuevas. `Feature/REM`: 284/284 passed (mismo OOM preexistente de PhpSpreadsheet en el test pesado, ajeno, ya documentado en checkpoints anteriores).
+
+**⚠️ Por qué BM-2.6B NO está cerrada todavía — punto pendiente explícito, primer paso de mañana:** el evaluador/capacidad quedó implementado y probado, pero **deliberadamente NO se registró todavía** en ninguno de los puntos reales donde se instancian los evaluadores del motor (`$engine->registerEvaluator(new ...)`), es decir:
+- `app/Domain/RuleEngine/Jobs/ValidateWithEngineJob.php`
+- `app/Console/Commands/RuleValidateCommand.php`
+- `app/Console/Commands/TempValidateFlowCommand.php`
+- `app/Domain/RuleEngine/Testing/ComparisonReport.php`
+- (revisar si existe cualquier otro registry real no listado aquí)
+
+Sin ese registro, `cross_sheet_equals` no es todavía ejecutable en ningún pipeline real (los tests lo registran manualmente, igual que cualquier test de evaluador existente) — hoy esto es intencional y correcto (no se creó ninguna regla BM real que lo necesite), pero **antes de considerar BM-2.6B cerrada** hay que decidir explícitamente, con auditoría previa (no conectar a ciegas), en cuáles de esos registries corresponde agregar `CrossSheetEqualsEvaluator` para que el `rule_type` sea realmente utilizable cuando en el futuro (BM-6) existan reglas BM reales.
+
+**Archivos exactos de BM-2.6B, confirmados con `git status --short` al cierre de esta jornada (verificar de nuevo mañana antes de nada — no confiar en esta lista si el estado real difiere):**
+```
+MODIFICADOS:
+ M backend/app/Domain/RuleEngine/Services/RuleEngineService.php
+ M backend/app/Domain/RuleEngine/Services/SectionCalibrationMatrixService.php
+
+NUEVOS (untracked):
+?? backend/app/Domain/RuleEngine/Evaluators/CrossSheetEqualsEvaluator.php
+?? backend/tests/Feature/RuleEngine/Services/CrossSheetEqualsIntegrationTest.php
+?? backend/tests/Feature/RuleEngine/Services/SectionCalibrationMatrixServiceCrossSheetDependencyTest.php
+?? backend/tests/Unit/RuleEngine/Evaluators/CrossSheetEqualsEvaluatorBmRealFormulasTest.php
+?? backend/tests/Unit/RuleEngine/Evaluators/CrossSheetEqualsEvaluatorTest.php
+```
+**Históricos excluidos, sin cambios, nunca mezclar con BM-2.6B:** `frontend/vite.config.ts` (modificado), `backend/app/Console/Commands/DiagCheckAdminPasswordCommand.php` y `DiagResetAdminPasswordCommand.php` (untracked), `backend/demo/` (untracked).
+
+**Estado BM en BD — debe seguir exactamente así mañana, reconfirmar antes de cualquier cosa:** `rem_template_structures` (serie=BM) = **0** · `rem_rule_bindings` (serie=BM) = **0** · `rem_templates.config['sheets']` (id=2, BM) = **[]**. No se ha creado estructura BM, bindings BM, calibración BM, ni cell-data BM persistente en ningún momento de toda la campaña BM-1→BM-2.6B.
+
+**Producción**: no fue tocada en ningún punto de la campaña BM. Prohibiciones vigentes sin cambio: no SSH, no deploy, no Docker, no `migrate`, no `seed`, no cache clear, no sincronización local→producción, no copiar BD, no modificar `uploads`/`rem_data` reales.
+
+**Secuencia exacta para mañana — RETOMAR EN: "BM-2.6B — REVISIÓN FINAL / REGISTRO DEL EVALUADOR":**
+1. Leer este `CLAUDE.md` completo antes de tocar nada.
+2. `git status --short` — confirmar que coincide con la lista de arriba (si difiere: **STOP y reportar**, no asumir).
+3. Confirmar `HEAD` = `19150407c04118e1b3689000e92f789269d9476a` (último commit real, de BM-2.6A — BM-2.6B sigue sin commitear).
+4. Distinguir con claridad los archivos BM-2.6B (lista de arriba) de los 4 históricos excluidos.
+5. Auditar TODOS los registries/entrypoints reales de `RuleEvaluatorInterface` (los 4 listados arriba + cualquier otro que aparezca en una búsqueda fresca — no confiar ciegamente en que la lista de hoy siga completa).
+6. Determinar, con criterio explícito y documentado (no a ciegas), en cuáles corresponde registrar `CrossSheetEqualsEvaluator`.
+7. Completar únicamente lo estrictamente necesario para esa decisión.
+8. Ejecutar los tests focalizados de BM-2.6B (29 actuales + los que se agreguen).
+9. Regresión completa de Serie A (mismas suites y baseline de arriba) — cualquier desviación nueva bloquea el cierre.
+10. Gate pre-commit (mismo patrón ya usado en BM-2/BM-2.6A: separar archivos BM-2.6B de históricos, `git diff --check`, buscar hardcodes/rutas rotas, confirmar baseline).
+11. **Solo después** de todo lo anterior, pedir autorización explícita para commit/push de BM-2.6B.
+
+**No comenzar BM-3 (estructura/config real de BM) hasta cerrar formalmente BM-2.6B.** Roadmap BM restante, sin fecha, no iniciado: BM-3 (estructura/config) → BM-4 (cell scan) → BM-5 (patrones) → BM-6 (reglas) → BM-7 (calibración funcional) → BM-8 (auditoría canónica) → BM-9 (certificación).
+
+---
+
 ### CIERRE — 2026-09-11, CALIBRACIÓN REM SERIE A 100% CERRADA (mecanismo `human_review`/full-review) — leer esto primero, antes que todo lo de abajo
 
 **Veredicto: `REM_SERIE_A_CALIBRACION_100_POR_CIENTO_CERRADA`.** Cierra la cadena de checkpoints del mismo día (microauditoría A30/C → escaneo A05/V → diseño e implementación del mecanismo `human_review` → resolución real de A30/C → auditoría canónica completa → cierre de los 10 `QUICK_CONFIRMATION` de A11a). Reemplaza como estado vigente de calibración todo lo dicho antes sobre A05/V y A30/C pendientes.
