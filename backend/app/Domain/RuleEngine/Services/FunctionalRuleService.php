@@ -55,6 +55,17 @@ class FunctionalRuleService
         $result = [];
         foreach ($all as $key => $data) {
             if (empty($data['row'])) continue;
+            // BM-9.2 (2026-09-14): un registro solo pertenece al resultado si
+            // su propio sheet/section (no la clave del array, ni el
+            // sheet/section solicitado) coincide realmente con lo pedido --
+            // antes cualquier registro con el mismo numero de fila, de
+            // CUALQUIER hoja/seccion/serie, se remapeaba a la clave
+            // solicitada, contaminando la evidencia mostrada (ver
+            // getFunctionalRuleByRow(), que ya aplicaba este mismo filtro).
+            if (strtoupper($data['sheet'] ?? '') !== strtoupper($sheet)
+                || strtolower($data['section'] ?? '') !== strtolower($section)) {
+                continue;
+            }
             $rowKey = $data['row'];
             $result["{$sheet}_{$section}_{$rowKey}"] = $data;
         }
