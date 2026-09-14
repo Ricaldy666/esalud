@@ -195,6 +195,81 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+### CIERRE DE JORNADA — 2026-09-14 (continuación), REM BM — BM-3 A BM-5.5 CERRADAS / CHECKPOINT PREVIO A IMPORTACIÓN DE REGLAS (BM-6) — leer esto primero, antes que el checkpoint "BM-2.6B CERRADA Y RESPALDADA" de abajo
+
+**Veredicto: `BM55_FIX_GENERICO_COMMIT_PUSH_CERTIFICADO`.** Este checkpoint reemplaza como punto de reanudación inmediato al checkpoint "BM-2.6B CERRADA Y RESPALDADA" de abajo (ese sigue vigente para su propio alcance específico — registro del evaluador cross-sheet en los entrypoints del motor — pero la campaña avanzó mucho más allá: estructura/config real de BM, calibración de roles de columna vía `cell-data`, certificación end-to-end desde la UI real, mapeo canónico completo de las 10 reglas del catálogo BM 2026, dos anomalías estructurales reales encontradas y corregidas con un fix genérico del motor de parseo, certificado exhaustivamente contra Serie A, commiteado y pusheado). `main` = `origin/main` = **`67ebe96b95caa5f240e690941f6ed3fbcf5c4bdb`** (`67ebe96`), ahead/behind **0/0**.
+
+**1) Cronología de commits BM, en orden:**
+
+| Commit | Fase | Resumen |
+|---|---|---|
+| `2c14cd3` | BM-2 | Generalización multi-serie del motor de calibración |
+| `1915040` | BM-2.6A | Detección/representación estructural de dependencias cross-hoja |
+| `af3bfe9` | BM-2.6B | Registro real de `CrossSheetEqualsEvaluator` en los 3 entrypoints del motor |
+| `fcb9f2d` | doc | Cierre documental de BM-2.6B |
+| `f200e20` | BM-3.1 | Fix de detección de serie desde nombre de archivo real (`MetadataExtractorService`) |
+| `eec2920` | BM-3.5 | `RemTemplateConfigGeneratorService` oficial, versionado, con tests |
+| `91474f3` | BM-3.6 | Fix `serieFromRemType()` — preserva series de 2 letras (BM/BS ya no colisionan con B) |
+| `67ebe96` | BM-5.5 | Fix genérico: captura de technical totals de cierre más allá del límite declarado de sección |
+
+**2) Estructura BM — estado LOCAL, no asumir en producción:** `rem_template_structures.id=72`, serie=BM, año=2026, `version_number=1`, `status=active`, `rem_template_id=2`, `rem_upload_id=20` (vínculo trazable autorizado en BM-4.2 — misma identidad de archivo confirmada byte a byte antes de escribirlo, nunca un valor inventado). 2 `forms` (hojas BM18, BM18A), 6 secciones totales: **BM18/A, BM18/B, BM18/C, BM18/D, BM18A/A, BM18A/B**.
+
+**3) `RemTemplate` BM — `id=2`:** `config['sheets']` cubre BM18 y BM18A, generado desde la estructura vía `RemTemplateConfigGeneratorService` (BM-3.5). Hojas NOMBRE/Control/macros explícitamente excluidas del alcance parseable, mismo criterio ya usado en Serie A.
+
+**4) Cell-data — 6 artefactos locales, gitignorados** (`storage/app/private/certificacion/cell-data/`): `BM18-A.json`, `BM18-B.json`, `BM18-C.json`, `BM18-D.json`, `BM18A-A.json`, `BM18A-B.json`. **No están en Git** (mismo patrón ya establecido para Serie A) — necesarios para reproducir localmente la resolución de roles de columna, calibración y detección de filas técnicas. Cualquier sincronización futura a producción debe ser controlada y explícita — **nunca copiar la BD local sobre producción**, mismo principio ya vigente para Serie A (ver checkpoint de sincronización pendiente más abajo).
+
+**5) Certificación end-to-end UI real — upload #193 (`102412BM05.xlsm`):** preview confirmado por el usuario desde la UI real — Serie BM, Mayo 2026, Posta Caleta Chanavayita, DEIS 102412. Resultado persistido ORIGINAL (antes del fix BM-5.3): **182 `rem_data`, 18 `rem_technical_totals`, 0 errores de parser**. Resultado READ-ONLY reparseado con el fix actual (nada persistido sobre #193): **181 `rem_data`, 20 `rem_technical_totals`, 0 errores**. La diferencia se explica completamente: fila 186 de BM18A/B (TOTAL genuino, con una columna F genuinamente editable-pero-vacía en el template real que antes bloqueaba su reconocimiento) pasó de persistirse incorrectamente como `rem_data` a clasificarse correctamente como `technical_total`; fila 206 (TOTAL final legítimo, un renglón más allá del `filaFinDatos=205` declarado) antes nunca se alcanzaba y ahora se captura como `trailing_total_beyond_bounds`. **Upload #193 permanece exactamente como quedó persistido en su momento — no se tocó, no se reprocesó.**
+
+**6) Mapeo BM-5.1 — plan interno completo, NO insertado:** catálogo real de **10 reglas conceptuales**, 100% `sum_equals` (2 en BM18, 8 en BM18A). Plan ejecutable canónico, verificado contra fórmulas reales de ambos XLSM (`102302BM05.xlsm`/`102412BM05.xlsm`, estructuralmente idénticos):
+
+| Hoja | `rem_rules` | Detalle |
+|---|---|---|
+| BM18 | 3 | regla 912 → 2 instancias (13-23 `E+F=D`; 24-37 `F=D`) + regla 913 → 1 instancia (42-51) |
+| BM18A/A | 22 | 914 horizontal (1, rango contiguo 13-118) + 915-917 vertical × 7 grupos (21) |
+| BM18A/B | 28 | 918 horizontal (1, rango contiguo 124-205, seguro tras el fix de fila 186) + 919-921 vertical × 9 grupos (27 — incluye los grupos 8 y 9, ambos resueltos tras BM-5.3) |
+| **Total** | **53** | **53 bindings** (1:1, patrón "hijas" ya usado en Serie A) |
+
+**7) Anomalías estructurales reales — encontradas y resueltas (BM-5.2/BM-5.3):**
+- **Fila 186 (BM18A/B)**: TOTAL real (`A186:B186="TOTAL"`, `C186`/`D186` fórmulas `SUM` hacia atrás), pero `F186` genuinamente editable/desbloqueada y vacía — confirmado a nivel de estilo OOXML crudo en ambos XLSM, idéntico. Causaba que se persistiera como `rem_data` en vez de `technical_total`. **Fix**: el chequeo "capturable real" ahora exige evidencia positiva de valor capturado (`valor_bruto` no vacío), no solo permisos de edición — nuevo método privado `celdaTieneValorRealCapturado()`.
+- **Fila 206 (BM18A/B)**: TOTAL final legítimo y perfectamente formado, un renglón más allá de `filaFinDatos=205` (excluido deliberadamente por `SectionDetectorService::excludeTrailingTotalRows()`, comportamiento correcto y sin tocar). El mecanismo "trailing-beyond-bounds" (17.48) nunca lo alcanzaba porque `$maxRow` en `RemParserService::parseSheet()` se acotaba al mayor `data_end_row` entre TODAS las secciones de la hoja — suficiente para huecos intermedios entre secciones, pero no para la ÚLTIMA sección de una hoja (sin ninguna sección posterior que extienda el límite). **Fix**: `$maxRow` extendido en `+1`, siempre acotado por `$sheetMaxRow`.
+
+`SectionDetectorService.php` **no modificado** en ninguno de los dos fixes. Estructura 72/v1 permanece válida y sin cambios — el fix es puramente de tiempo de parseo, no estructural.
+
+**8) Impacto en Serie A — auditado y certificado (BM-5.4):** el mismo fix genérico también permite capturar, por primera vez, **A06/L fila 181** y **A33/E fila 74** como `trailing_total_beyond_bounds` (mismo patrón estructural exacto que BM18A/B fila 206 — TOTAL final legítimo, última sección de su hoja, nunca antes alcanzado). Verificado contra upload real **#187** (fixture de certificación 17.54): `rem_data` **idéntico clave por clave** (0 diferencias en ambas direcciones), errores de parser idénticos (2, ajenos, en A25). Simulación real del motor de reglas (dentro de una transacción con ROLLBACK inmediato, nada persistido): **11 reglas de A06/L** (`total_row=181`) pasan de `skipped` (`missing_total_row`) a **`passed`** — validación correcta y genuina, el valor capturado coincide con la suma real de los componentes (ambos 0 en esa carga). Las **3 fallas funcionales reales ya documentadas** (reglas `178`, `714`, `715`) permanecen exactamente iguales. A33/E fila 74 no tiene ninguna regla activa que la referencie — 0 impacto ahí. **No se ejecutó ningún backfill ni reproceso persistente de uploads históricos.**
+
+**9) Nota pendiente para el futuro despliegue a producción — sin decidir:** cuando eventualmente se despliegue este fix a producción, quedará pendiente decidir: **(A)** reprocesar explícitamente uploads históricos de Serie A para que esas 11 reglas de A06/L dejen de aparecer como `skipped`, o **(B)** dejar que el comportamiento correcto se aplique naturalmente solo a cargas nuevas, sin tocar el historial. **Ninguna decisión tomada — no ejecutar ninguna de las dos sin autorización explícita futura.**
+
+**10) Relaciones cross-sheet BM18→BM18A — separadas, sin mezclar con las 53 reglas internas:** **37 relaciones reales** (31 referencias directas + 6 rangos `SUM`), confirmadas idénticas en ambos XLSM (BM-2.5). Capacidad técnica ya implementada y registrada en los 3 entrypoints reales del motor (`rule_type='cross_sheet_equals'`, `CrossSheetEqualsEvaluator`, BM-2.6B) — pero **0 reglas BM cross-sheet reales creadas todavía**. Completamente fuera del conteo de 53 reglas internas — corresponde a una fase posterior (BM-8).
+
+**11) Deuda técnica registrada, sin resolver, sin fecha:**
+- **A)** `CellScanOrchestrator::resolveFilePath()` — el fallback global (cuando `rem_upload_id` es null) puede elegir un archivo de OTRA serie si prefiere nombres `SA_*`. Ya mitigado específicamente para la estructura 72 de BM (vínculo trazable de `rem_upload_id`, BM-4.2), pero el gap de diseño genérico en el comando sigue sin corregirse.
+- **B)** `rem:approve-structure` usa `--user=1` como default, no portable entre entornos (ya se tuvo que usar `--user=25` explícito en BM-3.3).
+- **C)** Backfill de Serie A tras el despliegue futuro del fix BM-5.3/BM-5.5 — decisión explícita pendiente (ver punto 9).
+
+**12) Roadmap BM actualizado:**
+
+```
+BM-1 DONE · BM-2 DONE · BM-2.5 DONE · BM-2.6A DONE · BM-2.6B DONE
+BM-3.1 DONE · BM-3.2 DONE (solo BD local) · BM-3.3 DONE (solo BD local)
+BM-3.4 DONE · BM-3.5 DONE · BM-3.6 DONE · BM-3.7 DONE
+BM-4 DONE · BM-4.1 DONE · BM-4.2 DONE · BM-4.3 DONE
+BM-5 DONE · BM-5.1 DONE · BM-5.2 DONE · BM-5.3 DONE · BM-5.4 DONE · BM-5.5 DONE
+  ↓
+BM-6 (SIGUIENTE, no iniciado) — importación controlada de las 53 rem_rules/bindings internas
+  ↓
+BM-7 — calibración funcional / ejecución real
+  ↓
+BM-8 — las 37 relaciones cross-sheet
+  ↓
+BM-9 — auditoría canónica / certificación
+```
+
+Numeración de BM-7 a BM-9 sujeta a ajuste — no rígida. Ninguna fase futura se inicia sin autorización explícita.
+
+**13) Producción — reforzado:** **no asumida sincronizada** con nada de esta campaña BM. Último estado conocido de producción: Serie A estructura **19/v33** (histórico, no revalidado en esta sesión — ver checkpoint de sincronización pendiente más abajo en este archivo). Nada de la campaña BM (estructura 72, `RemTemplate` 2, el fix BM-5.3/BM-5.5, ni ningún commit de esta jornada) ha sido desplegado. Cero SSH/deploy/Docker/migrate/seed/cache clear en ninguna fase BM-1 a BM-5.6.
+
+---
+
 ### CIERRE DE JORNADA — 2026-09-14, REM BM — BM-2.6B CERRADA Y RESPALDADA — leer esto primero, antes que el checkpoint de 2026-09-11 de abajo
 
 **Veredicto: `BM26B_COMMIT_PUSH_RESPALDADO`.** Cierra el punto pendiente que dejó abierto el checkpoint "2026-09-11, CAMPAÑA BM-1 A BM-2.6B" (de más abajo, todavía vigente para el resto de su contenido): el registro real de `CrossSheetEqualsEvaluator` en los entrypoints del motor, ya commiteado y pusheado. Commit **`af3bfe951d7d073c6c8d3f39aa172830c286d6f6`** (`af3bfe9`, `feat(rem): add cross-sheet rule evaluation`) — `main` = `origin/main` = `af3bfe9`, ahead/behind **0/0**, push fast-forward normal (`1915040..af3bfe9`). Serie A sin cambios (67/v35, 798/751/1655, 306/306, 22/22, distribución canónica idéntica) — reconfirmado en vivo contra `esalud_dev` **después** del push. REM BM sigue sin ninguna persistencia real: `rem_template_structures` serie=BM **0**, `rem_rule_bindings` serie=BM **0**, `rem_templates` id=2 (BM) `config['sheets']` **[]** — reconfirmado en vivo contra `esalud_dev` al cierre de esta jornada.
