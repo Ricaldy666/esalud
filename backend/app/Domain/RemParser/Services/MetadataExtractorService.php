@@ -48,8 +48,30 @@ class MetadataExtractorService
             }
         }
 
+        // BM-3.1 (2026-09-14): el nombre real de una carga REM de
+        // establecimiento sigue el patron <codigo_deis><SERIE><mes> (ej.
+        // "102302BM05", "102302A05", "102412D05" -- confirmado contra
+        // archivos reales de las series A/BM/D en storage/app/rem-uploads),
+        // sin separador entre el codigo DEIS y la serie. El fallback
+        // anterior (`/(\d+)$/`) capturaba los digitos finales ("05", el mes)
+        // como si fueran la serie -- nunca una serie real. Reemplazado por
+        // un fallback que exige coincidencia exacta con una de las series
+        // centralmente validas (self::TIPOS_REM, la misma fuente ya
+        // reutilizada por routes/api.php y RemPatchSheetStructureCommand --
+        // sin duplicar la lista), ubicada entre digitos (codigo DEIS antes,
+        // mes despues). Un sufijo puramente numerico (ej. archivo terminado
+        // en "05"/"2026"/"123" sin ninguna de las 5 series) nunca produce
+        // una serie -- $serie permanece null y extract() cae al fallback ya
+        // existente de la hoja NOMBRE (sin cambios en extract()).
         if ($serie === null) {
-            if (preg_match('/(\d+)$/', $baseName, $m)) {
+            $tiposPorLongitud = self::TIPOS_REM;
+            usort($tiposPorLongitud, fn(string $a, string $b) => strlen($b) <=> strlen($a));
+            $alternativas = implode('|', array_map(
+                fn(string $t) => preg_quote($t, '/'),
+                $tiposPorLongitud
+            ));
+
+            if (preg_match('/\d(' . $alternativas . ')\d+$/', $baseName, $m)) {
                 $serie = $m[1];
             }
         }
@@ -98,10 +120,24 @@ class MetadataExtractorService
                             $meta['anio'] = (int) $anioVal;
                         }
                     }
+                    // BM-3.1 (2026-09-14): la celda real trae el rotulo
+                    // completo ("SERIE BM ESTABLECIMIENTOS AREA MUNICIPAL"),
+                    // no solo el codigo -- capturar todo el remanente
+                    // (`.+`) devolvia esa frase completa como si fuera la
+                    // serie, inutilizable contra rem_template_structures.serie
+                    // (comparado siempre contra 'A'/'BM'/'BS'/'D'/'P'
+                    // exactos). Se toma solo el PRIMER token tras "SERIE" y
+                    // se valida contra self::TIPOS_REM (misma fuente central
+                    // ya reutilizada arriba) -- si no es una serie valida,
+                    // $meta['serie'] permanece null, nunca se asigna texto
+                    // libre.
                     if ($meta['serie'] === null) {
                         $serieVal = $ws->getCell('B17')->getValue();
-                        if (is_string($serieVal) && preg_match('/SERIE\s+(.+)/i', $serieVal, $m)) {
-                            $meta['serie'] = trim($m[1]);
+                        if (is_string($serieVal) && preg_match('/SERIE\s+(\S+)/i', $serieVal, $m)) {
+                            $candidato = strtoupper(trim($m[1]));
+                            if (in_array($candidato, self::TIPOS_REM, true)) {
+                                $meta['serie'] = $candidato;
+                            }
                         }
                     }
 
