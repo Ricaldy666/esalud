@@ -195,6 +195,75 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+### CIERRE DE JORNADA — 2026-09-14 (continuación #3), REM BM — BM-8 CROSS-SHEET (37 RELACIONES) CERTIFICADAS END-TO-END Y COMMITEADAS — leer esto primero, antes que todo lo demás de esta sección
+
+**Veredicto: `BM87_DOCUMENTACION_CROSS_SHEET_CERTIFICADA`.** Reemplaza como punto de reanudación inmediato al checkpoint "2026-09-14 (continuación #2), 53 REGLAS INTERNAS..." de abajo (ese sigue vigente para su propio alcance histórico — las 53 reglas internas — pero la campaña avanzó: las 37 relaciones cross-sheet BM18→BM18A quedaron auditadas, los 2 engine gaps que las bloqueaban quedaron corregidos genéricamente, las 37 reglas quedaron realmente importadas en BD local, certificadas end-to-end contra ambos XLSM reales y desde una carga real de la UI, y el código quedó commiteado y pusheado). `main` = `origin/main` = **`f218c58`**, ahead/behind **0/0**.
+
+**1) Estado BM actual — LOCAL, no asumir en producción:**
+
+`rem_template_structures.id=72` (serie=BM, año=2026, `version_number=1`, `status=active`), `rem_template_id=2`. **90 reglas BM activas** (53 `sum_equals` internas + 37 `cross_sheet_equals`), **90 bindings** (1:1, `bindable_type=structure`, `bindable_id=72`, `serie=BM`, `anio=2026`, `active=true`).
+
+Global local (incluye Serie A + BM): `rem_rules=888`, `activas=841`, `rem_rule_bindings=1745`. Serie A: `67/v35`, sin cambios por esta campaña.
+
+**2) Las 37 relaciones cross-sheet — auditoría BM-8.1:**
+
+**37 relaciones reales** `BM18 → BM18A` (**31 DIRECT** + **6 SUM_RANGE**), verificadas idénticas en ambos archivos reales disponibles (`102302BM05.xlsm`, `102412BM05.xlsm`) — misma fórmula exacta en cada celda fuente de `BM18`, en ambos establecimientos. **0 relación inversa** (`BM18A→BM18`, nunca encontrada), **0 duplicados**, **0 mismatches** contra el contenido real de las fórmulas del Excel (verificado formula por formula contra ambos XLSM antes de generar el manifiesto).
+
+**3) Los 2 engine gaps encontrados y resueltos — BM-8.2:**
+
+**Gap 1** — `RuleEngineService::execute()` solo resolvía `_target_rows` de `cross_sheet_equals` desde `rem_data` del upload, sin ningún equivalente al backfill de `rem_technical_totals` que ya tenía `sum_equals` (vía `findTechnicalTotalRow()`). Impacto real medido antes del fix: **29/37 relaciones DIRECT** quedaban `skipped` con `target_cell_not_found`, porque sus filas destino en `BM18A` son TOTALes técnicos (nunca persistidos en `rem_data`, correctamente excluidos por el parser). **Fix**: nuevo método privado `buildCrossSheetTargetRows(int $uploadId, string $targetSheet, Collection $grouped): Collection` — combina `rem_data` + `rem_technical_totals` del **mismo upload** y la **misma hoja destino**; precedencia explícita: `rem_data` siempre gana, una fila técnica solo se agrega si su `row_number` no está ya presente en `rem_data`. Genérico — sin ningún hardcode de `BM`/`BM18`/`BM18A`/`structure_id=72` en el código productivo; mismo patrón conceptual que `findTechnicalTotalRow()` mantenido para `sum_equals` (ninguno de los dos se tocó el uno al otro).
+
+**Gap 2** — `RemRuleManifestImporterService::plan()` invocaba `normalizeConfig()` (diseñado exclusivamente para el formato legado `column/row_range/rule_logic` de `sum_equals`) para **cualquier** `rule_type`, por lo que toda config `cross_sheet_equals` válida quedaba marcada `invalid_config` (nunca tiene `source_letters`/`target_column`). **Fix**: nuevo método `validateCrossSheetConfig()` — validación nativa fail-closed, con las mismas expresiones regulares que usa `CrossSheetEqualsEvaluator` internamente (para no divergir de lo que realmente se ejecutaría): `source.cell` válida, `target.sheet` existente en la estructura activa, `target.cell` **o** `target.range`+`aggregation='sum'` (nunca ambos). Comportamiento de `sum_equals` sin ningún cambio semántico.
+
+`CrossSheetEqualsEvaluator.php` y `SectionDetectorService.php`: **ninguno de los dos tocado** en ningún punto de BM-8.
+
+**4) Manifiesto real — BM-8.3:**
+
+`backend/database/seeders/data/rem-bm-2026-cross-sheet-rules-manifest.json` — **37 reglas**, **37 rule_keys distintas**, **31 DIRECT** + **6 SUM_RANGE**. Deliberadamente **sin** `catalog_rule_id`/`derived_from_rule_id` (a diferencia del manifiesto de las 53 internas — estas 37 provienen de la auditoría de fórmulas reales BM-2.5, no de un catálogo funcional). Trazabilidad por regla: `source=excel_formula`, `origin_sheet`/`origin_cell`, `original_formula` (fórmula real capturada del Excel), `target_sheet`, `relation_type` (`DIRECT`/`SUM_RANGE`), `created_via=bm-2.5-cross-sheet-audit`.
+
+**5) Importación real local — BM-8.4:**
+
+Antes del import: `851 rem_rules / 804 activas / 1708 bindings` (global), BM = `53 rules / 53 bindings`. Después: `888 / 841 / 1745` (global), BM = `90 rules / 90 bindings`. Las 37 cross-sheet quedaron **activas** con **37 bindings** 1:1.
+
+IDs reales verificados en vivo contra `esalud_dev` en este mismo checkpoint (no asumidos del turno anterior): `rem_rules` cross-sheet = **1122–1158** (37 filas), `rem_rule_bindings` cross-sheet = **2443–2479** (37 filas). **No asumir continuidad perfecta de IDs** — los huecos entre el rango de las 53 internas (921-973) y este rango (1122-1158) son benignos, atribuibles al mismo patrón ya documentado de autoincremento InnoDB "quemado" por transacciones simuladas con `DB::rollBack()` durante BM-8.2/BM-8.3 (mismo mecanismo ya explicado para `id=920` en el checkpoint de las 53 internas).
+
+**6) Idempotencia — reconfirmada en este mismo checkpoint:**
+
+Dry-run del importador contra el manifiesto de las 37, ejecutado de nuevo en este turno (sin `--commit`, solo lectura): `would_create=0`, `would_skip=37` (idempotentes, contenido ya idéntico), `conflicts=0`, `invalid=0`, `bindings_would_create=0`. Las 37 reglas persistidas coinciden exactamente con el manifiesto — sin drift.
+
+**7) Certificación de motor contra ambos XLSM reales — BM-8.4:**
+
+Ejecutadas las 90 reglas **realmente persistidas** (no simuladas) contra ambos archivos reales (dentro de transacciones con `DB::rollBack()`, nada escrito por esta verificación):
+- `102302BM05.xlsm`: 90 total, **90 passed**, 0 failed, 0 skipped, 0 invalid.
+- `102412BM05.xlsm`: 90 total, **90 passed**, 0 failed, 0 skipped, 0 invalid.
+Desglose ambos: 53 internas `passed` + 37 cross-sheet `passed`. **0 `missing_total_row`, 0 `target_cell_not_found`.**
+
+**8) Incidente de worker / runbook — BM-8.5:**
+
+Tras aplicar el fix BM-8.2, el worker local (PID 26560, `StartTime` 15:44:45) quedó **STALE** — iniciado antes de los `mtime` de `RuleEngineService.php` (16:04:01) y `RemRuleManifestImporterService.php` (16:04:47), mismo patrón ya documentado en el incidente BM-7. **Reiniciado únicamente el worker** (`queue:restart` graceful + nuevo `queue:work`) — backend y frontend **no reiniciados**. Nuevo worker: **PID 3672**, `StartTime` 16:23:43 (posterior a ambos mtimes) → `WORKER_CURRENT`. Runbook reforzado (ya documentado desde BM-7, ahora confirmado dos veces): **tras cualquier cambio de código PHP consumido por el worker, reiniciar el worker local de forma controlada antes de certificar cualquier flujo real end-to-end** — de lo contrario el resultado observado refleja código desactualizado.
+
+**9) Upload canónico de certificación E2E — #197 (BM-8.5):**
+
+`102412BM05.xlsm`, Posta Caleta Chanavayita, período 2026-5, carga real hecha por el usuario desde la UI de ATHENEA local (no simulada, no por CLI). Parser: `status=success`, 0 errores, **181 rem_data, 20 rem_technical_totals**. Fila 186 (BM18A/B): `technical_total`, `embedded_trailing_total_row`. Fila 206: `technical_total`, `trailing_total_beyond_bounds`. Ejecución de reglas: **90 total, 90 passed, 0 failed, 0 skipped, 0 invalid**. UI reportó: 90 evaluadas, 90 cumplen, 0 incumplen, 100,0% — **coincidencia UI↔backend 1:1**, confirmada explícitamente. `jobs` pendientes = 0, `failed_jobs` relacionados a #197 = 0.
+
+**10) Git — commit y push, autorizados explícitamente por el usuario en este mismo turno:**
+
+Commit **`f218c58`** (`feat(rem): add BM cross-sheet rule support`) — exactamente **5 archivos**, staged uno por uno (nunca `git add .`/`-A`): `RemRuleManifestImporterService.php`, `RuleEngineService.php` (modificados), `rem-bm-2026-cross-sheet-rules-manifest.json`, `CrossSheetEqualsIntegrationTest.php`, `RemRuleManifestImporterServiceTest.php` (nuevos/modificados). Tests focalizados 44/44 (326 assertions). Regresión `Feature/RuleEngine`+`Feature/Calibration`+`Unit/RuleEngine`: 35 fallos = exactamente el baseline histórico por nombre, 0 nuevos. `main` = `origin/main` = `f218c58`, push fast-forward normal (`9087689..f218c58`), ahead/behind 0/0. Confirmados fuera del commit, sin tocar: `vite.config.ts`, 2× `Diag*Command.php`, `backend/demo/`.
+
+**11) Alcance BM cerrado hasta ahora — DONE:** estructura BM 72/v1, template/config BM, parser BM, cell-data BM (6/6), fix de technical totals filas 186/206, las 53 reglas internas + 53 bindings, las 37 cross-sheet + 37 bindings, soporte genérico de target-rows técnicos para cross-sheet (`buildCrossSheetTargetRows()`), importador cross-sheet (`validateCrossSheetConfig()`), manifiesto cross-sheet real, certificación de motor 90/90 contra ambos XLSM, certificación end-to-end real desde la UI (90/90, upload #197), commit/push de BM-8 (`f218c58`).
+
+**12) ⚠️ NO declarar "REM BM completamente calibrado" — la calibración funcional sigue pendiente, sin cambios por esta campaña:**
+
+Estado de calibración funcional BM: **0/2 hojas, 0/6 secciones, 6 pendientes** — `BM18` (secciones A, B, C, D) y `BM18A` (secciones A, B). **Las 90 reglas técnicas/cross-sheet certificadas (BM-6 a BM-8) NO equivalen a calibración funcional completa** — son capas distintas: el motor de reglas verifica consistencia aritmética/estructural (sumas, referencias cross-hoja), mientras que la calibración funcional es la decisión de Estadística APS sobre qué columnas/filas de cada sección deben capturarse, sus excepciones y su comportamiento esperado por fila — igual que ya se documentó y distinguió explícitamente en el checkpoint de las 53 reglas internas.
+
+**13) Siguiente fase — BM-9, no iniciada, requiere autorización explícita:**
+
+**BM-9 — Calibración funcional BM**: calibrar las 6 secciones pendientes (`BM18/A,B,C,D` + `BM18A/A,B`) contra la estructura real activa (72/v1), reutilizando el mismo pipeline ya maduro de Serie A (`cell-data` ya existente, `PatternMigrationScanner`, `FunctionalRuleService`, etc.). **No reabrir las 90 reglas técnicas ya certificadas** salvo evidencia concreta de un problema real. Tras cerrar las 6 secciones: **auditoría canónica final de BM** (fase posterior, aún sin numerar formalmente).
+
+**14) Producción:** no asumida sincronizada. Último estado conocido histórico: Serie A estructura **19/v33** (no revalidado en esta sesión). Ningún commit de BM-8 desplegado. Cero SSH/deploy/Docker/migrate/seed/cache clear/backfill en toda la campaña BM-8.
+
+---
+
 ### CIERRE DE JORNADA — 2026-09-14 (continuación #2), REM BM — 53 REGLAS INTERNAS IMPORTADAS Y CERTIFICADAS END-TO-END DESDE LA UI REAL — leer esto primero, antes que el checkpoint "BM-3 A BM-5.5 CERRADAS" de abajo
 
 **Veredicto: `BM72_COMMIT_PUSH_REGLAS_INTERNAS_CERTIFICADO`.** Reemplaza como punto de reanudación al checkpoint "BM-3 A BM-5.5 CERRADAS" de abajo (ese sigue vigente para su propio alcance histórico, pero la campaña avanzó: las 53 reglas internas del catálogo BM 2026 quedaron realmente importadas en BD local, certificadas end-to-end desde una carga real de la UI de ATHENEA — no solo simulada — y el código del importador quedó commiteado y pusheado). `main` = `origin/main` = **`3feb601c1b201f5d011ac1584171adc50a05f37a`** (`3feb601`), ahead/behind **0/0**.
