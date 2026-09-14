@@ -352,6 +352,23 @@ class RuleEngineService
                 $config['_cell_metadata'] = $cellMetadataCache[$cacheKey];
             }
 
+            // BM-2.6B (2026-09-11): resolucion de filas de la hoja DESTINO
+            // para CrossSheetEqualsEvaluator (rule_type='cross_sheet_equals')
+            // -- mismo patron ya usado arriba para _functional_rules/
+            // _cell_metadata/_section_bounds (config privado inyectado por
+            // el motor, nunca por el evaluador). $rows (parametro posicional
+            // de evaluate(), sin cambios) sigue siendo exclusivamente la
+            // hoja FUENTE (config['sheet']), igual que para cualquier otro
+            // rule_type -- esta rama NUNCA se activa para sum_equals/
+            // required_and_le_parent ni para ninguna de las 798 reglas
+            // reales de Serie A (ninguna es cross_sheet_equals). Reutiliza
+            // $grouped (rem_data del MISMO upload, nunca cruza uploads) ya
+            // resuelto arriba en execute() -- sin query adicional.
+            if ($rule->rule_type === 'cross_sheet_equals') {
+                $targetSheet = $config['target']['sheet'] ?? null;
+                $config['_target_rows'] = $targetSheet ? $grouped->get($targetSheet, collect()) : collect();
+            }
+
             $result = $evaluator->evaluate($config, $rows);
             $executionMs = (int) ((microtime(true) - $startTime) * 1000);
 

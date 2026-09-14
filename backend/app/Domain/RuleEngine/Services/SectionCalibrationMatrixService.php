@@ -346,6 +346,36 @@ class SectionCalibrationMatrixService
             $concepto = $cellDataForRows[$row]['A']['valor_bruto'] ?? null;
             $profesional = $cellDataForRows[$row]['B']['valor_bruto'] ?? null;
 
+            // BM-2.6B (2026-09-11): una fila cuya UNICA fuente de valor en
+            // alguna columna formula es una referencia cross-hoja (ej.
+            // BM18!E14=BM18A!D20, ver BM-2.6A) nunca debe pasar por
+            // determineCoverage() -- esa funcion asume implicitamente que
+            // toda formula referencia columnas LOCALES de la misma seccion
+            // (origen_columnas/columnas_origen), y una celda cross-hoja ya
+            // tiene 'dependencias' (same-sheet) vacio por diseno (ver
+            // EnhancedCellScanner::extractDependencies()) -- nunca genera
+            // columnas fantasma, pero SIN este chequeo caeria en
+            // 'no_formula' (evidencia sin componentes locales), perdiendo
+            // la distincion real: la formula EXISTE, solo que el motor
+            // actual no la ejecuta todavia (ver
+            // CrossSheetEqualsEvaluator). $rowCells ya trae
+            // 'dependencias_cross_hoja' por celda desde BM-2.6A -- para
+            // Serie A esa clave esta siempre vacia (0 formulas cross-hoja
+            // en seccion, confirmado en BM-2.5), por lo que esta rama
+            // NUNCA se activa para ninguna de las 798 reglas/306 secciones
+            // reales de Serie A.
+            $crossSheetReason = null;
+            foreach ($rowCells as $cellInfo) {
+                if (!is_array($cellInfo) || !($cellInfo['es_formula'] ?? false)) {
+                    continue;
+                }
+                $reason = $this->classifyCrossSheetDependency($cellInfo);
+                if ($reason !== null) {
+                    $crossSheetReason = $reason;
+                    break;
+                }
+            }
+
             $rows[] = [
                 'row' => $row,
                 'row_type' => $rowType,
@@ -360,13 +390,16 @@ class SectionCalibrationMatrixService
                 'formula_efectiva' => $evidenceDetail['formula_efectiva'],
                 'formula_candidata' => $evidenceDetail['formula_candidata'],
                 'tipo_evidencia' => $evidenceDetail['tipo_evidencia'],
-                'cobertura' => $this->determineCoverage(
-                    rowType: $rowType,
-                    directRule: $directRule,
-                    aggregatedMatch: $aggregatedMatch,
-                    evidenceDetail: $evidenceDetail,
-                    sectionData: $sectionData,
-                ),
+                'cross_sheet_dependency' => $crossSheetReason,
+                'cobertura' => $crossSheetReason !== null
+                    ? self::CROSS_SHEET_DEPENDENCY_REASON
+                    : $this->determineCoverage(
+                        rowType: $rowType,
+                        directRule: $directRule,
+                        aggregatedMatch: $aggregatedMatch,
+                        evidenceDetail: $evidenceDetail,
+                        sectionData: $sectionData,
+                    ),
                 'estado_tecnico' => $this->determineTecnicalStatus($rowType, $directRule, $certStatus),
                 'columnas_habilitadas' => $this->getEnabledColumns($sectionData),
                 'columnas_sumadas' => $evidenceDetail['origen_columnas'],

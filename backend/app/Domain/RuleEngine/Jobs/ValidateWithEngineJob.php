@@ -3,6 +3,7 @@
 namespace App\Domain\RuleEngine\Jobs;
 
 use App\Domain\REM\Models\RemUpload;
+use App\Domain\RuleEngine\Evaluators\CrossSheetEqualsEvaluator;
 use App\Domain\RuleEngine\Evaluators\RequiredAndLeParentEvaluator;
 use App\Domain\RuleEngine\Evaluators\SumEqualsEvaluator;
 use App\Domain\RuleEngine\Services\FeatureFlagService;
@@ -65,6 +66,7 @@ class ValidateWithEngineJob implements ShouldQueue
 
         $engine->registerEvaluator(new SumEqualsEvaluator);
         $engine->registerEvaluator(new RequiredAndLeParentEvaluator);
+        $engine->registerEvaluator(new CrossSheetEqualsEvaluator);
 
         try {
             // No se recalcula upload.status aqui: este motor es paralelo/complementario

@@ -6,6 +6,7 @@ use App\Domain\REM\Models\RemUpload;
 use App\Domain\RemParser\Models\RemTemplateStructure;
 use App\Domain\RuleEngine\Evaluators\SumEqualsEvaluator;
 use App\Domain\RuleEngine\Evaluators\RequiredAndLeParentEvaluator;
+use App\Domain\RuleEngine\Evaluators\CrossSheetEqualsEvaluator;
 use App\Domain\RuleEngine\Services\RuleEngineService;
 use Illuminate\Console\Command;
 
@@ -44,6 +45,7 @@ class RuleValidateCommand extends Command
 
         $engine->registerEvaluator(new SumEqualsEvaluator);
         $engine->registerEvaluator(new RequiredAndLeParentEvaluator);
+        $engine->registerEvaluator(new CrossSheetEqualsEvaluator);
 
         $this->line("Resolviendo reglas activas...");
         $rules = $engine->resolveRules($structureId);

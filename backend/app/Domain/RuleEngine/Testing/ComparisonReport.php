@@ -190,6 +190,7 @@ class ComparisonReport
         $engine = app(\App\Domain\RuleEngine\Services\RuleEngineService::class);
         $engine->registerEvaluator(new \App\Domain\RuleEngine\Evaluators\SumEqualsEvaluator);
         $engine->registerEvaluator(new \App\Domain\RuleEngine\Evaluators\RequiredAndLeParentEvaluator);
+        $engine->registerEvaluator(new \App\Domain\RuleEngine\Evaluators\CrossSheetEqualsEvaluator);
         $engineStats = $engine->execute($uploadId, $structureId, false);
         $elapsed = (int) ((microtime(true) - $startTime) * 1000);
 
