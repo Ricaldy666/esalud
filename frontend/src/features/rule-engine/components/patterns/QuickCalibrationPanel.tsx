@@ -1279,12 +1279,29 @@ export default function QuickCalibrationPanel({
           </div>
         </div>
 
-        {primaryPattern && primaryPattern.conceptos.length > 0 && (
+        {primaryPattern && primaryPattern.filas.length > 0 && (
+          // BM-11.21: la cantidad de filas SIEMPRE se toma de la evidencia
+          // estructural real del patron (`filas`, alias `pattern_rows` --
+          // ambos siempre provistos por el backend y ya usados como fuente
+          // canonica en el resto de este mismo archivo), nunca de
+          // `conceptos.length`. `conceptos` es una etiqueta descriptiva
+          // deduplicada por valor de celda (columna A) -- una fila cuya
+          // celda A es parte no-ancla de un merge de Excel (ej. BM18/D,
+          // A60:A62 con A61/A62 = null) queda fuera de `conceptos` aunque
+          // sea una fila real y editable del patron, subcontando el texto
+          // si se usara como fuente de conteo (BM-11.20).
           <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
             <p className="text-sm text-slate-700">
-              Esta decisión se aplicará a {primaryPattern.conceptos.length} fila
-              {primaryPattern.conceptos.length === 1 ? '' : 's'}:{' '}
-              {joinWithY(primaryPattern.conceptos)}.
+              Esta decisión se aplicará a {primaryPattern.filas.length} fila
+              {primaryPattern.filas.length === 1 ? '' : 's'}
+              {primaryPattern.conceptos.length > 0
+                ? `: ${joinWithY(primaryPattern.conceptos)}`
+                : ''}
+              {primaryPattern.conceptos.length < primaryPattern.filas.length &&
+              primaryPattern.profesionales.length > primaryPattern.conceptos.length
+                ? ` (${joinWithY(primaryPattern.profesionales)})`
+                : ''}
+              .
             </p>
             <p className="mt-1 text-xs text-slate-500">
               Puedes cambiar una fila de forma individual en la tabla inferior.
