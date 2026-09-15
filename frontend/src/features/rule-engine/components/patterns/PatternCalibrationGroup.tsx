@@ -53,26 +53,55 @@ function columnRange(group: ColumnGroup) {
   return `${group.start_column}:${group.end_column}`
 }
 
-function isMenAgeRule(rule: NonNullable<PatternGroup['rows'][number]['functional_rules']>[number]) {
-  return rule.total_column === 'C' && (rule.origin_columns?.length ?? 0) > 2
+// BM-11.31 (ENGINE_UI_GAP, BM-11.30): la semantica de sexo/edad NUNCA se
+// infiere solo por posicion de columna -- exige evidencia real de la
+// etiqueta de encabezado (labelForColumn(), ya disponible via columnGroups).
+// Mismo contrato que QuickCalibrationPanel.tsx/backend
+// (isSexMainRuleFormula()): total debe decir "ambos sexos"/"total", y los
+// dos origenes deben decir explicitamente "hombre(s)"/"mujer(es)".
+function normalizeLabelText(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function hasSexEvidence(totalLabel: string, firstLabel: string, secondLabel: string): boolean {
+  const total = normalizeLabelText(totalLabel)
+  const first = normalizeLabelText(firstLabel)
+  const second = normalizeLabelText(secondLabel)
+  const totalLooksLikeSexTotal = total.includes('ambos sexos') || total === 'total'
+  return totalLooksLikeSexTotal && first.includes('hombre') && second.includes('mujer')
+}
+
+function isMenAgeRule(
+  rule: NonNullable<PatternGroup['rows'][number]['functional_rules']>[number],
+  columnGroups?: ColumnGroup[]
+) {
+  if ((rule.origin_columns?.length ?? 0) <= 2) return false
+  return normalizeLabelText(labelForColumn(rule.total_column, columnGroups)).includes('hombre')
 }
 
 function isWomenAgeRule(
-  rule: NonNullable<PatternGroup['rows'][number]['functional_rules']>[number]
+  rule: NonNullable<PatternGroup['rows'][number]['functional_rules']>[number],
+  columnGroups?: ColumnGroup[]
 ) {
-  return rule.total_column === 'D' && (rule.origin_columns?.length ?? 0) > 2
+  if ((rule.origin_columns?.length ?? 0) <= 2) return false
+  return normalizeLabelText(labelForColumn(rule.total_column, columnGroups)).includes('mujer')
 }
 
 function conciseRuleLabel(
   rule: NonNullable<PatternGroup['rows'][number]['functional_rules']>[number],
   columnGroups?: ColumnGroup[]
 ) {
-  if (rule.total_column === 'B' && rule.origin_columns?.join(',') === 'C,D')
-    return 'Ambos Sexos = Hombres + Mujeres'
-  if (rule.total_column === 'C' && rule.origin_columns?.join(',') === 'D,E')
-    return 'Ambos Sexos = Hombres + Mujeres'
-  if (isMenAgeRule(rule)) return 'Total Hombres = suma de rangos etarios de Hombres'
-  if (isWomenAgeRule(rule)) return 'Total Mujeres = suma de rangos etarios de Mujeres'
+  const originColumns = rule.origin_columns ?? []
+  if (originColumns.length === 2) {
+    const sexEvidence = hasSexEvidence(
+      labelForColumn(rule.total_column, columnGroups),
+      labelForColumn(originColumns[0], columnGroups),
+      labelForColumn(originColumns[1], columnGroups)
+    )
+    if (sexEvidence) return 'Ambos Sexos = Hombres + Mujeres'
+  }
+  if (isMenAgeRule(rule, columnGroups)) return 'Total Hombres = suma de rangos etarios de Hombres'
+  if (isWomenAgeRule(rule, columnGroups)) return 'Total Mujeres = suma de rangos etarios de Mujeres'
 
   const totalLabel = labelForColumn(rule.total_column, columnGroups)
   const origins = rule.origin_columns

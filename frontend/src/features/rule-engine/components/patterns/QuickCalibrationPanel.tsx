@@ -290,20 +290,50 @@ function responseBySuffix(questions: CalibrationQuestion[], suffix: DecisionKey)
   )
 }
 
-function isSexTotal(rule: ReturnType<typeof firstRules>[number]) {
-  const origins = rule.origin_columns.join(',')
-  return (
-    (rule.total_column === 'B' && origins === 'C,D') ||
-    (rule.total_column === 'C' && origins === 'D,E')
+// BM-11.31 (ENGINE_UI_GAP, BM-11.30): la semantica de sexo/edad NUNCA se
+// infiere solo por la POSICION de columna (total_column/origin_columns) --
+// eso coincidia por pura coincidencia posicional para secciones reales sin
+// ninguna relacion de sexo (ej. BM18A/A: total_column='C', origin=['D','E'],
+// pero D/E son "SAPU/SAR/SUR"/"Resto Establecimientos APS", nunca Hombres/
+// Mujeres). Exige evidencia real del encabezado (mismo contrato que el
+// backend, SectionCalibrationMatrixService::isSexMainRuleFormula()): el
+// total debe decir "ambos sexos" (o, como respaldo, el generico "total"), Y
+// los dos origenes deben decir explicitamente "hombre(s)"/"mujer(es)" --
+// sin esa evidencia, jamas se asume sexo, sin importar que las columnas
+// coincidan posicionalmente con el patron historico de Serie A.
+function normalizeLabelText(value: string): string {
+  return value.trim().toLowerCase()
+}
+
+function hasSexEvidence(totalLabel: string, firstLabel: string, secondLabel: string): boolean {
+  const total = normalizeLabelText(totalLabel)
+  const first = normalizeLabelText(firstLabel)
+  const second = normalizeLabelText(secondLabel)
+  const totalLooksLikeSexTotal = total.includes('ambos sexos') || total === 'total'
+  return totalLooksLikeSexTotal && first.includes('hombre') && second.includes('mujer')
+}
+
+function isSexTotal(rule: ReturnType<typeof firstRules>[number], labels: Map<string, string>) {
+  if (rule.origin_columns.length !== 2) return false
+  const [firstColumn, secondColumn] = rule.origin_columns
+  return hasSexEvidence(
+    labels.get(rule.total_column) ?? '',
+    labels.get(firstColumn) ?? '',
+    labels.get(secondColumn) ?? ''
   )
 }
 
-function isMenAge(rule: ReturnType<typeof firstRules>[number]) {
-  return rule.total_column === 'C' && rule.origin_columns.length > 2
+// isMenAge/isWomenAge: mismo riesgo -- "mas de 2 columnas de origen" NO
+// implica rango etario de un sexo especifico. Exige que la etiqueta real
+// del total mencione explicitamente "hombre(s)"/"mujer(es)".
+function isMenAge(rule: ReturnType<typeof firstRules>[number], labels: Map<string, string>) {
+  if (rule.origin_columns.length <= 2) return false
+  return normalizeLabelText(labels.get(rule.total_column) ?? '').includes('hombre')
 }
 
-function isWomenAge(rule: ReturnType<typeof firstRules>[number]) {
-  return rule.total_column === 'D' && rule.origin_columns.length > 2
+function isWomenAge(rule: ReturnType<typeof firstRules>[number], labels: Map<string, string>) {
+  if (rule.origin_columns.length <= 2) return false
+  return normalizeLabelText(labels.get(rule.total_column) ?? '').includes('mujer')
 }
 
 function columnLabelMap(columnGroups?: ColumnGroup[]) {
@@ -333,9 +363,9 @@ function ruleLabel(
   labels: Map<string, string>,
   useFunctionalLabels: boolean
 ) {
-  if (isSexTotal(rule)) return 'Ambos Sexos = Hombres + Mujeres'
-  if (isMenAge(rule)) return 'Total Hombres = suma de rangos etarios de Hombres'
-  if (isWomenAge(rule)) return 'Total Mujeres = suma de rangos etarios de Mujeres'
+  if (isSexTotal(rule, labels)) return 'Ambos Sexos = Hombres + Mujeres'
+  if (isMenAge(rule, labels)) return 'Total Hombres = suma de rangos etarios de Hombres'
+  if (isWomenAge(rule, labels)) return 'Total Mujeres = suma de rangos etarios de Mujeres'
   if (useFunctionalLabels) {
     const destination = readableColumn(rule.total_column, labels)
     const origins = rule.origin_columns.map((column) => readableColumn(column, labels))
@@ -482,25 +512,14 @@ export default function QuickCalibrationPanel({
     () => derivedPatterns.reduce((total, pattern) => total + pattern.filas.length, 0),
     [derivedPatterns]
   )
-  // BM-11.27 (BM1126_CLASSIFICATION_GAP_CONFIRMED): fuente canonica para el
-  // mensaje "Esta decisión se aplicará a N filas" -- TODOS los patrones no
-  // derivados, nunca solo `primaryPattern`. Una seccion puede tener mas de
-  // un patron normal (ej. BM18/A: 11 filas con columna editable + 1 fila
-  // aislada con la misma relacion D=F pero sin celda editable propia,
-  // separada por firma de editabilidad) -- el mensaje anterior solo
-  // describia el primero, dejando la(s) fila(s) del resto sin mencionar
-  // aunque buildPayload() ya las cubre correctamente (nunca fue un defecto
-  // de persistencia, solo de texto). Deduplicado por numero de fila por si
-  // dos patrones compartieran alguna (no deberia ocurrir por diseño, pero
-  // la fuente de conteo no debe asumirlo).
+  // BM-11.27 (BM1126_CLASSIFICATION_GAP_CONFIRMED): todos los patrones NO
+  // derivados de la seccion -- usado para hasNormalPattern/isHybridSection
+  // (clasificacion derivado-vs-normal) y como base de
+  // quickSaveNormalPatterns (mas abajo), que ademas excluye las posibles
+  // excepciones de negocio (BM-11.31).
   const normalPatterns = useMemo(
     () => quickPatterns.filter((pattern) => pattern.mode !== 'derived_auto_fill'),
     [quickPatterns]
-  )
-  const normalFunctionalRows = useMemo(
-    () =>
-      Array.from(new Set(normalPatterns.flatMap((pattern) => pattern.filas))).sort((a, b) => a - b),
-    [normalPatterns]
   )
   const sectionType = isHybridSection
     ? 'Mixta (llenado automático + captura funcional)'
@@ -549,13 +568,37 @@ export default function QuickCalibrationPanel({
     [quickPatterns]
   )
   // Patrones de fila unica o grupo minoritario frente al patron dominante de
-  // la seccion (calculado por el backend, nunca aqui). La calibracion
-  // rapida aplica UNA sola decision a todos los patrones de la seccion por
-  // diseno -- por eso, si existen excepciones detectadas, se advierte para
-  // que no se asuma que heredan la misma configuracion sin revisarlas.
+  // la seccion (calculado por el backend, nunca aqui).
   const exceptionPatterns = useMemo(
     () => quickPatterns.filter((pattern) => pattern.possible_business_exception),
     [quickPatterns]
+  )
+  const exceptionRowCount = useMemo(
+    () => exceptionPatterns.reduce((total, pattern) => total + pattern.filas.length, 0),
+    [exceptionPatterns]
+  )
+  // BM-11.31 (BM1130_BM18AA_PATTERN_EXCEPTION_REQUIRES_DECISION): la
+  // calibracion rapida ya NO aplica su decision compartida a un patron
+  // marcado como posible excepcion de negocio (ej. BM18A/A patron 2, fila
+  // 119: sin concepto, sin regla tecnica, significado desconocido) -- ese
+  // patron queda fuera del conteo "aplicara a N filas" Y del payload real
+  // que "Confirmar y guardar seccion" envia (ver buildPayload() abajo).
+  // Sigue siendo NORMAL (no derivado) y sigue totalmente visible/calibrable
+  // de forma individual en "Ver evidencia tecnica" (FunctionalQuestionsPanel,
+  // que ya persiste decisiones independientes por pattern_id -- mismo
+  // contrato/payload, sin cambio de modelo). No se oculta, no se le asigna
+  // significado, no se altera el payload en silencio -- el aviso de abajo
+  // deja explicito que se excluyo.
+  const quickSaveNormalPatterns = useMemo(
+    () => normalPatterns.filter((pattern) => !pattern.possible_business_exception),
+    [normalPatterns]
+  )
+  const quickSaveFunctionalRows = useMemo(
+    () =>
+      Array.from(new Set(quickSaveNormalPatterns.flatMap((pattern) => pattern.filas))).sort(
+        (a, b) => a - b
+      ),
+    [quickSaveNormalPatterns]
   )
   // Fase 3/4 (2026-08-12): clasificacion de migracion al fingerprint v2,
   // recalculada EN VIVO en cada carga -- decide unicamente si se muestra
@@ -792,6 +835,21 @@ export default function QuickCalibrationPanel({
     const next: CalibrationQuestion[] = []
 
     for (const pattern of quickPatterns) {
+      // BM-11.31 (BM1130_BM18AA_PATTERN_EXCEPTION_REQUIRES_DECISION): un
+      // patron NORMAL marcado como posible excepcion de negocio nunca
+      // recibe la decision compartida de la calibracion rapida -- su
+      // significado no esta respaldado (sin concepto/regla tecnica en
+      // casos reales como BM18A/A patron 2), y aplicarle automaticamente
+      // la misma respuesta que al patron dominante equivaldria a
+      // inventarle un criterio sin evidencia. Se calibra por separado en
+      // "Ver evidencia técnica" (FunctionalQuestionsPanel), que ya
+      // persiste respuestas independientes por pattern_id con el MISMO
+      // contrato de payload -- ningun cambio de modelo/backend. Los
+      // patrones derivados NUNCA se saltan aqui, tengan o no esa marca.
+      if (pattern.mode !== 'derived_auto_fill' && pattern.possible_business_exception) {
+        continue
+      }
+
       // Si alguna pregunta de este patron ya quedo en fingerprint canonico
       // v2 (por una confirmacion rapida previa), este flujo normal nunca
       // debe reenviar pattern_fingerprint/pattern_rows en formato v1 -- el
@@ -1105,6 +1163,12 @@ export default function QuickCalibrationPanel({
         </div>
       )}
       {exceptionPatterns.length > 0 && (
+        // BM-11.31 (BM1130_BM18AA_PATTERN_EXCEPTION_REQUIRES_DECISION): a
+        // diferencia del aviso anterior (que solo advertia), la
+        // calibracion rapida ahora EXCLUYE por completo a estos patrones
+        // de "Confirmar y guardar sección" (ver quickSaveNormalPatterns) --
+        // este aviso deja explicito que fueron excluidos, no solo que
+        // "podrian no heredar correctamente".
         <div className="flex items-start gap-2 rounded-xl border border-purple-300 bg-purple-50 p-4 text-sm text-purple-900">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
@@ -1113,12 +1177,17 @@ export default function QuickCalibrationPanel({
               sección {exceptionPatterns.length === 1 ? 'se detectó' : 'se detectaron'} como posible
               {exceptionPatterns.length === 1 ? '' : 's'} excepción de negocio (patrón
               {exceptionPatterns.length === 1 ? '' : 'es'}{' '}
-              {exceptionPatterns.map((pattern) => pattern.id).join(', ')}).
+              {exceptionPatterns.map((pattern) => pattern.id).join(', ')}, {exceptionRowCount} fila
+              {exceptionRowCount === 1 ? '' : 's'}).
             </p>
             <p className="mt-1">
-              La calibración rápida aplica la misma decisión a todos los patrones de la sección. No
-              asuma que estas filas heredan la configuración general: revíselas de forma individual
-              en <span className="font-medium">Ver evidencia técnica</span> antes de certificar.
+              Esta{exceptionRowCount === 1 ? '' : 's'} fila{exceptionRowCount === 1 ? '' : 's'}{' '}
+              <span className="font-semibold">
+                no se incluye{exceptionRowCount === 1 ? '' : 'n'} en "Confirmar y guardar sección"
+              </span>
+              : revíse{exceptionPatterns.length === 1 ? 'la' : 'las'} de forma individual en{' '}
+              <span className="font-medium">Ver evidencia técnica</span> antes de certificar la
+              sección.
             </p>
           </div>
         </div>
@@ -1360,38 +1429,36 @@ export default function QuickCalibrationPanel({
           </div>
         </div>
 
-        {normalFunctionalRows.length > 0 && (
-          // BM-11.21 + BM-11.27: la cantidad de filas SIEMPRE se toma de la
-          // evidencia estructural real (`pattern.filas`, nunca
-          // `conceptos.length` -- ver BM-11.20/21), y ahora de la UNION de
-          // TODOS los patrones normales (`normalPatterns`), no solo del
-          // primero (`primaryPattern`) -- una seccion puede tener mas de un
-          // patron normal (BM18/A: 11 filas + 1 fila aislada con distinta
-          // firma de editabilidad, mismo eje funcional). Con un unico
-          // patron normal se conserva el texto detallado con conceptos/
-          // profesionales (comportamiento identico a antes); con 2+ se usa
-          // un mensaje agregado, sin inventar una lista de conceptos que
-          // ningun patron individual describe completa. Secciones 100%
-          // derivadas (normalPatterns vacio) ya no muestran este bloque --
-          // su propia confirmacion vive en el "Resumen automático" de
-          // arriba.
+        {quickSaveFunctionalRows.length > 0 && (
+          // BM-11.21 + BM-11.27 + BM-11.31: la cantidad de filas SIEMPRE se
+          // toma de la evidencia estructural real (`pattern.filas`, nunca
+          // `conceptos.length` -- ver BM-11.20/21), y de la UNION de los
+          // patrones normales QUE RECIBEN esta decision compartida
+          // (`quickSaveNormalPatterns` -- excluye explicitamente cualquier
+          // patron marcado `possible_business_exception`, ver
+          // BM1130_BM18AA_PATTERN_EXCEPTION_REQUIRES_DECISION). Con un
+          // unico patron en ese conjunto se conserva el texto detallado con
+          // conceptos/profesionales; con 2+ se usa un mensaje agregado.
+          // Secciones 100% derivadas o donde el unico patron normal es una
+          // excepcion ya no muestran este bloque.
           <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
             <p className="text-sm text-slate-700">
-              {normalPatterns.length <= 1 && primaryPattern ? (
+              {quickSaveNormalPatterns.length <= 1 && quickSaveNormalPatterns[0] ? (
                 <>
-                  Esta decisión se aplicará a {normalFunctionalRows.length} fila
-                  {normalFunctionalRows.length === 1 ? '' : 's'}
-                  {primaryPattern.conceptos.length > 0
-                    ? `: ${joinWithY(primaryPattern.conceptos)}`
+                  Esta decisión se aplicará a {quickSaveFunctionalRows.length} fila
+                  {quickSaveFunctionalRows.length === 1 ? '' : 's'}
+                  {quickSaveNormalPatterns[0].conceptos.length > 0
+                    ? `: ${joinWithY(quickSaveNormalPatterns[0].conceptos)}`
                     : ''}
-                  {primaryPattern.conceptos.length < normalFunctionalRows.length &&
-                  primaryPattern.profesionales.length > primaryPattern.conceptos.length
-                    ? ` (${joinWithY(primaryPattern.profesionales)})`
+                  {quickSaveNormalPatterns[0].conceptos.length < quickSaveFunctionalRows.length &&
+                  quickSaveNormalPatterns[0].profesionales.length >
+                    quickSaveNormalPatterns[0].conceptos.length
+                    ? ` (${joinWithY(quickSaveNormalPatterns[0].profesionales)})`
                     : ''}
                   .
                 </>
               ) : (
-                `Esta decisión se aplicará a ${normalFunctionalRows.length} filas funcionales de esta sección.`
+                `Esta decisión se aplicará a ${quickSaveFunctionalRows.length} filas funcionales de esta sección.`
               )}
             </p>
             <p className="mt-1 text-xs text-slate-500">

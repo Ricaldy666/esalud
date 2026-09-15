@@ -113,40 +113,66 @@ type RowFunctionalVersion = {
   status_to?: string
 }
 
-function isMenAgeRule(rule: FunctionalRule) {
-  return rule.total_column === 'C' && (rule.origin_columns?.length ?? 0) > 2
+// BM-11.31 (ENGINE_UI_GAP, BM-11.30): la semantica de sexo/edad NUNCA se
+// infiere solo por posicion de columna -- exige evidencia real de la
+// etiqueta de encabezado (data.header_labels, ya provisto por
+// buildMatrix()). Mismo contrato que QuickCalibrationPanel.tsx/backend
+// (isSexMainRuleFormula()): total debe decir "ambos sexos"/"total", y los
+// dos origenes deben decir explicitamente "hombre(s)"/"mujer(es)".
+function normalizeLabelText(value: string): string {
+  return value.trim().toLowerCase()
 }
 
-function isWomenAgeRule(rule: FunctionalRule) {
-  return rule.total_column === 'D' && (rule.origin_columns?.length ?? 0) > 2
+function hasSexEvidence(totalLabel: string, firstLabel: string, secondLabel: string): boolean {
+  const total = normalizeLabelText(totalLabel)
+  const first = normalizeLabelText(firstLabel)
+  const second = normalizeLabelText(secondLabel)
+  const totalLooksLikeSexTotal = total.includes('ambos sexos') || total === 'total'
+  return totalLooksLikeSexTotal && first.includes('hombre') && second.includes('mujer')
 }
 
-function isSexTotalRule(rule: FunctionalRule) {
-  const origins = rule.origin_columns?.join(',')
-  return (
-    (rule.total_column === 'B' && origins === 'C,D') ||
-    (rule.total_column === 'C' && origins === 'D,E')
+function isMenAgeRule(rule: FunctionalRule, headerLabels: Record<string, string>) {
+  if ((rule.origin_columns?.length ?? 0) <= 2) return false
+  return normalizeLabelText(headerLabels[rule.total_column] ?? '').includes('hombre')
+}
+
+function isWomenAgeRule(rule: FunctionalRule, headerLabels: Record<string, string>) {
+  if ((rule.origin_columns?.length ?? 0) <= 2) return false
+  return normalizeLabelText(headerLabels[rule.total_column] ?? '').includes('mujer')
+}
+
+function isSexTotalRule(rule: FunctionalRule, headerLabels: Record<string, string>) {
+  const origins = rule.origin_columns ?? []
+  if (origins.length !== 2) return false
+  return hasSexEvidence(
+    headerLabels[rule.total_column] ?? '',
+    headerLabels[origins[0]] ?? '',
+    headerLabels[origins[1]] ?? ''
   )
 }
 
-function functionalDestination(rule: FunctionalRule) {
-  if (isSexTotalRule(rule)) return 'Ambos Sexos'
-  if (isMenAgeRule(rule)) return 'Total Hombres'
-  if (isWomenAgeRule(rule)) return 'Total Mujeres'
+function functionalDestination(rule: FunctionalRule, headerLabels: Record<string, string>) {
+  if (isSexTotalRule(rule, headerLabels)) return 'Ambos Sexos'
+  if (isMenAgeRule(rule, headerLabels)) return 'Total Hombres'
+  if (isWomenAgeRule(rule, headerLabels)) return 'Total Mujeres'
   return rule.destino_funcional || rule.destination || '—'
 }
 
-function functionalOrigin(rule: FunctionalRule) {
-  if (isSexTotalRule(rule)) return 'Hombres + Mujeres'
-  if (isMenAgeRule(rule)) return 'rangos etarios de Hombres'
-  if (isWomenAgeRule(rule)) return 'rangos etarios de Mujeres'
+function functionalOrigin(rule: FunctionalRule, headerLabels: Record<string, string>) {
+  if (isSexTotalRule(rule, headerLabels)) return 'Hombres + Mujeres'
+  if (isMenAgeRule(rule, headerLabels)) return 'rangos etarios de Hombres'
+  if (isWomenAgeRule(rule, headerLabels)) return 'rangos etarios de Mujeres'
   return rule.descripcion_funcional_origen || rule.origin_coordinates?.join(', ') || '—'
 }
 
-function functionalRuleLabel(rule: FunctionalRule, fallback?: string | null) {
-  if (isSexTotalRule(rule)) return 'Ambos Sexos = Hombres + Mujeres'
-  if (isMenAgeRule(rule)) return 'Total Hombres = suma de rangos etarios de Hombres'
-  if (isWomenAgeRule(rule)) return 'Total Mujeres = suma de rangos etarios de Mujeres'
+function functionalRuleLabel(
+  rule: FunctionalRule,
+  headerLabels: Record<string, string>,
+  fallback?: string | null
+) {
+  if (isSexTotalRule(rule, headerLabels)) return 'Ambos Sexos = Hombres + Mujeres'
+  if (isMenAgeRule(rule, headerLabels)) return 'Total Hombres = suma de rangos etarios de Hombres'
+  if (isWomenAgeRule(rule, headerLabels)) return 'Total Mujeres = suma de rangos etarios de Mujeres'
   return rule.label || fallback || '—'
 }
 
@@ -396,6 +422,7 @@ export function SectionCalibrationTable({
                     section={section ?? 'A'}
                     isExpanded={expandedRow === r.row}
                     onToggle={() => setExpandedRow(expandedRow === r.row ? null : r.row)}
+                    headerLabels={data?.header_labels ?? {}}
                   />
                 ))
               )}
@@ -437,6 +464,7 @@ function CalibrationRowComponent({
   section,
   isExpanded,
   onToggle,
+  headerLabels,
 }: {
   row: CalibrationRow
   serie: string
@@ -444,6 +472,7 @@ function CalibrationRowComponent({
   section: string
   isExpanded: boolean
   onToggle: () => void
+  headerLabels: Record<string, string>
 }) {
   const cfg = COVERAGE_LABELS[row.cobertura] || COVERAGE_LABELS.no_formula
   const Icon = cfg.icon
@@ -535,7 +564,7 @@ function CalibrationRowComponent({
                 key={`${row.row}-${rule.total_column}-destination`}
                 className="font-medium text-slate-800"
               >
-                {functionalDestination(rule)}
+                {functionalDestination(rule, headerLabels)}
               </div>
             ))}
           </div>
@@ -544,7 +573,7 @@ function CalibrationRowComponent({
           <div className="space-y-1">
             {functionalRules.map((rule) => (
               <div key={`${row.row}-${rule.total_column}-origin`}>
-                <span className="text-slate-700">{functionalOrigin(rule)}</span>
+                <span className="text-slate-700">{functionalOrigin(rule, headerLabels)}</span>
                 <RuleTechnicalDetails rule={rule} />
               </div>
             ))}
@@ -562,7 +591,7 @@ function CalibrationRowComponent({
                     key={`${row.row}-${rule.total_column}-rule`}
                     className="font-medium text-slate-700"
                   >
-                    {functionalRuleLabel(rule, row.regla_funcional_label)}
+                    {functionalRuleLabel(rule, headerLabels, row.regla_funcional_label)}
                   </div>
                 ))}
               </div>
@@ -610,6 +639,7 @@ function CalibrationRowComponent({
               section={section}
               editing={editing}
               setEditing={setEditing}
+              headerLabels={headerLabels}
             />
           </td>
         </tr>
@@ -682,6 +712,7 @@ function RowDetailPanel({
   section,
   editing,
   setEditing,
+  headerLabels,
 }: {
   row: CalibrationRow
   serie: string
@@ -689,6 +720,7 @@ function RowDetailPanel({
   section: string
   editing: boolean
   setEditing: (v: boolean) => void
+  headerLabels: Record<string, string>
 }) {
   const [showTecnico, setShowTecnico] = useState(false)
   const [showVersions, setShowVersions] = useState(false)
@@ -780,7 +812,7 @@ function RowDetailPanel({
               label="Destino"
               value={
                 functionalRules
-                  .map((rule) => functionalDestination(rule))
+                  .map((rule) => functionalDestination(rule, headerLabels))
                   .filter(Boolean)
                   .join(' | ') || '—'
               }
@@ -789,7 +821,7 @@ function RowDetailPanel({
               label="Origen"
               value={
                 functionalRules
-                  .map((rule) => functionalOrigin(rule))
+                  .map((rule) => functionalOrigin(rule, headerLabels))
                   .filter(Boolean)
                   .join(' | ') || '—'
               }
@@ -798,7 +830,7 @@ function RowDetailPanel({
               label="Regla"
               value={
                 functionalRules
-                  .map((rule) => functionalRuleLabel(rule, row.regla_funcional_label))
+                  .map((rule) => functionalRuleLabel(rule, headerLabels, row.regla_funcional_label))
                   .filter(Boolean)
                   .join(' | ') || '—'
               }
