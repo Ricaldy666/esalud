@@ -463,7 +463,48 @@ export default function QuickCalibrationPanel({
   // correcta aunque capture_mode no venga presente (compatibilidad).
   const isDerivedAutoFill =
     data.capture_mode === 'derived_auto_fill' || isDerivedAutoFillSection(quickPatterns)
-  const sectionType = sectionTypeLabel(directInputEvidence, confirmedEvidence, isDerivedAutoFill)
+  // BM-11.25 (secciones hibridas, BM1124_BM18A_ENGINE_GAP_DETECTED): un
+  // booleano de seccion NUNCA debe decidir las preguntas de un patron
+  // individual -- hasDerivedPattern/hasNormalPattern reflejan la EVIDENCIA
+  // real por patron (pattern.mode), y ambos pueden ser true a la vez
+  // cuando coexisten un bloque derivado y un bloque de captura funcional en
+  // la misma seccion (ej. BM18/A). isDerivedAutoFill (arriba, BM-11.15/17)
+  // conserva su significado exacto de "seccion 100% derivada" -- sigue
+  // siendo false para una seccion hibrida, a proposito.
+  const hasDerivedPattern = quickPatterns.some((pattern) => pattern.mode === 'derived_auto_fill')
+  const hasNormalPattern = quickPatterns.some((pattern) => pattern.mode !== 'derived_auto_fill')
+  const isHybridSection = hasDerivedPattern && hasNormalPattern
+  const derivedPatterns = useMemo(
+    () => quickPatterns.filter((pattern) => pattern.mode === 'derived_auto_fill'),
+    [quickPatterns]
+  )
+  const derivedRowCount = useMemo(
+    () => derivedPatterns.reduce((total, pattern) => total + pattern.filas.length, 0),
+    [derivedPatterns]
+  )
+  // BM-11.27 (BM1126_CLASSIFICATION_GAP_CONFIRMED): fuente canonica para el
+  // mensaje "Esta decisión se aplicará a N filas" -- TODOS los patrones no
+  // derivados, nunca solo `primaryPattern`. Una seccion puede tener mas de
+  // un patron normal (ej. BM18/A: 11 filas con columna editable + 1 fila
+  // aislada con la misma relacion D=F pero sin celda editable propia,
+  // separada por firma de editabilidad) -- el mensaje anterior solo
+  // describia el primero, dejando la(s) fila(s) del resto sin mencionar
+  // aunque buildPayload() ya las cubre correctamente (nunca fue un defecto
+  // de persistencia, solo de texto). Deduplicado por numero de fila por si
+  // dos patrones compartieran alguna (no deberia ocurrir por diseño, pero
+  // la fuente de conteo no debe asumirlo).
+  const normalPatterns = useMemo(
+    () => quickPatterns.filter((pattern) => pattern.mode !== 'derived_auto_fill'),
+    [quickPatterns]
+  )
+  const normalFunctionalRows = useMemo(
+    () =>
+      Array.from(new Set(normalPatterns.flatMap((pattern) => pattern.filas))).sort((a, b) => a - b),
+    [normalPatterns]
+  )
+  const sectionType = isHybridSection
+    ? 'Mixta (llenado automático + captura funcional)'
+    : sectionTypeLabel(directInputEvidence, confirmedEvidence, isDerivedAutoFill)
   const verticalConsolidation = hasVerticalConsolidation(data)
   const currentSignature = useMemo(
     () => technicalSignature(data, structureVersion),
@@ -588,9 +629,19 @@ export default function QuickCalibrationPanel({
   // confirmacion humana que corresponde es sobre la logica automatica
   // detectada (reutiliza la misma clave/opciones ya existentes de
   // "Lógica detectada", sin inventar un nuevo modelo de datos).
+  // BM-11.25: en una seccion hibrida se agrega UNA decision extra al
+  // principio -- la confirmacion propia del bloque derivado (misma clave
+  // `responses.logic_correct` que ya usa la rama puramente derivada) --
+  // ademas de las 6 decisiones normales del bloque de captura funcional.
+  // Limitacion conocida y documentada: si el bloque normal tambien
+  // careciera de evidencia completa (`!confirmedEvidence`), su propio slot
+  // de "confirmacion funcional de la logica detectada" reutilizaria la
+  // MISMA clave -- caso extremo no verificado en ningun caso real de esta
+  // campaña (BM18/A tiene evidencia completa para su bloque normal).
   const decisions = isDerivedAutoFill
     ? [responses.logic_correct]
     : [
+        ...(isHybridSection ? [responses.logic_correct] : []),
         responses.empty,
         responses.inconsistency,
         responses.all_est,
@@ -603,6 +654,7 @@ export default function QuickCalibrationPanel({
   const problemObservationMissing = showProblem && !problemObservation.trim()
   const needsManualDecisionView =
     isDerivedAutoFill ||
+    isHybridSection ||
     !confirmedEvidence ||
     showProblem ||
     !responses.empty ||
@@ -750,6 +802,15 @@ export default function QuickCalibrationPanel({
       const patternIsV2 = questions.some(
         (question) => question.pattern_id === pattern.id && question.fingerprint_version === 2
       )
+      // BM-11.25: evaluado POR PATRON (nunca con el booleano de seccion
+      // isDerivedAutoFill) -- en una seccion hibrida, un patron
+      // derived_auto_fill nunca debe recibir las entradas normales
+      // (empty/all_est/exceptions/inconsistency/special/scope) aunque
+      // OTRO patron de la misma seccion si las reciba, y viceversa. Para
+      // una seccion 100% de un solo modo, esto equivale exactamente al
+      // comportamiento anterior (isDerivedAutoFill compartido por todos
+      // los patrones).
+      const patternIsDerived = pattern.mode === 'derived_auto_fill'
       const base = {
         row: null,
         pattern_id: pattern.id,
@@ -774,7 +835,7 @@ export default function QuickCalibrationPanel({
       // cambio en el motor. La unica confirmacion que se envia es sobre la
       // logica automatica detectada (misma clave/opciones que "Lógica
       // detectada" ya usa para !confirmedEvidence).
-      const entries: Array<[DecisionKey, string, string]> = isDerivedAutoFill
+      const entries: Array<[DecisionKey, string, string]> = patternIsDerived
         ? [
             [
               'logic_correct',
@@ -801,13 +862,13 @@ export default function QuickCalibrationPanel({
             ],
           ]
 
-      if (!isDerivedAutoFill && complementaryGroup)
+      if (!patternIsDerived && complementaryGroup)
         entries.push([
           'special',
           'Validación funcional de variables complementarias',
           responses.special,
         ])
-      if (!isDerivedAutoFill && !confirmedEvidence)
+      if (!patternIsDerived && !confirmedEvidence)
         entries.unshift([
           'logic_correct',
           'Confirmación funcional de la lógica detectada',
@@ -1196,7 +1257,27 @@ export default function QuickCalibrationPanel({
           <ClipboardCheck className="h-4 w-4 text-emerald-600" />
           Resumen automático
         </h3>
-        {isDerivedAutoFill ? (
+        {isHybridSection ? (
+          <div className="mt-3 space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+            <p className="font-medium">
+              Sección mixta: parte del llenado es automático (derivado de otra hoja/columna) y parte
+              requiere captura funcional.
+            </p>
+            <p>
+              {derivedRowCount} fila{derivedRowCount === 1 ? '' : 's'} se calcula
+              {derivedRowCount === 1 ? '' : 'n'} automáticamente — no requiere
+              {derivedRowCount === 1 ? '' : 'n'} decisión de "Sin datos", severidad, aplicación ni
+              excepciones.
+            </p>
+            <p>
+              El resto de las filas de esta sección sí requiere su calibración funcional habitual
+              (ver más abajo).
+            </p>
+            {verticalConsolidation && (
+              <p>Además, existe una fila TOTAL real que se trata como consolidación vertical.</p>
+            )}
+          </div>
+        ) : isDerivedAutoFill ? (
           <div className="mt-3 space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
             <p className="font-medium">Sección de llenado automático (derivada de otra hoja).</p>
             <p>
@@ -1279,29 +1360,39 @@ export default function QuickCalibrationPanel({
           </div>
         </div>
 
-        {primaryPattern && primaryPattern.filas.length > 0 && (
-          // BM-11.21: la cantidad de filas SIEMPRE se toma de la evidencia
-          // estructural real del patron (`filas`, alias `pattern_rows` --
-          // ambos siempre provistos por el backend y ya usados como fuente
-          // canonica en el resto de este mismo archivo), nunca de
-          // `conceptos.length`. `conceptos` es una etiqueta descriptiva
-          // deduplicada por valor de celda (columna A) -- una fila cuya
-          // celda A es parte no-ancla de un merge de Excel (ej. BM18/D,
-          // A60:A62 con A61/A62 = null) queda fuera de `conceptos` aunque
-          // sea una fila real y editable del patron, subcontando el texto
-          // si se usara como fuente de conteo (BM-11.20).
+        {normalFunctionalRows.length > 0 && (
+          // BM-11.21 + BM-11.27: la cantidad de filas SIEMPRE se toma de la
+          // evidencia estructural real (`pattern.filas`, nunca
+          // `conceptos.length` -- ver BM-11.20/21), y ahora de la UNION de
+          // TODOS los patrones normales (`normalPatterns`), no solo del
+          // primero (`primaryPattern`) -- una seccion puede tener mas de un
+          // patron normal (BM18/A: 11 filas + 1 fila aislada con distinta
+          // firma de editabilidad, mismo eje funcional). Con un unico
+          // patron normal se conserva el texto detallado con conceptos/
+          // profesionales (comportamiento identico a antes); con 2+ se usa
+          // un mensaje agregado, sin inventar una lista de conceptos que
+          // ningun patron individual describe completa. Secciones 100%
+          // derivadas (normalPatterns vacio) ya no muestran este bloque --
+          // su propia confirmacion vive en el "Resumen automático" de
+          // arriba.
           <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3">
             <p className="text-sm text-slate-700">
-              Esta decisión se aplicará a {primaryPattern.filas.length} fila
-              {primaryPattern.filas.length === 1 ? '' : 's'}
-              {primaryPattern.conceptos.length > 0
-                ? `: ${joinWithY(primaryPattern.conceptos)}`
-                : ''}
-              {primaryPattern.conceptos.length < primaryPattern.filas.length &&
-              primaryPattern.profesionales.length > primaryPattern.conceptos.length
-                ? ` (${joinWithY(primaryPattern.profesionales)})`
-                : ''}
-              .
+              {normalPatterns.length <= 1 && primaryPattern ? (
+                <>
+                  Esta decisión se aplicará a {normalFunctionalRows.length} fila
+                  {normalFunctionalRows.length === 1 ? '' : 's'}
+                  {primaryPattern.conceptos.length > 0
+                    ? `: ${joinWithY(primaryPattern.conceptos)}`
+                    : ''}
+                  {primaryPattern.conceptos.length < normalFunctionalRows.length &&
+                  primaryPattern.profesionales.length > primaryPattern.conceptos.length
+                    ? ` (${joinWithY(primaryPattern.profesionales)})`
+                    : ''}
+                  .
+                </>
+              ) : (
+                `Esta decisión se aplicará a ${normalFunctionalRows.length} filas funcionales de esta sección.`
+              )}
             </p>
             <p className="mt-1 text-xs text-slate-500">
               Puedes cambiar una fila de forma individual en la tabla inferior.
@@ -1328,13 +1419,16 @@ export default function QuickCalibrationPanel({
           </div>
         )}
 
-        {showDecisionControls && isDerivedAutoFill && (
-          // BM-11.15 (§7): unica confirmacion humana que corresponde a una
-          // seccion 100% derivada -- reutiliza la misma clave/opciones de
-          // "Lógica detectada" ya existentes, sin inventar un nuevo modelo.
-          // Deliberadamente SIN Sin datos/Severidad/Aplicación/Excepciones:
-          // no tienen sentido para una fila que nunca queda vacia por
-          // decision humana (ver buildPayload()).
+        {showDecisionControls && hasDerivedPattern && (
+          // BM-11.15 (§7) / BM-11.25 (secciones hibridas): unica
+          // confirmacion humana que corresponde al/los patron(es)
+          // derivado(s) de esta seccion -- reutiliza la misma clave/
+          // opciones de "Lógica detectada" ya existentes, sin inventar un
+          // nuevo modelo. Deliberadamente SIN Sin datos/Severidad/
+          // Aplicación/Excepciones: no tienen sentido para una fila que
+          // nunca queda vacia por decision humana (ver buildPayload()).
+          // Se renderiza JUNTO al bloque normal (abajo) cuando la seccion
+          // es hibrida -- ninguno de los dos reemplaza al otro.
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <ChoiceGroup
               label="Confirmar lógica automática"
@@ -1356,7 +1450,7 @@ export default function QuickCalibrationPanel({
           </div>
         )}
 
-        {showDecisionControls && !isDerivedAutoFill && (
+        {showDecisionControls && hasNormalPattern && (
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {!confirmedEvidence && (
               <ChoiceGroup

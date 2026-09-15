@@ -939,20 +939,37 @@ class SectionCalibrationMatrixService
             : $this->patternReconciliation->computeEffectiveSectionReviewed($reconciliation);
         $historicalSectionReviewed = $this->hasHistoricalSectionReviewed($questions);
 
-        // BM-11.15 (§4): metadata semantica explicita de modo de captura --
-        // el frontend NUNCA debe inferir esto de titulos/textos. 'standard'
-        // es el valor por defecto (100% de Serie A, y cualquier seccion BM
-        // que no califique); 'derived_auto_fill' solo aparece cuando
-        // buildDerivedAutoFillPattern() realmente produjo el patron
-        // sintetico (evidencia real, ver ese metodo).
-        $captureMode = 'standard';
+        // BM-11.15 (§4) / BM-11.25 (secciones hibridas): metadata semantica
+        // explicita de modo de captura -- el frontend NUNCA debe inferir
+        // esto de titulos/textos. 'standard' es el valor por defecto (100%
+        // de Serie A, y cualquier seccion BM sin ningun patron derivado);
+        // 'derived_auto_fill' solo aparece cuando TODOS los patrones reales
+        // de la seccion son derivados (comportamiento BM-11.15/17 exacto,
+        // sin cambios); 'hybrid' es nuevo (BM-11.25) y aparece cuando
+        // coexisten patrones normales y derivados en la MISMA seccion (ej.
+        // BM18/A: bloque de examenes 100% derivado + bloque de ecografias
+        // con captura real) -- evita que el frontend trate erroneamente
+        // TODA la seccion como derivada (ocultando "Acción rapida"/
+        // preguntas funcionales de las filas que SI las requieren) solo
+        // porque data.capture_mode fuera ambiguo.
+        $hasDerivedPattern = false;
+        $hasNormalPattern = false;
         $captureModeReason = null;
         foreach ($enriched as $patron) {
             if (($patron['mode'] ?? '') === 'derived_auto_fill') {
-                $captureMode = 'derived_auto_fill';
-                $captureModeReason = $patron['descripcion'] ?? null;
-                break;
+                $hasDerivedPattern = true;
+                $captureModeReason ??= $patron['descripcion'] ?? null;
+            } else {
+                $hasNormalPattern = true;
             }
+        }
+        $captureMode = match (true) {
+            $hasDerivedPattern && $hasNormalPattern => 'hybrid',
+            $hasDerivedPattern => 'derived_auto_fill',
+            default => 'standard',
+        };
+        if (!$hasDerivedPattern) {
+            $captureModeReason = null;
         }
 
         $verticalConsolidationRows = $matrix['vertical_consolidation_rows'] ?? [];
@@ -1449,6 +1466,17 @@ class SectionCalibrationMatrixService
         // total-columna activa. Precalculado aqui y pasado como parametro.
         $functionalColumns = $hasCellData ? $this->getFunctionalColumns($sectionData, $cellDataRows) : [];
 
+        // BM-11.25: filas de datos que quedaron fuera de TODO patron normal
+        // en este bucle -- nunca hardcodeado, se llena unicamente por las
+        // ramas `continue` reales de abajo. Alimenta el fallback
+        // derived_auto_fill generalizado (ver mas abajo): antes solo cubria
+        // secciones 100% derivadas (gate `empty($patterns)`); ahora tambien
+        // detecta un SUBCONJUNTO derivado dentro de una seccion hibrida
+        // (ej. BM18/A: bloque de examenes 100% derivado de BM18A + bloque de
+        // ecografias con captura real), sin tocar el comportamiento de
+        // ninguna fila que SI entra a un grupo normal.
+        $matchedRows = [];
+
         foreach ($rows as $rowData) {
             if (($rowData['row_type'] ?? '') !== 'data') continue;
 
@@ -1555,6 +1583,7 @@ class SectionCalibrationMatrixService
             }
 
             $groups[$signature]['filas'][] = $row;
+            $matchedRows[$row] = true;
         }
 
         $patterns = [];
@@ -1588,20 +1617,37 @@ class SectionCalibrationMatrixService
             $id++;
         }
 
-        // BM-11.15 (ENGINE_UI_GAP, BM-11.14): fallback ESTRICTAMENTE
-        // ADITIVO -- solo se evalua cuando el bucle anterior no formo NINGUN
-        // patron. Cubre secciones 100% derivadas de otra hoja/columna (ej.
-        // BM18/B: B=SUM(C:D), donde C/D son a su vez referencias cross-hoja
-        // a BM18A) -- el requisito de hasEditableInputComponentsForFormula()
-        // (proteccion historica de Serie A, CORRECCION_DE_ARRASTRE_INVALIDO,
-        // 2026-08-21) NUNCA se relaja ni se toca aqui: esta rama es
-        // estrictamente adicional y exige evidencia real de reglas tecnicas
-        // ACTIVAS (via $rules, ya resueltas contra la estructura activa
-        // real por CertificationService::getSectionRules()) -- una seccion
-        // vacia o rota (0 reglas bindeadas, o con celdas editables reales)
-        // nunca puede calificar aqui.
-        if (empty($patterns)) {
-            $derivedPattern = $this->buildDerivedAutoFillPattern($rows, $rules, $cellDataRows);
+        // BM-11.15 (ENGINE_UI_GAP, BM-11.14) / generalizado en BM-11.25
+        // (BM1124_BM18A_ENGINE_GAP_DETECTED): fallback ESTRICTAMENTE
+        // ADITIVO -- ya NO depende de `empty($patterns)` (ese gate asumia
+        // que una seccion es o bien 100% normal o bien 100% derivada; una
+        // seccion HIBRIDA como BM18/A -- un bloque 100% derivado de otra
+        // hoja + un bloque con captura real -- rompia esa asuncion: el
+        // bloque normal (con captura real) SI producia un patron, por lo
+        // que el bloque derivado (sin ninguna celda editable, respaldado
+        // por reglas tecnicas reales) quedaba descartado en silencio, sin
+        // patron, sin advertencia, invisible en "Filas analizadas".
+        //
+        // Ahora se evalua SIEMPRE sobre las filas que quedaron fuera de
+        // TODO patron normal (`$leftoverRows`, filas de datos reales no
+        // presentes en $matchedRows) -- nunca sobre la seccion completa.
+        // El contrato de evidencia de buildDerivedAutoFillPattern() (0
+        // reglas tecnicas => null; UNA sola celda editable en el
+        // subconjunto dado => null; proteccion historica
+        // CORRECCION_DE_ARRASTRE_INVALIDO) permanece exactamente igual --
+        // solo cambia el conjunto de filas que se le entrega. Para una
+        // seccion 100% normal, $leftoverRows queda vacio y esta rama no
+        // hace nada (comportamiento identico a antes). Para una seccion
+        // 100% derivada (BM18/B), $leftoverRows == todas las filas (ningun
+        // patron normal se formo), identico al `empty($patterns)` original.
+        $leftoverRows = array_values(array_filter($rows, function (array $rowData) use ($matchedRows): bool {
+            $row = (int) ($rowData['row'] ?? 0);
+            return ($rowData['row_type'] ?? '') === 'data' && $row > 0 && !isset($matchedRows[$row]);
+        }));
+
+        if (!empty($leftoverRows)) {
+            $nextId = $id;
+            $derivedPattern = $this->buildDerivedAutoFillPattern($leftoverRows, $rules, $cellDataRows, $nextId);
             if ($derivedPattern !== null) {
                 $patterns[] = $derivedPattern;
             }
@@ -1625,8 +1671,13 @@ class SectionCalibrationMatrixService
      *   3) Al menos una fila de datos tiene una celda-formula real Y una
      *      regla tecnica real (sum_equals o cross_sheet_equals, via
      *      findDirectRule()) que la cubre.
+     *
+     * BM-11.25: $rows ya NO es necesariamente la seccion completa -- puede
+     * ser un subconjunto (filas que quedaron fuera de todo patron normal
+     * dentro de una seccion hibrida). $nextId evita colisionar con los IDs
+     * de patrones normales ya asignados en la misma seccion.
      */
-    private function buildDerivedAutoFillPattern(array $rows, array $rules, array $cellDataRows): ?array
+    private function buildDerivedAutoFillPattern(array $rows, array $rules, array $cellDataRows, int $nextId = 1): ?array
     {
         if (empty($rules)) {
             return null;
@@ -1676,7 +1727,7 @@ class SectionCalibrationMatrixService
         $totalColumns = array_keys($totalColumnsUnion);
 
         return [
-            'id' => 1,
+            'id' => $nextId,
             'nombre' => 'Sección de llenado automático (derivada de otra hoja)',
             'descripcion' => 'Todas las celdas de esta sección son fórmulas (locales y/o referencias a otra hoja); no existe captura editable. El llenado es automático, certificado por reglas técnicas activas.',
             'filas' => $derivedRows,

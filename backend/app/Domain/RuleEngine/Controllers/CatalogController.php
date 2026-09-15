@@ -464,10 +464,18 @@ class CatalogController extends Controller
         );
         $rows = [];
         $patternByRow = [];
+        // BM-11.25: capture_mode del PATRON al que pertenece cada fila --
+        // nunca un booleano de seccion. Necesario para secciones hibridas
+        // (ej. BM18/A), donde un mismo request devuelve filas de un patron
+        // normal junto a filas de un patron derived_auto_fill; la tabla de
+        // decisiones por fila debe representar cada una segun SU propio
+        // patron, no segun el capture_mode agregado de toda la seccion.
+        $captureModeByRow = [];
 
         foreach ($matrix['patterns'] ?? [] as $pattern) {
             $patternRows = $pattern['rows'] ?? [];
             $sourceRule = $this->firstApprovedRuleInRows($patternRows, $explicitRules);
+            $patternMode = $pattern['mode'] ?? 'standard';
 
             foreach ($patternRows as $rowData) {
                 $rowNumber = (int) ($rowData['fila'] ?? $rowData['row'] ?? 0);
@@ -476,6 +484,7 @@ class CatalogController extends Controller
                 }
 
                 $rows[$rowNumber] ??= $rowData;
+                $captureModeByRow[$rowNumber] = $patternMode;
                 if (isset($patternQuestionRules[$rowNumber])) {
                     $patternByRow[$rowNumber] = $patternQuestionRules[$rowNumber];
                 } elseif ($sourceRule !== null) {
@@ -516,6 +525,10 @@ class CatalogController extends Controller
                 'row' => $rowNumber,
                 'concept' => $rowData['concepto'] ?? $rowData['concept'] ?? '',
                 'professional' => $rowData['profesional'] ?? $rowData['professional'] ?? '',
+                // BM-11.25: capture_mode del patron propio de esta fila (no
+                // agregado de seccion) -- ver comentario en el bucle de
+                // arriba.
+                'capture_mode' => $captureModeByRow[$rowNumber] ?? 'standard',
                 'explicit_decision' => $explicit['empty_behavior'] ?? null,
                 'inherited_decision' => $explicit === null ? ($inherited['empty_behavior'] ?? null) : null,
                 'effective_decision' => $effective['empty_behavior'] ?? null,

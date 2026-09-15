@@ -242,8 +242,21 @@ class SectionCalibrationMatrixServiceDerivedAutoFillTest extends TestCase
         $this->assertCount(0, $matrix['patterns'], 'Sin reglas tecnicas reales, la seccion no puede clasificarse como derivada -- nunca se amplia silenciosamente.');
     }
 
-    // ── Caso con una celda editable real -> NUNCA derivada (guard explicito) ──
-
+    // ── Caso con una celda editable real -> esa fila NUNCA se representa
+    // como derivada (guard explicito) ─────────────────────────────────────
+    //
+    // BM-11.25 (BM1124_BM18A_ENGINE_GAP_DETECTED): el fallback derivado dejo
+    // de evaluarse solo cuando TODA la seccion no producia ningun patron
+    // (`empty($patterns)`) -- ahora evalua sobre las filas que quedaron
+    // fuera de todo patron normal. En ESTE fixture, la fila 11 (con C11
+    // editable) sigue formando su propio patron normal por si sola (como
+    // siempre), pero la fila 10 (0 celdas editables, respaldada por una
+    // regla tecnica real) YA NO desaparece en silencio -- se reconoce
+    // correctamente como su propio patron derived_auto_fill. El resultado
+    // de seccion pasa de 'standard' a 'hybrid' -- un resultado MAS preciso,
+    // no una regresion: la garantia real del guard (una celda editable
+    // jamas termina representada dentro de un patron derivado) se mantiene
+    // intacta y se verifica explicitamente abajo.
     public function test_section_with_one_editable_cell_is_never_classified_derived_even_with_real_rules(): void
     {
         $sheet = 'TESTMIXED';
@@ -289,7 +302,19 @@ class SectionCalibrationMatrixServiceDerivedAutoFillTest extends TestCase
 
         $matrix = $service->buildPatternMatrix($sheet, $section, 'BMTEST3');
 
-        $this->assertSame('standard', $matrix['capture_mode'], 'Una sola celda editable en cualquier fila descarta por completo la clasificacion derivada.');
+        // Garantia real del guard: la fila 11 (editable) NUNCA aparece
+        // dentro de un patron derived_auto_fill, sin importar en cual
+        // patron normal termine representada.
+        $derivedRows = collect($matrix['patterns'])
+            ->where('mode', 'derived_auto_fill')
+            ->flatMap(fn($p) => $p['filas'])
+            ->values()->all();
+        $this->assertNotContains(11, $derivedRows, 'Una fila con una celda editable real jamas puede representarse como derivada.');
+
+        // La fila 10 (0 celdas editables, respaldada por regla tecnica
+        // real) ahora SI se reconoce -- ya no desaparece en silencio.
+        $this->assertContains(10, $derivedRows, 'BM-11.25: una fila 100% derivada dentro de una seccion mixta ya no debe desaparecer solo porque otra fila de la misma seccion es editable.');
+        $this->assertSame('hybrid', $matrix['capture_mode'], 'BM-11.25: seccion con una fila derivada y una fila normal coexistiendo se reporta como hybrid, no standard.');
     }
 
     // ── Caso E: consolidacion vertical detectada/reportada, TOTAL excluido

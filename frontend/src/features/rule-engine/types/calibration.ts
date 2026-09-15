@@ -392,12 +392,17 @@ export interface PatternMatrixResponse {
   warnings?: string[]
   reconciliation: PatternMatrixReconciliation
   calibration_applicability?: CalibrationApplicability
-  // BM-11.15 (ENGINE_UI_GAP, BM-11.14): metadata semantica explicita de modo
+  // BM-11.15 (ENGINE_UI_GAP, BM-11.14) / BM-11.25 (secciones hibridas,
+  // BM1124_BM18A_ENGINE_GAP_DETECTED): metadata semantica explicita de modo
   // de captura -- el frontend NUNCA debe inferir esto de titulos/textos.
   // 'standard' es el valor por defecto (Serie A completa, y cualquier
   // seccion que no califique); 'derived_auto_fill' es una seccion 100%
-  // calculada (sin celdas editables) respaldada por reglas tecnicas reales.
-  capture_mode?: 'standard' | 'derived_auto_fill'
+  // calculada (sin celdas editables) respaldada por reglas tecnicas reales;
+  // 'hybrid' (nuevo) es una seccion donde coexisten patrones normales y
+  // patrones derived_auto_fill (ej. BM18/A) -- NUNCA tratar 'hybrid' como
+  // sinonimo de 'derived_auto_fill': un patron/fila normal dentro de una
+  // seccion hibrida conserva sus preguntas/UI habituales.
+  capture_mode?: 'standard' | 'derived_auto_fill' | 'hybrid'
   capture_mode_reason?: string | null
   // Fila(s) TOTAL vertical real(es) detectadas y reportadas, SIN incluirlas
   // como fila de captura funcional ni como parte de ningun patron (ej.
@@ -418,6 +423,11 @@ export interface RowFunctionalDecision {
   row: number
   concept: string
   professional: string
+  // BM-11.25: capture_mode del PATRON propio de esta fila (nunca un
+  // agregado de seccion) -- una seccion hibrida (ver PatternMatrixResponse.
+  // capture_mode='hybrid') puede devolver filas derived_auto_fill junto a
+  // filas normales en la misma respuesta; cada fila trae su propio modo.
+  capture_mode?: 'standard' | 'derived_auto_fill' | string
   explicit_decision: RowFunctionalDecisionValue
   inherited_decision: RowFunctionalDecisionValue
   effective_decision: RowFunctionalDecisionValue

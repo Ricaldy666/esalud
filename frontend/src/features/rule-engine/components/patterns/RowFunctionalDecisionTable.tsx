@@ -26,7 +26,11 @@ interface Props {
   // empty_behavior que esta tabla representa no aplica (la seccion es 100%
   // calculada desde otra hoja, sin ninguna nocion de "fila vacia por
   // decision humana" -- ver FunctionalRuleService::patternQuestionsToFunctionalRule()).
-  captureMode?: 'standard' | 'derived_auto_fill'
+  // BM-11.25: 'hybrid' es un valor de seccion valido (mezcla de patrones
+  // normales y derivados) -- esta prop solo se usa como RESPALDO por fila
+  // (ver rowIsDerived()); la fuente primaria es RowFunctionalDecision.capture_mode,
+  // propio de cada fila.
+  captureMode?: 'standard' | 'derived_auto_fill' | 'hybrid'
 }
 
 const DECISION_LABELS: Record<string, string> = {
@@ -86,6 +90,16 @@ function inheritedText(row: RowFunctionalDecision) {
   return 'Sin decision heredada'
 }
 
+// BM-11.25: cada fila trae su propio capture_mode (autoridad primaria --
+// una seccion hibrida devuelve filas derived_auto_fill junto a filas
+// normales en la MISMA respuesta). Si la fila no lo trae (respuesta vieja
+// en cache, o backend anterior a esta fase), se usa como respaldo el
+// captureMode de seccion recibido por props (comportamiento BM-11.17
+// exacto para secciones no hibridas).
+function rowIsDerived(row: RowFunctionalDecision, sectionFallbackIsDerived: boolean): boolean {
+  return row.capture_mode ? row.capture_mode === 'derived_auto_fill' : sectionFallbackIsDerived
+}
+
 export default function RowFunctionalDecisionTable({
   serie,
   sheet,
@@ -109,6 +123,13 @@ export default function RowFunctionalDecisionTable({
     () => rows.filter((row) => row.possible_inconsistency).length,
     [rows]
   )
+  // BM-11.25: derivado del capture_mode POR FILA -- una seccion hibrida
+  // tiene filas de ambos tipos a la vez (ni "todas derivadas" ni "ninguna
+  // derivada"). allRowsDerived preserva el comportamiento exacto de
+  // BM-11.17 para secciones 100% derivadas; anyRowDerived habilita el
+  // aviso/columna condicional para el caso hibrido nuevo.
+  const allRowsDerived = rows.length > 0 && rows.every((row) => rowIsDerived(row, isDerived))
+  const anyRowDerived = rows.some((row) => rowIsDerived(row, isDerived))
 
   const saveMutation = useMutation({
     mutationFn: ({ row, decision }: { row: RowFunctionalDecision; decision: EditableDecision }) => {
@@ -205,7 +226,7 @@ export default function RowFunctionalDecisionTable({
       ),
       id: 'explicit_decision',
       cell: ({ row }) =>
-        isDerived ? (
+        rowIsDerived(row.original, isDerived) ? (
           <span className="text-slate-400">No aplica</span>
         ) : (
           <DecisionBadge
@@ -222,7 +243,7 @@ export default function RowFunctionalDecisionTable({
       ),
       id: 'inherited',
       cell: ({ row }) =>
-        isDerived ? (
+        rowIsDerived(row.original, isDerived) ? (
           <div className="text-slate-400">No aplica</div>
         ) : (
           <>
@@ -243,7 +264,7 @@ export default function RowFunctionalDecisionTable({
       ),
       id: 'effective_decision',
       cell: ({ row }) =>
-        isDerived ? (
+        rowIsDerived(row.original, isDerived) ? (
           <span className="inline-flex rounded-md bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200">
             Lógica automática / Derivada
           </span>
@@ -258,7 +279,7 @@ export default function RowFunctionalDecisionTable({
       accessorKey: 'origin',
       cell: ({ row }) => (
         <span className="text-slate-700">
-          {isDerived
+          {rowIsDerived(row.original, isDerived)
             ? 'Técnica / Automática'
             : (ORIGIN_LABELS[row.original.origin] ?? row.original.origin)}
         </span>
@@ -269,7 +290,7 @@ export default function RowFunctionalDecisionTable({
       accessorKey: 'status',
       cell: ({ row }) => (
         <span className="text-slate-700">
-          {isDerived ? 'No aplica' : (row.original.status ?? '-')}
+          {rowIsDerived(row.original, isDerived) ? 'No aplica' : (row.original.status ?? '-')}
         </span>
       ),
     },
@@ -289,12 +310,20 @@ export default function RowFunctionalDecisionTable({
         </div>
       ),
     },
-    ...(!readOnly && !isDerived
+    ...(!readOnly
       ? [
           {
             header: 'Accion rapida',
             id: 'accion',
             cell: ({ row }: { row: { original: RowFunctionalDecision } }) => {
+              // BM-11.25: columna disponible siempre que la tabla no sea
+              // readOnly, pero por FILA -- una fila derived_auto_fill (en
+              // una seccion normal o hibrida) nunca muestra el selector de
+              // empty_behavior ni el boton Guardar, porque ese eje no
+              // aplica a una fila 100% calculada.
+              if (rowIsDerived(row.original, isDerived)) {
+                return <span className="text-xs text-slate-400">No aplica</span>
+              }
               const selected = drafts[row.original.row] ?? defaultSelection(row.original)
               return (
                 <div className="min-w-56">
@@ -342,12 +371,14 @@ export default function RowFunctionalDecisionTable({
         <div>
           <h2 className="text-sm font-semibold text-slate-900">Decisiones funcionales por fila</h2>
           <p className="text-xs text-slate-500">
-            {isDerived
+            {allRowsDerived
               ? 'Filas de referencia -- esta seccion se completa automaticamente, no requieren decision de vacio.'
-              : 'Revise por que cada fila exige 0, permite vacio o hereda una decision.'}
+              : anyRowDerived
+                ? 'Algunas filas se completan automaticamente (ver aviso abajo); el resto requiere revision habitual.'
+                : 'Revise por que cada fila exige 0, permite vacio o hereda una decision.'}
           </p>
         </div>
-        {!isDerived && inconsistentCount > 0 && (
+        {!allRowsDerived && inconsistentCount > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800">
             <AlertTriangle className="h-3.5 w-3.5" />
             {inconsistentCount} posibles inconsistencias
@@ -355,11 +386,19 @@ export default function RowFunctionalDecisionTable({
         )}
       </div>
 
-      {isDerived && (
+      {allRowsDerived && (
         <div className="border-b border-indigo-100 bg-indigo-50/60 px-4 py-2.5 text-xs text-indigo-800">
           Esta sección se completa automáticamente. Las decisiones funcionales por fila sobre datos
           vacíos no aplican -- la confirmación de esta sección se registra arriba (Confirmar lógica
           automática).
+        </div>
+      )}
+
+      {!allRowsDerived && anyRowDerived && (
+        <div className="border-b border-indigo-100 bg-indigo-50/60 px-4 py-2.5 text-xs text-indigo-800">
+          Las filas marcadas "Lógica automática / Derivada" se completan automáticamente y no
+          requieren decisión de vacío por fila -- su confirmación se registra arriba (Confirmar
+          lógica automática). El resto de las filas sí requiere revisión habitual.
         </div>
       )}
 
