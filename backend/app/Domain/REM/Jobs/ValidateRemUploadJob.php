@@ -163,6 +163,13 @@ class ValidateRemUploadJob implements ShouldQueue
 
         $approvedStatuses = ['aprobada', 'validada por Estadística', 'validada_por_estadistica'];
 
+        // BM-11.7 (ENGINE_UI_REDUNDANCY, BM-11.3/BM-11.4): fuente canonica
+        // del establecimiento real de la carga -- mismo patron ya usado en
+        // RuleEngineService::execute() ($healthCenter?->name). Resuelto una
+        // sola vez para todas las secciones/filas de este job -- Eloquent
+        // cachea la relacion en el modelo, sin consultas repetidas.
+        $healthCenterName = $upload->healthCenter?->name;
+
         foreach ($rowsBySection as $rows) {
             $firstRowData = $rows->first()?->data ?? [];
             $sheet = (string) ($firstRowData['section'] ?? $rows->first()?->section ?? '');
@@ -196,6 +203,10 @@ class ValidateRemUploadJob implements ShouldQueue
                 $rowNum = (int) ($row->data['row_number'] ?? 0);
                 $fr = $effectiveFunctionalRules[$rowNum] ?? null;
                 if (!$fr) {
+                    continue;
+                }
+
+                if (!$this->establishmentInScope($fr, $healthCenterName)) {
                     continue;
                 }
 
@@ -373,6 +384,53 @@ class ValidateRemUploadJob implements ShouldQueue
 
         $scope = $functionalRule['scope'] ?? null;
         return is_string($scope) && !in_array($scope, ['', 'global', 'all', 'todos'], true);
+    }
+
+    /**
+     * BM-11.7 (ENGINE_UI_REDUNDANCY, BM-11.3/BM-11.4/BM-11.6): decide si una
+     * regla funcional ya resuelta (empty_behavior/severity) aplica al
+     * establecimiento REAL de esta carga -- mismo contrato de
+     * FunctionalRuleService::resolveScope(), evaluado aqui porque
+     * RuleEngineService::execute() nunca llega a ejecutarse para una
+     * seccion sin rem_rules tecnicas propias (ej. BM18/C).
+     *
+     * Blast radius minimo, deliberado: NO se extrae a un servicio
+     * compartido con RuleEngineService.php (que tiene su propio filtro
+     * equivalente, sin tocar) -- mismo criterio de duplicacion local ya
+     * usado en el proyecto (ej. CrossSheetEqualsEvaluator) para no
+     * arriesgar el archivo certificado de Serie A.
+     *
+     * Fail-safe: included/excluded pobladas simultaneamente (estado que
+     * FunctionalRuleService::resolveScope() ya impide producir, pero este
+     * Job no debe inventar una semantica nueva si de todos modos llegara)
+     * se trata como "no aplica a nadie" -- nunca se amplia el universo de
+     * aplicacion ante un dato corrupto o inesperado.
+     */
+    private function establishmentInScope(array $functionalRule, ?string $healthCenterName): bool
+    {
+        $included = $functionalRule['included_health_centers'] ?? [];
+        $excluded = $functionalRule['excluded_health_centers'] ?? [];
+
+        if (!is_array($included)) {
+            $included = [];
+        }
+        if (!is_array($excluded)) {
+            $excluded = [];
+        }
+
+        if ($included !== [] && $excluded !== []) {
+            return false;
+        }
+
+        if ($included !== []) {
+            return $healthCenterName !== null && $healthCenterName !== '' && in_array($healthCenterName, $included, true);
+        }
+
+        if ($excluded !== []) {
+            return $healthCenterName === null || $healthCenterName === '' || !in_array($healthCenterName, $excluded, true);
+        }
+
+        return true;
     }
 
     private function isNonInheritableRow(array $rowData): bool

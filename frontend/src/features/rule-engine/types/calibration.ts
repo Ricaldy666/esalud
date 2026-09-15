@@ -171,6 +171,17 @@ export interface CalibrationQuestion {
   revalidated_by?: string
   revalidated_at?: string
   revalidation_source_type?: string
+  // BM-11.8 (ENGINE_UI_REDUNDANCY): alcance estructurado por establecimiento,
+  // adjunto UNICAMENTE a la pregunta patron_{N}_exceptions -- unica fuente
+  // funcional de included/excluded_health_centers que el backend consume
+  // (FunctionalRuleService::resolveScope(), BM-11.6). `observation` sigue
+  // siendo texto libre para lectura humana; nunca se parsea para obtener
+  // nombres de establecimiento.
+  scope?: {
+    mode: 'all' | 'included' | 'excluded'
+    included_health_centers: string[]
+    excluded_health_centers: string[]
+  }
 }
 
 export interface CalibrationQuestionResponse {

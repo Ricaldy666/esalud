@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
+import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
 import { calibrationService } from '../../services/calibration'
 import { MismatchResolutionPanel } from './MismatchResolutionPanel'
 import { NotCalibratableSectionPanel } from './NotCalibratableSectionPanel'
@@ -26,15 +27,11 @@ function needsRevalidation(status: PatternReconciliationStatus | undefined) {
   return status === 'requiere_revalidacion' || status === 'unresolved'
 }
 
-const HEALTH_CENTERS = [
-  'CESFAM Cirujano Aguirre',
-  'CESFAM Cirujano Videla',
-  'CESFAM Sur',
-  'CESFAM Guzmán',
-  'CECOF',
-  'SAPU',
-  'SAR',
-]
+// BM-11.8 (ENGINE_UI_REDUNDANCY): la lista de establecimientos ya NO se
+// hardcodea -- se obtiene de useHealthCenters() (fuente canonica real,
+// health_centers.name), porque el backend compara nombres exactos
+// (FunctionalRuleService::resolveScope()/ValidateRemUploadJob::establishmentInScope()).
+// Ver bloque de estado del componente mas abajo.
 
 const CENTER_MODES = [
   ['aplica', 'Aplica'],
@@ -360,6 +357,9 @@ function hasSectionReview(questions: CalibrationQuestion[]) {
   )
 }
 
+// BM-11.8: SOLO texto humano -- nunca se parsea de vuelta para reconstruir
+// nombres de establecimiento. La unica fuente funcional de scope es
+// buildStructuredScope() (mas abajo).
 function buildScopeObservation(selectedCenters: Record<string, CenterMode>, extra: string) {
   const entries = Object.entries(selectedCenters)
     .filter(([, mode]) => mode)
@@ -370,6 +370,44 @@ function buildScopeObservation(selectedCenters: Record<string, CenterMode>, extr
   return [entries.length ? `Alcance por establecimiento: ${entries.join('; ')}` : '', extra.trim()]
     .filter(Boolean)
     .join('\n')
+}
+
+// BM-11.8: modo de alcance efectivo segun el contrato de FunctionalRuleService
+// ::resolveScope() (BM-11.6) -- 'all' (Caso A, sin scope necesario),
+// 'excluded' (Caso B: all_est=si + exceptions=si) o 'included' (Caso C:
+// all_est=depende + exceptions=si). all_est=depende SIEMPRE fuerza
+// exceptions=si (ver handleAllEstChange), por lo que la combinacion invalida
+// depende+no nunca deberia poder construirse desde la UI.
+function scopeModeFor(allEst: string, exceptions: string): 'all' | 'included' | 'excluded' {
+  if (allEst === 'depende') return 'included'
+  if (exceptions === 'si') return 'excluded'
+  return 'all'
+}
+
+// Unica fuente FUNCIONAL de included_health_centers/excluded_health_centers.
+// Solo aplica/obligatorio participan en 'included'; solo no_aplica participa
+// en 'excluded' -- advertencia/opcional quedan fuera del scope funcional por
+// diseno (BM-11.4 §1: alcance de este fix), se preservan unicamente en
+// observation para lectura humana.
+function buildStructuredScope(
+  allEst: string,
+  exceptions: string,
+  selectedCenters: Record<string, CenterMode>
+): CalibrationQuestion['scope'] | undefined {
+  const mode = scopeModeFor(allEst, exceptions)
+  if (mode === 'all') return undefined
+
+  if (mode === 'included') {
+    const included = Object.entries(selectedCenters)
+      .filter(([, centerMode]) => centerMode === 'aplica' || centerMode === 'obligatorio')
+      .map(([center]) => center)
+    return { mode: 'included', included_health_centers: included, excluded_health_centers: [] }
+  }
+
+  const excluded = Object.entries(selectedCenters)
+    .filter(([, centerMode]) => centerMode === 'no_aplica')
+    .map(([center]) => center)
+  return { mode: 'excluded', included_health_centers: [], excluded_health_centers: excluded }
 }
 
 export default function QuickCalibrationPanel({
@@ -477,6 +515,15 @@ export default function QuickCalibrationPanel({
   const [problemObservation, setProblemObservation] = useState('')
   const [exceptionDetail, setExceptionDetail] = useState('')
   const [centerModes, setCenterModes] = useState<Record<string, CenterMode>>({})
+  // BM-11.8: fuente real de establecimientos (health_centers.name exacto,
+  // nunca hardcodeado). Mismo patron ya usado en UserForm.tsx/RemUploadsPage.tsx
+  // (useHealthCenters() sin paginacion explicita -- el universo real es
+  // pequeño). Solo se muestran activos.
+  const healthCentersQuery = useHealthCenters({ is_active: true })
+  const healthCenters = useMemo(
+    () => healthCentersQuery.data?.data ?? [],
+    [healthCentersQuery.data]
+  )
   const [sourceByDecision, setSourceByDecision] = useState<Record<string, SourceType>>({})
   const [inheritedFrom, setInheritedFrom] = useState<EquivalentCandidateInput | null>(null)
   const [hideEquivalent, setHideEquivalent] = useState(false)
@@ -548,6 +595,50 @@ export default function QuickCalibrationPanel({
     setResponses((prev) => ({ ...prev, [key]: value }))
     setSourceByDecision((prev) => ({ ...prev, [key]: 'manual' }))
   }
+
+  // BM-11.8 (§3/§7): "Aplicación" y "Excepciones" ya no son dos controles
+  // independientes -- cambiar cualquiera de los dos puede alterar el MODO de
+  // scope efectivo (all/included/excluded). Cuando el modo cambia, se limpia
+  // centerModes/exceptionDetail para no arrastrar una seleccion residual de
+  // un modo anterior (ej: included bajo 'depende' -> nunca se reinterpreta
+  // como excluded al volver a 'si').
+  const handleAllEstChange = (value: string) => {
+    const nextExceptions = value === 'depende' ? 'si' : responses.exceptions
+    const previousMode = scopeModeFor(responses.all_est, responses.exceptions)
+    const nextMode = scopeModeFor(value, nextExceptions)
+
+    setResponses((prev) => ({ ...prev, all_est: value, exceptions: nextExceptions }))
+    setSourceByDecision((prev) => ({ ...prev, all_est: 'manual', exceptions: 'manual' }))
+
+    if (nextMode !== previousMode) {
+      setCenterModes({})
+      setExceptionDetail('')
+    }
+  }
+
+  const handleExceptionsChange = (value: string) => {
+    // 'depende' fuerza exceptions='si' (ver handleAllEstChange) -- este
+    // control queda deshabilitado en la UI mientras tanto, pero se protege
+    // igual aqui por si acaso.
+    if (responses.all_est === 'depende') return
+
+    const previousMode = scopeModeFor(responses.all_est, responses.exceptions)
+    const nextMode = scopeModeFor(responses.all_est, value)
+
+    setResponses((prev) => ({ ...prev, exceptions: value }))
+    setSourceByDecision((prev) => ({ ...prev, exceptions: 'manual' }))
+
+    if (nextMode !== previousMode) {
+      setCenterModes({})
+      setExceptionDetail('')
+    }
+  }
+
+  const scopeMode = scopeModeFor(responses.all_est, responses.exceptions)
+  const selectedCentersForScope = Object.entries(centerModes).filter(([, mode]) =>
+    scopeMode === 'included' ? mode === 'aplica' || mode === 'obligatorio' : mode === 'no_aplica'
+  )
+  const needsEstablishmentScope = scopeMode !== 'all'
 
   const applySuggestions = () => {
     if (!confirmedEvidence) {
@@ -668,6 +759,17 @@ export default function QuickCalibrationPanel({
           suffix === 'exceptions' && finalResponse === 'si'
             ? existing?.observation || buildScopeObservation(centerModes, exceptionDetail)
             : (existing?.observation ?? '')
+        // BM-11.8: scope estructurado SOLO se adjunta/recalcula en la
+        // pregunta 'exceptions' -- unica fuente funcional que lee el
+        // backend. Se recalcula siempre a partir del estado actual (nunca se
+        // hereda de `existing`) para que un scope residual de una
+        // configuracion anterior nunca sobreviva a un cambio de modo (BM-11.8
+        // §7) -- cuando el modo es 'all', buildStructuredScope() devuelve
+        // undefined y JSON.stringify() omite la clave del payload enviado.
+        const scope =
+          suffix === 'exceptions'
+            ? buildStructuredScope(responses.all_est, finalResponse ?? '', centerModes)
+            : existing?.scope
         next.push({
           ...existing,
           ...base,
@@ -675,6 +777,7 @@ export default function QuickCalibrationPanel({
           question: `${label} (Patrón ${pattern.id}: ${pattern.filas.join(', ')})`,
           response: finalResponse,
           observation,
+          scope,
           status: finalResponse ? 'answered' : 'pending',
           review_status: markReviewed ? 'reviewed' : (existing?.review_status ?? 'pending'),
           reviewed_at: markReviewed ? (existing?.reviewed_at ?? reviewedAt) : existing?.reviewed_at,
@@ -761,6 +864,43 @@ export default function QuickCalibrationPanel({
         'Uno o más patrones de esta sección requieren revalidación y no pueden certificarse desde la calibración rápida. Abra "Ver evidencia técnica" para revisarlos patrón por patrón.'
       )
       return
+    }
+    // BM-11.8 (§6): defensa adicional -- estructuralmente ya no debería
+    // poder construirse desde la UI (all_est='depende' fuerza exceptions='si'
+    // en handleAllEstChange), pero se bloquea igual si de algún modo llegara.
+    if (!showProblem && responses.all_est === 'depende' && responses.exceptions !== 'si') {
+      toast.error(
+        '"Elegir excepciones" requiere que Excepciones quede en "Existen excepciones". Ajuste la selección antes de guardar.'
+      )
+      return
+    }
+    if (!showProblem && needsEstablishmentScope) {
+      if (healthCentersQuery.isLoading) {
+        toast.warning(
+          'Espere a que termine de cargar la lista de establecimientos antes de guardar.'
+        )
+        return
+      }
+      if (healthCentersQuery.isError) {
+        toast.error(
+          'No se pudo cargar la lista de establecimientos. Reintente antes de guardar una fila con excepciones por establecimiento.'
+        )
+        return
+      }
+      if (healthCenters.length === 0) {
+        toast.error(
+          'No hay establecimientos activos disponibles para definir el alcance por establecimiento.'
+        )
+        return
+      }
+      if (selectedCentersForScope.length === 0) {
+        toast.warning(
+          scopeMode === 'included'
+            ? 'Seleccione al menos un establecimiento al que SÍ aplica esta fila (Aplica/Obligatorio).'
+            : 'Seleccione al menos un establecimiento al que NO aplica esta fila (No aplica).'
+        )
+        return
+      }
     }
 
     saveMutation.mutate(buildPayload(!showProblem))
@@ -1130,7 +1270,7 @@ export default function QuickCalibrationPanel({
               label="Aplicación"
               value={responses.all_est}
               readOnly={readOnly}
-              onChange={(value) => updateResponse('all_est', value)}
+              onChange={handleAllEstChange}
               options={[
                 ['si', 'Todos los establecimientos'],
                 ['depende', 'Elegir excepciones'],
@@ -1139,13 +1279,23 @@ export default function QuickCalibrationPanel({
             <ChoiceGroup
               label="Excepciones"
               value={responses.exceptions}
-              readOnly={readOnly}
-              onChange={(value) => updateResponse('exceptions', value)}
+              // BM-11.8 (§3, Caso C): 'depende' fuerza exceptions='si' -- el
+              // control queda bloqueado mientras tanto para que la
+              // combinación inválida depende+no no pueda construirse desde
+              // la UI (handleAllEstChange ya lo fuerza al cambiar).
+              readOnly={readOnly || responses.all_est === 'depende'}
+              onChange={handleExceptionsChange}
               options={[
                 ['no', 'No existen'],
                 ['si', 'Existen excepciones'],
               ]}
             />
+            {responses.all_est === 'depende' && (
+              <p className="text-xs text-slate-500 lg:col-span-2">
+                "Excepciones" queda fijo en "Existen excepciones" mientras la Aplicación sea "Elegir
+                excepciones".
+              </p>
+            )}
             {complementaryGroup && (
               <ChoiceGroup
                 label="Variables complementarias"
@@ -1161,37 +1311,67 @@ export default function QuickCalibrationPanel({
           </div>
         )}
 
-        {responses.exceptions === 'si' && (
+        {needsEstablishmentScope && (
           <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
             <h4 className="text-sm font-semibold text-amber-900">Alcance por establecimiento</h4>
-            <div className="mt-3 grid gap-2 md:grid-cols-2">
-              {HEALTH_CENTERS.map((center) => (
-                <label
-                  key={center}
-                  className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-xs"
-                >
-                  <span className="font-medium text-slate-700">{center}</span>
-                  <select
-                    value={centerModes[center] ?? ''}
-                    disabled={readOnly}
-                    onChange={(event) =>
-                      setCenterModes((prev) => ({
-                        ...prev,
-                        [center]: event.target.value as CenterMode,
-                      }))
-                    }
-                    className="rounded-md border border-slate-300 px-2 py-1 text-xs"
-                  >
-                    <option value="">Sin definir</option>
-                    {CENTER_MODES.map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-            </div>
+            <p className="mt-1 text-xs text-amber-800">
+              {scopeMode === 'included'
+                ? 'Marque los establecimientos a los que SÍ aplica esta fila (Aplica/Obligatorio). Los no marcados quedan fuera.'
+                : 'Marque los establecimientos a los que NO aplica esta fila (No aplica). El resto sigue aplicando normalmente.'}
+            </p>
+
+            {healthCentersQuery.isLoading && (
+              <p className="mt-3 text-xs text-amber-700">Cargando establecimientos…</p>
+            )}
+            {healthCentersQuery.isError && (
+              <p className="mt-3 text-xs font-medium text-red-700">
+                No se pudo cargar la lista de establecimientos. Reintente antes de guardar.
+              </p>
+            )}
+            {!healthCentersQuery.isLoading &&
+              !healthCentersQuery.isError &&
+              healthCenters.length === 0 && (
+                <p className="mt-3 text-xs font-medium text-red-700">
+                  No hay establecimientos activos disponibles.
+                </p>
+              )}
+
+            {!healthCentersQuery.isLoading &&
+              !healthCentersQuery.isError &&
+              healthCenters.length > 0 && (
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  {healthCenters.map((center) => (
+                    <label
+                      key={center.id}
+                      className="flex items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-xs"
+                    >
+                      <span className="font-medium text-slate-700">{center.name}</span>
+                      <select
+                        value={centerModes[center.name] ?? ''}
+                        disabled={readOnly}
+                        onChange={(event) =>
+                          setCenterModes((prev) => ({
+                            ...prev,
+                            [center.name]: event.target.value as CenterMode,
+                          }))
+                        }
+                        className="rounded-md border border-slate-300 px-2 py-1 text-xs"
+                      >
+                        <option value="">Sin definir</option>
+                        {CENTER_MODES.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+              )}
+            <p className="mt-3 text-xs text-slate-500">
+              "Advertencia solamente" y "Opcional" quedan registrados solo como observación de
+              lectura humana — no modifican el alcance funcional de la regla.
+            </p>
             <textarea
               value={exceptionDetail}
               disabled={readOnly}

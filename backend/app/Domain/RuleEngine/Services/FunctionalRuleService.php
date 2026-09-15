@@ -725,7 +725,25 @@ class FunctionalRuleService
             return null;
         }
 
-        if ($this->patternQuestionsDeclareExceptions($questions)) {
+        // BM-11.6 (ENGINE_UI_REDUNDANCY, BM-11.3/BM-11.4): resuelve el
+        // alcance por establecimiento a partir de las preguntas all_est/
+        // exceptions -- ver resolveScope() para el contrato completo
+        // (Casos A-E). Reemplaza el bloqueo binario anterior
+        // (patternQuestionsDeclareExceptions(), retirado en esta fase):
+        // exceptions='si' ya NO descarta el patron entero por si solo --
+        // solo lo hace cuando no trae un scope estructurado valido, que es
+        // exactamente el comportamiento seguro que ya tenia el codigo
+        // anterior para ese caso degenerado (preservado a proposito).
+        $allEstQuestion = $this->findQuestionByIdSubstring($questions, ['all_est']);
+        $exceptionsQuestion = $this->findQuestionByIdSubstring($questions, ['exception', 'excepcion']);
+
+        [$includedHealthCenters, $excludedHealthCenters, $scopeIsValid] = $this->resolveScope(
+            $allEstQuestion['response'] ?? null,
+            $exceptionsQuestion['response'] ?? null,
+            $exceptionsQuestion['scope'] ?? null,
+        );
+
+        if (!$scopeIsValid) {
             return null;
         }
 
@@ -740,8 +758,8 @@ class FunctionalRuleService
             'section' => $section,
             'empty_behavior' => $emptyBehavior,
             'applies_to_types' => [],
-            'included_health_centers' => [],
-            'excluded_health_centers' => [],
+            'included_health_centers' => $includedHealthCenters,
+            'excluded_health_centers' => $excludedHealthCenters,
             'functional_condition' => $emptyQuestion['question'] ?? '',
             'justification' => $emptyQuestion['observation'] ?? '',
             'informed_by' => $emptyQuestion['reviewed_by'] ?? $emptyQuestion['responsible'] ?? '',
@@ -789,22 +807,105 @@ class FunctionalRuleService
             || in_array($question['status'] ?? '', ['reviewed', 'answered'], true);
     }
 
-    private function patternQuestionsDeclareExceptions(array $questions): bool
+    /**
+     * BM-11.6: busca la pregunta de un patron cuyo id contenga alguno de los
+     * hints dados, SIN filtrar por response (a diferencia de
+     * findPatternQuestion()) -- necesario aqui porque resolveScope() debe
+     * poder inspeccionar tambien respuestas "invalidas"/inesperadas para
+     * decidir el fallback seguro, no solo las respuestas ya conocidas.
+     */
+    private function findQuestionByIdSubstring(array $questions, array $idHints): ?array
     {
         foreach ($questions as $question) {
             $id = strtolower((string) ($question['id'] ?? ''));
-            $text = strtolower((string) ($question['question'] ?? ''));
-            if (!str_contains($id, 'exception') && !str_contains($id, 'excepcion') && !str_contains($text, 'excepcion') && !str_contains($text, 'excepción')) {
-                continue;
-            }
-
-            $response = $question['response'] ?? null;
-            if (in_array($response, ['si', 'sí', 'depende', 'por_definir'], true)) {
-                return true;
+            foreach ($idHints as $hint) {
+                if (str_contains($id, $hint)) {
+                    return $question;
+                }
             }
         }
 
-        return false;
+        return null;
+    }
+
+    /**
+     * BM-11.6 (contrato aprobado en BM-11.4 §1/§4): decide el alcance por
+     * establecimiento de un patron a partir de sus preguntas all_est/
+     * exceptions. Devuelve [included_health_centers, excluded_health_centers, valido].
+     *
+     * Casos validos:
+     *   A) all_est!='depende' + exceptions='no' (o ausente)      -> [],  []
+     *   B) all_est!='depende' + exceptions='si' + scope.excluded -> [],  excluded
+     *   C) all_est=='depende' + exceptions='si' + scope.included -> included, []
+     *
+     * Cualquier otra combinacion (D: depende+no: sin universo por defecto;
+     * E: exceptions='si' sin scope/sin centros; scope con included Y
+     * excluded a la vez; valores de exceptions distintos de 'si'/'no' --
+     * legado defensivo 'si'/'depende'/'por_definir', igual que el codigo
+     * anterior) es INVALIDA: nunca se asume aplicacion, requiere revision
+     * manual (el llamador debe devolver null, igual que el comportamiento
+     * pre-fix para estos casos degenerados).
+     *
+     * all_est distinto de 'depende' (incluye 'si', ausente, o cualquier
+     * valor legado atipico como el unico caso real conocido en Serie A,
+     * A01/C patron_2 = 'no') se trata como equivalente a 'si' -- preserva
+     * exactamente el comportamiento anterior para ese registro real.
+     */
+    private function resolveScope(?string $allEstResponse, ?string $exceptionsResponse, ?array $scope): array
+    {
+        $isDepende = $allEstResponse === 'depende';
+        $isNoException = $exceptionsResponse === null || $exceptionsResponse === '' || $exceptionsResponse === 'no';
+        $isException = $exceptionsResponse === 'si';
+
+        if (!$isDepende && $isNoException) {
+            // Caso A -- legado exacto, sin scope necesario.
+            return [[], [], true];
+        }
+
+        if (!$isDepende && $isException) {
+            // Caso B -- aplica a todos, excepto los establecimientos declarados.
+            $excluded = $this->normalizeScopeList($scope['excluded_health_centers'] ?? null);
+            $included = $this->normalizeScopeList($scope['included_health_centers'] ?? null);
+            if ($excluded !== [] && $included === []) {
+                return [[], $excluded, true];
+            }
+
+            return [[], [], false];
+        }
+
+        if ($isDepende && $isException) {
+            // Caso C -- aplica UNICAMENTE a los establecimientos declarados.
+            $included = $this->normalizeScopeList($scope['included_health_centers'] ?? null);
+            $excluded = $this->normalizeScopeList($scope['excluded_health_centers'] ?? null);
+            if ($included !== [] && $excluded === []) {
+                return [$included, [], true];
+            }
+
+            return [[], [], false];
+        }
+
+        // Caso D (depende + no) y cualquier valor de exceptions distinto de
+        // 'si'/'no' (legado defensivo) -- requiere revision, nunca se asume.
+        return [[], [], false];
+    }
+
+    /**
+     * BM-11.6: normaliza un valor de scope.included_health_centers/
+     * excluded_health_centers a una lista de nombres de establecimiento
+     * limpia (strings no vacios, sin duplicados) -- fail-safe: cualquier
+     * valor que no sea un array de strings colapsa a [] (nunca se asume ni
+     * se amplia aplicacion a partir de datos malformados).
+     */
+    private function normalizeScopeList($value): array
+    {
+        if (!is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter(
+            array_map(static fn ($v) => is_string($v) ? trim($v) : '', $value),
+            static fn ($v) => $v !== '',
+        )));
     }
 
     /**
