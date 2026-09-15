@@ -218,6 +218,7 @@ export default function CalibrationSectionPage() {
             sheet={sheet ?? 'A01'}
             section={section ?? 'A'}
             readOnly={isReadOnly}
+            captureMode={patternData.capture_mode}
           />
         </>
       )}

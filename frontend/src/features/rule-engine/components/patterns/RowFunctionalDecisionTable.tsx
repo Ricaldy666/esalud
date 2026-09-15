@@ -20,6 +20,13 @@ interface Props {
   sheet: string
   section: string
   readOnly?: boolean
+  // BM-11.17: metadata explicita ya generada por BM-11.15
+  // (PatternMatrixResponse.capture_mode) -- nunca inferido por titulo/serie/
+  // ausencia de decisiones. Cuando es 'derived_auto_fill', el eje
+  // empty_behavior que esta tabla representa no aplica (la seccion es 100%
+  // calculada desde otra hoja, sin ninguna nocion de "fila vacia por
+  // decision humana" -- ver FunctionalRuleService::patternQuestionsToFunctionalRule()).
+  captureMode?: 'standard' | 'derived_auto_fill'
 }
 
 const DECISION_LABELS: Record<string, string> = {
@@ -84,10 +91,12 @@ export default function RowFunctionalDecisionTable({
   sheet,
   section,
   readOnly = false,
+  captureMode = 'standard',
 }: Props) {
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
   const [drafts, setDrafts] = useState<Record<number, EditableDecision>>({})
+  const isDerived = captureMode === 'derived_auto_fill'
 
   const { data, isLoading } = useQuery({
     queryKey: ['row-functional-decisions', serie, sheet, section],
@@ -195,12 +204,15 @@ export default function RowFunctionalDecisionTable({
         <span title="Decision propia: configurada manualmente para esa fila.">Decision propia</span>
       ),
       id: 'explicit_decision',
-      cell: ({ row }) => (
-        <DecisionBadge
-          value={row.original.explicit_decision}
-          explicit={row.original.has_explicit_decision}
-        />
-      ),
+      cell: ({ row }) =>
+        isDerived ? (
+          <span className="text-slate-400">No aplica</span>
+        ) : (
+          <DecisionBadge
+            value={row.original.explicit_decision}
+            explicit={row.original.has_explicit_decision}
+          />
+        ),
     },
     {
       header: () => (
@@ -209,16 +221,19 @@ export default function RowFunctionalDecisionTable({
         </span>
       ),
       id: 'inherited',
-      cell: ({ row }) => (
-        <>
-          <div className="text-slate-600">{inheritedText(row.original)}</div>
-          {!row.original.has_explicit_decision && row.original.inherited_decision && (
-            <div className="mt-0.5 text-[11px] text-slate-500">
-              {label(row.original.inherited_decision)}
-            </div>
-          )}
-        </>
-      ),
+      cell: ({ row }) =>
+        isDerived ? (
+          <div className="text-slate-400">No aplica</div>
+        ) : (
+          <>
+            <div className="text-slate-600">{inheritedText(row.original)}</div>
+            {!row.original.has_explicit_decision && row.original.inherited_decision && (
+              <div className="mt-0.5 text-[11px] text-slate-500">
+                {label(row.original.inherited_decision)}
+              </div>
+            )}
+          </>
+        ),
     },
     {
       header: () => (
@@ -227,25 +242,36 @@ export default function RowFunctionalDecisionTable({
         </span>
       ),
       id: 'effective_decision',
-      cell: ({ row }) => (
-        <span className="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
-          {label(row.original.effective_decision)}
-        </span>
-      ),
+      cell: ({ row }) =>
+        isDerived ? (
+          <span className="inline-flex rounded-md bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-200">
+            Lógica automática / Derivada
+          </span>
+        ) : (
+          <span className="inline-flex rounded-md bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+            {label(row.original.effective_decision)}
+          </span>
+        ),
     },
     {
       header: 'Origen',
       accessorKey: 'origin',
       cell: ({ row }) => (
         <span className="text-slate-700">
-          {ORIGIN_LABELS[row.original.origin] ?? row.original.origin}
+          {isDerived
+            ? 'Técnica / Automática'
+            : (ORIGIN_LABELS[row.original.origin] ?? row.original.origin)}
         </span>
       ),
     },
     {
       header: 'Estado',
       accessorKey: 'status',
-      cell: ({ row }) => <span className="text-slate-700">{row.original.status ?? '-'}</span>,
+      cell: ({ row }) => (
+        <span className="text-slate-700">
+          {isDerived ? 'No aplica' : (row.original.status ?? '-')}
+        </span>
+      ),
     },
     {
       header: 'Revision',
@@ -263,7 +289,7 @@ export default function RowFunctionalDecisionTable({
         </div>
       ),
     },
-    ...(!readOnly
+    ...(!readOnly && !isDerived
       ? [
           {
             header: 'Accion rapida',
@@ -316,16 +342,26 @@ export default function RowFunctionalDecisionTable({
         <div>
           <h2 className="text-sm font-semibold text-slate-900">Decisiones funcionales por fila</h2>
           <p className="text-xs text-slate-500">
-            Revise por que cada fila exige 0, permite vacio o hereda una decision.
+            {isDerived
+              ? 'Filas de referencia -- esta seccion se completa automaticamente, no requieren decision de vacio.'
+              : 'Revise por que cada fila exige 0, permite vacio o hereda una decision.'}
           </p>
         </div>
-        {inconsistentCount > 0 && (
+        {!isDerived && inconsistentCount > 0 && (
           <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800">
             <AlertTriangle className="h-3.5 w-3.5" />
             {inconsistentCount} posibles inconsistencias
           </span>
         )}
       </div>
+
+      {isDerived && (
+        <div className="border-b border-indigo-100 bg-indigo-50/60 px-4 py-2.5 text-xs text-indigo-800">
+          Esta sección se completa automáticamente. Las decisiones funcionales por fila sobre datos
+          vacíos no aplican -- la confirmación de esta sección se registra arriba (Confirmar lógica
+          automática).
+        </div>
+      )}
 
       <DataTable columns={columns} data={rows} getRowClassName={getRowClassName} />
     </section>

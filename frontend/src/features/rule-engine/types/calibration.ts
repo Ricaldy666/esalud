@@ -283,7 +283,10 @@ export interface PatternGroup {
   total_columns?: string[]
   formula_templates?: Record<string, string>
   source?: 'legacy_a01_a' | 'cell_data' | 'structure_inferred'
-  mode?: 'formula' | 'direct_input'
+  // BM-11.15: 'derived_auto_fill' -- seccion 100% derivada de otra hoja/
+  // columna (ej. BM18/B: llenado automatico desde BM18A), sin ninguna
+  // celda editable. Ver SectionCalibrationMatrixService::buildDerivedAutoFillPattern().
+  mode?: 'formula' | 'direct_input' | 'derived_auto_fill'
   cantidad_filas: number
   conceptos: string[]
   profesionales: string[]
@@ -389,6 +392,18 @@ export interface PatternMatrixResponse {
   warnings?: string[]
   reconciliation: PatternMatrixReconciliation
   calibration_applicability?: CalibrationApplicability
+  // BM-11.15 (ENGINE_UI_GAP, BM-11.14): metadata semantica explicita de modo
+  // de captura -- el frontend NUNCA debe inferir esto de titulos/textos.
+  // 'standard' es el valor por defecto (Serie A completa, y cualquier
+  // seccion que no califique); 'derived_auto_fill' es una seccion 100%
+  // calculada (sin celdas editables) respaldada por reglas tecnicas reales.
+  capture_mode?: 'standard' | 'derived_auto_fill'
+  capture_mode_reason?: string | null
+  // Fila(s) TOTAL vertical real(es) detectadas y reportadas, SIN incluirlas
+  // como fila de captura funcional ni como parte de ningun patron (ej.
+  // BM18/B fila 52).
+  has_vertical_consolidation?: boolean
+  vertical_consolidation_rows?: number[]
 }
 
 export type RowFunctionalDecisionValue =

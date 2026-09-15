@@ -89,6 +89,13 @@ function patternQuestionId(patternId: number, suffix: DecisionKey | 'formula_con
   return `patron_${patternId}_${suffix}`
 }
 
+// BM-11.15: una seccion 100% derivada (ej. BM18/B) nunca puebla
+// row.functional_rules por fila (ese campo depende de
+// buildFunctionalRulesForMatrixRow(), mecanismo distinto, intencionalmente
+// sin tocar aqui) -- se trata como evidencia completa igual que
+// 'direct_input', porque su respaldo real es la presencia de reglas
+// tecnicas activas ya verificada por el backend (ver
+// buildDerivedAutoFillPattern()), no por fila individual.
 function sectionHasCompleteCellEvidence(patterns: PatternGroup[], warnings?: string[]) {
   if ((warnings ?? []).length > 0) return false
   return (
@@ -98,6 +105,7 @@ function sectionHasCompleteCellEvidence(patterns: PatternGroup[], warnings?: str
         pattern.source === 'cell_data' &&
         pattern.rows.length > 0 &&
         (pattern.mode === 'direct_input' ||
+          pattern.mode === 'derived_auto_fill' ||
           pattern.rows.every(
             (row) =>
               row.functional_rules?.length &&
@@ -123,13 +131,28 @@ function sectionHasDirectInputEvidence(patterns: PatternGroup[], warnings?: stri
   )
 }
 
-function sectionTypeLabel(directInputEvidence: boolean, confirmedEvidence: boolean) {
+function isDerivedAutoFillSection(patterns: PatternGroup[]) {
+  return patterns.length > 0 && patterns.every((pattern) => pattern.mode === 'derived_auto_fill')
+}
+
+function sectionTypeLabel(
+  directInputEvidence: boolean,
+  confirmedEvidence: boolean,
+  derived: boolean
+) {
+  if (derived) return 'Llenado automático (derivado de otra hoja)'
   if (directInputEvidence) return 'Captura directa'
   if (confirmedEvidence) return 'Cálculo horizontal'
   return 'Pendiente de revisión'
 }
 
 function hasVerticalConsolidation(data: PatternMatrixResponse) {
+  // BM-11.15: fuente explicita provista por el backend (SectionCalibrationMatrixService,
+  // §9) -- fila TOTAL real reportada aunque se excluya deliberadamente de
+  // all_rows/patterns (ej. BM18/B fila 52). Se preserva la heuristica
+  // anterior como respaldo para secciones donde este campo no venga
+  // presente (compatibilidad).
+  if (data.has_vertical_consolidation) return true
   if ((data.summary?.total_subtotales ?? 0) > 0) return true
   return (data.all_rows ?? []).some((row) => {
     const label = `${row.concepto ?? ''} ${row.profesional ?? ''}`.toLowerCase()
@@ -434,7 +457,13 @@ export default function QuickCalibrationPanel({
   )
   const confirmedEvidence = sectionHasCompleteCellEvidence(quickPatterns, data.warnings)
   const directInputEvidence = sectionHasDirectInputEvidence(quickPatterns, data.warnings)
-  const sectionType = sectionTypeLabel(directInputEvidence, confirmedEvidence)
+  // BM-11.15: metadata explicita del backend (capture_mode), nunca inferida
+  // de titulos/textos -- respaldada como segunda confirmacion por la forma
+  // real de los patrones (isDerivedAutoFillSection), que sigue siendo
+  // correcta aunque capture_mode no venga presente (compatibilidad).
+  const isDerivedAutoFill =
+    data.capture_mode === 'derived_auto_fill' || isDerivedAutoFillSection(quickPatterns)
+  const sectionType = sectionTypeLabel(directInputEvidence, confirmedEvidence, isDerivedAutoFill)
   const verticalConsolidation = hasVerticalConsolidation(data)
   const currentSignature = useMemo(
     () => technicalSignature(data, structureVersion),
@@ -553,18 +582,27 @@ export default function QuickCalibrationPanel({
   )
   const reportedProblems =
     questions.filter((question) => question.response === 'reported').length + (showProblem ? 1 : 0)
-  const decisions = [
-    responses.empty,
-    responses.inconsistency,
-    responses.all_est,
-    responses.exceptions,
-    complementaryGroup ? responses.special : 'no_aplica',
-    confirmedEvidence ? 'confirmed' : responses.logic_correct,
-  ]
+  // BM-11.15 (§7): una seccion derivada NO tiene decision de "Sin datos"
+  // (nunca esta vacia por eleccion humana), ni Severidad/Aplicacion/
+  // Excepciones asociadas a esa decision inexistente -- la unica
+  // confirmacion humana que corresponde es sobre la logica automatica
+  // detectada (reutiliza la misma clave/opciones ya existentes de
+  // "Lógica detectada", sin inventar un nuevo modelo de datos).
+  const decisions = isDerivedAutoFill
+    ? [responses.logic_correct]
+    : [
+        responses.empty,
+        responses.inconsistency,
+        responses.all_est,
+        responses.exceptions,
+        complementaryGroup ? responses.special : 'no_aplica',
+        confirmedEvidence ? 'confirmed' : responses.logic_correct,
+      ]
   const answeredDecisions = decisions.filter((value) => String(value ?? '').trim()).length
   const totalDecisions = decisions.length
   const problemObservationMissing = showProblem && !problemObservation.trim()
   const needsManualDecisionView =
+    isDerivedAutoFill ||
     !confirmedEvidence ||
     showProblem ||
     !responses.empty ||
@@ -726,24 +764,50 @@ export default function QuickCalibrationPanel({
           : { pattern_fingerprint: pattern.row_fingerprint, pattern_rows: pattern.pattern_rows }),
       }
 
-      const entries: Array<[DecisionKey, string, string]> = [
-        ['empty', 'Si no existen datos, debe registrarse 0 o puede quedar vacío', responses.empty],
-        ['all_est', 'Aplicabilidad a establecimientos que reportan la hoja', responses.all_est],
-        [
-          'exceptions',
-          'Excepciones por establecimiento o tipo de establecimiento',
-          responses.exceptions,
-        ],
-        ['inconsistency', 'Clasificación funcional de la inconsistencia', responses.inconsistency],
-      ]
+      // BM-11.15 (§7/§8): una seccion derivada NUNCA envia empty/all_est/
+      // exceptions/inconsistency/special -- no existe la nocion de "fila
+      // vacia por decision humana" para una fila 100% calculada, y
+      // FunctionalRuleService::patternQuestionsToFunctionalRule() exige una
+      // pregunta 'empty' respondida para generar cualquier regla funcional
+      // (BM-11.6) -- al nunca enviarla, el backend jamas construye una
+      // regla de vacio artificial para este patron, sin necesitar ningun
+      // cambio en el motor. La unica confirmacion que se envia es sobre la
+      // logica automatica detectada (misma clave/opciones que "Lógica
+      // detectada" ya usa para !confirmedEvidence).
+      const entries: Array<[DecisionKey, string, string]> = isDerivedAutoFill
+        ? [
+            [
+              'logic_correct',
+              'Confirmación de la lógica automática detectada (sección derivada de otra hoja)',
+              responses.logic_correct,
+            ],
+          ]
+        : [
+            [
+              'empty',
+              'Si no existen datos, debe registrarse 0 o puede quedar vacío',
+              responses.empty,
+            ],
+            ['all_est', 'Aplicabilidad a establecimientos que reportan la hoja', responses.all_est],
+            [
+              'exceptions',
+              'Excepciones por establecimiento o tipo de establecimiento',
+              responses.exceptions,
+            ],
+            [
+              'inconsistency',
+              'Clasificación funcional de la inconsistencia',
+              responses.inconsistency,
+            ],
+          ]
 
-      if (complementaryGroup)
+      if (!isDerivedAutoFill && complementaryGroup)
         entries.push([
           'special',
           'Validación funcional de variables complementarias',
           responses.special,
         ])
-      if (!confirmedEvidence)
+      if (!isDerivedAutoFill && !confirmedEvidence)
         entries.unshift([
           'logic_correct',
           'Confirmación funcional de la lógica detectada',
@@ -1132,7 +1196,23 @@ export default function QuickCalibrationPanel({
           <ClipboardCheck className="h-4 w-4 text-emerald-600" />
           Resumen automático
         </h3>
-        {directInputEvidence ? (
+        {isDerivedAutoFill ? (
+          <div className="mt-3 space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+            <p className="font-medium">Sección de llenado automático (derivada de otra hoja).</p>
+            <p>
+              Todas las celdas de esta sección son fórmulas (locales y/o referencias a otra hoja);
+              no existe ninguna celda de captura editable. El llenado se completa automáticamente.
+            </p>
+            <p>
+              El sistema ya certificó y ejecuta reglas técnicas reales para esta sección — no se
+              genera ninguna decisión de "Sin datos"/Severidad/Aplicación/Excepciones, porque no
+              aplican a una fila que nunca queda vacía por elección humana.
+            </p>
+            {verticalConsolidation && (
+              <p>Además, existe una fila TOTAL real que se trata como consolidación vertical.</p>
+            )}
+          </div>
+        ) : directInputEvidence ? (
           <div className="mt-3 space-y-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
             <p className="font-medium">Captura directa desde el REM.</p>
             <p>
@@ -1231,7 +1311,35 @@ export default function QuickCalibrationPanel({
           </div>
         )}
 
-        {showDecisionControls && (
+        {showDecisionControls && isDerivedAutoFill && (
+          // BM-11.15 (§7): unica confirmacion humana que corresponde a una
+          // seccion 100% derivada -- reutiliza la misma clave/opciones de
+          // "Lógica detectada" ya existentes, sin inventar un nuevo modelo.
+          // Deliberadamente SIN Sin datos/Severidad/Aplicación/Excepciones:
+          // no tienen sentido para una fila que nunca queda vacia por
+          // decision humana (ver buildPayload()).
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <ChoiceGroup
+              label="Confirmar lógica automática"
+              value={responses.logic_correct}
+              readOnly={readOnly}
+              onChange={(value) => updateResponse('logic_correct', value)}
+              options={[
+                ['si', 'Correcta'],
+                ['parcialmente', 'Parcialmente'],
+                ['por_definir', 'Requiere revisión'],
+              ]}
+            />
+            <p className="text-xs text-slate-500 lg:col-span-2">
+              Confirme que la lógica automática (fórmulas locales y/o referencias a otra hoja)
+              detectada para esta sección es correcta. No se le pedirá definir "Sin datos",
+              severidad, aplicación ni excepciones — no corresponden a una sección de llenado
+              automático.
+            </p>
+          </div>
+        )}
+
+        {showDecisionControls && !isDerivedAutoFill && (
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {!confirmedEvidence && (
               <ChoiceGroup

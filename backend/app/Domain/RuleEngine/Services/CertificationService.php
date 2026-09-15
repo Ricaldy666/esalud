@@ -406,7 +406,23 @@ class CertificationService
                 ? "Fila {$range['from']}"
                 : "Filas {$range['from']}–{$range['to']}";
         }
-        return $config['rangoFilas'] ?? null;
+        if (!empty($config['rangoFilas'])) {
+            return $config['rangoFilas'];
+        }
+
+        // BM-11.15: cross_sheet_equals (y cualquier config futura sin
+        // row_range/rangoFilas, per-celda por diseño) no declara un rango de
+        // filas -- se deriva la fila unica desde la coordenada de origen
+        // (config.source.cell, ej. "C42" -> fila 42). Generico para
+        // cualquier serie/hoja/seccion; Serie A nunca tiene este shape de
+        // config (siempre row_range/rangoFilas), asi que esta rama nunca se
+        // activa para ninguna de sus reglas.
+        $sourceCell = $config['source']['cell'] ?? null;
+        if (is_string($sourceCell) && preg_match('/^[A-Z]+(\d+)$/', $sourceCell, $m)) {
+            return "Fila {$m[1]}";
+        }
+
+        return null;
     }
 
     private function extractRowNumber(?string $rangeStr): int

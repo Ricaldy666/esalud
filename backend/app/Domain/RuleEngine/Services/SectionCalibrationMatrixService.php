@@ -276,7 +276,14 @@ class SectionCalibrationMatrixService
             ]);
         }
 
-        $rules = $this->certificationService->getSectionRules($sheet, $section);
+        // BM-11.15: faltaba propagar $serie aqui -- getSectionRules()
+        // resolvia siempre contra la estructura activa de Serie A por
+        // defecto (firma con $serie='A'), asi que para cualquier otra serie
+        // (BM incluido) $rules quedaba SIEMPRE vacio, sin importar la
+        // seccion. Efecto observado en BM: rule_key/rule_type null en
+        // all_rows ("Sin regla directa") pese a existir reglas reales
+        // activas y certificadas (BM-11.14).
+        $rules = $this->certificationService->getSectionRules($sheet, $section, $serie);
         $certStatus = $this->certificationService->loadCertificationStatus();
         $funcionalByKey = $this->functionalRuleService->getFunctionalRulesBySheetSection($sheet, $section);
         $funcionalByRow = $this->functionalRuleService->getFunctionalRulesByRow($sheet, $section);
@@ -322,11 +329,19 @@ class SectionCalibrationMatrixService
         $functionalColumns = $this->getFunctionalColumns($sectionData, $cellDataForRows);
 
         $rows = [];
+        // BM-11.15 (§9): las filas TOTAL verticales se excluyen aqui de
+        // $rows a proposito (comportamiento preexistente, sin cambios) --
+        // pero hasta ahora esa exclusion no dejaba ningun rastro reportable.
+        // Se registran aparte para poder CONFIRMAR/REPORTAR su existencia
+        // (ej. BM18/B fila 52) sin volver a incluirlas como fila de captura
+        // funcional ni como parte de ningun patron.
+        $verticalConsolidationRows = [];
         for ($row = $filaInicio; $row <= $filaFin; $row++) {
             $rowType = $this->classifyRow($sheet, $section, $row, $filaHeader, $sectionData);
             $rowCells = $cellDataForRows[$row] ?? [];
 
             if (!empty($rowCells) && $this->isVerticalConsolidationRow($row, $rowCells)) {
+                $verticalConsolidationRows[] = $row;
                 continue;
             }
 
@@ -484,6 +499,13 @@ class SectionCalibrationMatrixService
             'questions' => $questions,
             'header_labels' => $headerLabels,
             'warnings' => [],
+            // BM-11.15: cards de reglas tecnicas REALES (ya resueltas contra
+            // la estructura activa de $serie) -- expuestas para que
+            // buildPatternMatrix()/buildDynamicPatternDefinitions() puedan
+            // usarlas como evidencia de seccion derivada, sin volver a
+            // consultar CertificationService.
+            'rules' => $rules,
+            'vertical_consolidation_rows' => $verticalConsolidationRows,
         ];
     }
 
@@ -538,7 +560,7 @@ class SectionCalibrationMatrixService
             }
         }
 
-        $patterns = $this->buildDynamicPatternDefinitions($allRows, $sectionData ?? [], $cellDataRows);
+        $patterns = $this->buildDynamicPatternDefinitions($allRows, $sectionData ?? [], $cellDataRows, $matrix['rules'] ?? []);
 
         return array_map(
             fn(array $patron) => $patron + ['rows' => array_map(fn($fila) => ['fila' => $fila], $patron['filas'])],
@@ -707,6 +729,10 @@ class SectionCalibrationMatrixService
                         'no_calibratable_patterns' => false,
                     ],
                 ],
+                'capture_mode' => 'standard',
+                'capture_mode_reason' => null,
+                'has_vertical_consolidation' => false,
+                'vertical_consolidation_rows' => [],
             ];
         }
 
@@ -737,7 +763,7 @@ class SectionCalibrationMatrixService
             : $this->legacySpecialColumnsFromGroups($columnGroups);
         $patterns = $isLegacyA01A
             ? self::PATRONES_A01_A
-            : $this->buildDynamicPatternDefinitions($allRows, $sectionData ?? [], $cellDataRows);
+            : $this->buildDynamicPatternDefinitions($allRows, $sectionData ?? [], $cellDataRows, $matrix['rules'] ?? []);
 
         $warnings = $matrix['warnings'] ?? [];
         if (!$isLegacyA01A && !$hasCellData) {
@@ -913,6 +939,24 @@ class SectionCalibrationMatrixService
             : $this->patternReconciliation->computeEffectiveSectionReviewed($reconciliation);
         $historicalSectionReviewed = $this->hasHistoricalSectionReviewed($questions);
 
+        // BM-11.15 (§4): metadata semantica explicita de modo de captura --
+        // el frontend NUNCA debe inferir esto de titulos/textos. 'standard'
+        // es el valor por defecto (100% de Serie A, y cualquier seccion BM
+        // que no califique); 'derived_auto_fill' solo aparece cuando
+        // buildDerivedAutoFillPattern() realmente produjo el patron
+        // sintetico (evidencia real, ver ese metodo).
+        $captureMode = 'standard';
+        $captureModeReason = null;
+        foreach ($enriched as $patron) {
+            if (($patron['mode'] ?? '') === 'derived_auto_fill') {
+                $captureMode = 'derived_auto_fill';
+                $captureModeReason = $patron['descripcion'] ?? null;
+                break;
+            }
+        }
+
+        $verticalConsolidationRows = $matrix['vertical_consolidation_rows'] ?? [];
+
         return [
             'section' => $matrix['section'],
             'rows' => $allRows,
@@ -930,6 +974,15 @@ class SectionCalibrationMatrixService
                 'historical_section_reviewed' => $historicalSectionReviewed,
             ],
             'calibration_applicability' => $applicability,
+            'capture_mode' => $captureMode,
+            'capture_mode_reason' => $captureModeReason,
+            // BM-11.15 (§9): reporta la existencia real de una fila TOTAL
+            // vertical (ej. BM18/B fila 52) SIN volver a incluirla como fila
+            // de captura funcional ni como parte de ningun patron -- separa
+            // deteccion/reporting de inclusion en patterns, tal como exige
+            // el diseño.
+            'has_vertical_consolidation' => !empty($verticalConsolidationRows),
+            'vertical_consolidation_rows' => $verticalConsolidationRows,
         ];
     }
 
@@ -1383,7 +1436,7 @@ class SectionCalibrationMatrixService
         return false;
     }
 
-    private function buildDynamicPatternDefinitions(array $rows, array $sectionData, array $cellDataRows): array
+    private function buildDynamicPatternDefinitions(array $rows, array $sectionData, array $cellDataRows, array $rules = []): array
     {
         $groups = [];
         $hasCellData = !empty($cellDataRows);
@@ -1535,7 +1588,108 @@ class SectionCalibrationMatrixService
             $id++;
         }
 
+        // BM-11.15 (ENGINE_UI_GAP, BM-11.14): fallback ESTRICTAMENTE
+        // ADITIVO -- solo se evalua cuando el bucle anterior no formo NINGUN
+        // patron. Cubre secciones 100% derivadas de otra hoja/columna (ej.
+        // BM18/B: B=SUM(C:D), donde C/D son a su vez referencias cross-hoja
+        // a BM18A) -- el requisito de hasEditableInputComponentsForFormula()
+        // (proteccion historica de Serie A, CORRECCION_DE_ARRASTRE_INVALIDO,
+        // 2026-08-21) NUNCA se relaja ni se toca aqui: esta rama es
+        // estrictamente adicional y exige evidencia real de reglas tecnicas
+        // ACTIVAS (via $rules, ya resueltas contra la estructura activa
+        // real por CertificationService::getSectionRules()) -- una seccion
+        // vacia o rota (0 reglas bindeadas, o con celdas editables reales)
+        // nunca puede calificar aqui.
+        if (empty($patterns)) {
+            $derivedPattern = $this->buildDerivedAutoFillPattern($rows, $rules, $cellDataRows);
+            if ($derivedPattern !== null) {
+                $patterns[] = $derivedPattern;
+            }
+        }
+
         return $patterns;
+    }
+
+    /**
+     * BM-11.15: clasifica una seccion como 'derived_auto_fill' UNICAMENTE
+     * cuando se cumplen TODAS estas condiciones, verificadas con evidencia
+     * real (nunca por titulo/serie/hoja/seccion hardcodeados):
+     *   1) Existen reglas tecnicas REALES activas para la seccion ($rules,
+     *      ya resueltas contra la estructura activa) -- una seccion vacia o
+     *      rota (0 reglas bindeadas) nunca califica, sin importar que
+     *      carezca de celdas editables.
+     *   2) NINGUNA celda de NINGUNA fila de datos de la seccion es
+     *      editable -- si aparece una sola celda editable en cualquier
+     *      fila, se aborta devolviendo null (el camino existente de
+     *      formula/direct_input ya cubre ese caso correctamente).
+     *   3) Al menos una fila de datos tiene una celda-formula real Y una
+     *      regla tecnica real (sum_equals o cross_sheet_equals, via
+     *      findDirectRule()) que la cubre.
+     */
+    private function buildDerivedAutoFillPattern(array $rows, array $rules, array $cellDataRows): ?array
+    {
+        if (empty($rules)) {
+            return null;
+        }
+
+        $derivedRows = [];
+        $totalColumnsUnion = [];
+        $formulaTemplates = [];
+
+        foreach ($rows as $rowData) {
+            if (($rowData['row_type'] ?? '') !== 'data') continue;
+            $row = (int) ($rowData['row'] ?? 0);
+            if ($row <= 0) continue;
+
+            $rowCells = $cellDataRows[$row] ?? [];
+            if (empty($rowCells)) continue;
+
+            $hasFormula = false;
+            foreach ($rowCells as $cell) {
+                if (!is_array($cell)) continue;
+                if ($cell['es_formula'] ?? false) {
+                    $hasFormula = true;
+                } elseif (!($cell['esta_bloqueada'] ?? true)) {
+                    // Cualquier celda genuinamente editable en cualquier
+                    // fila de datos descarta por completo la clasificacion
+                    // derivada para toda la seccion.
+                    return null;
+                }
+            }
+
+            if (!$hasFormula) continue;
+            if ($this->findDirectRule($rules, $row) === null) continue;
+
+            $derivedRows[] = $row;
+            foreach ($rowCells as $column => $cell) {
+                if (is_array($cell) && ($cell['es_formula'] ?? false) && !empty($cell['formula'])) {
+                    $formulaTemplates[$column] = $this->normalizeFormulaTemplate((string) $cell['formula'], $row);
+                    $totalColumnsUnion[$column] = true;
+                }
+            }
+        }
+
+        if (empty($derivedRows)) {
+            return null;
+        }
+
+        $totalColumns = array_keys($totalColumnsUnion);
+
+        return [
+            'id' => 1,
+            'nombre' => 'Sección de llenado automático (derivada de otra hoja)',
+            'descripcion' => 'Todas las celdas de esta sección son fórmulas (locales y/o referencias a otra hoja); no existe captura editable. El llenado es automático, certificado por reglas técnicas activas.',
+            'filas' => $derivedRows,
+            'formula_template' => implode(' | ', $formulaTemplates),
+            'columnas_origen' => $totalColumns,
+            'columna_total' => $totalColumns[0] ?? '',
+            'origin_columns' => $totalColumns,
+            'total_columns' => $totalColumns,
+            'formula_templates' => $formulaTemplates,
+            'source' => 'cell_data',
+            'mode' => 'derived_auto_fill',
+            'editability_signature' => 'no_editable_cells',
+        ];
     }
 
     private function buildColumnGroups(string $sheet, string $section, array $sectionData, array $cellDataRows, array $matrixRows): array
@@ -3544,7 +3698,19 @@ class SectionCalibrationMatrixService
     private function parseRowRange(?string $rangeStr): array
     {
         if (!$rangeStr) return [];
-        if (preg_match('/Fila[s]?\s+(\d+)[–\-](\d+)/', $rangeStr, $m)) {
+        // BM-11.15: modificador /u (PCRE_UTF8) OBLIGATORIO -- "–" (guion
+        // largo, U+2013) es una secuencia de 3 bytes en UTF-8; sin /u, PCRE
+        // trata la clase de caracteres [–\-] byte a byte, no como un
+        // caracter, y el match fallaba silenciosamente para CUALQUIER rango
+        // multi-fila real (ej. "Filas 42–51" -> caia al fallback de un solo
+        // numero, devolviendo [42] en vez de [42..51]). Bug preexistente,
+        // nunca detectado antes porque ningun consumidor real dependia de
+        // que este metodo devolviera el rango COMPLETO -- findDirectRule()
+        // solo necesitaba encontrar a alguna fila del rango que dependiera
+        // de este resultado para producir un "match", y la mayoria de
+        // reglas reales (Serie A) tienen ademas otras fuentes de evidencia
+        // independientes de esto.
+        if (preg_match('/Fila[s]?\s+(\d+)[–\-](\d+)/u', $rangeStr, $m)) {
             return range((int) $m[1], (int) $m[2]);
         }
         if (preg_match('/(\d+)/', $rangeStr, $m)) {
@@ -3924,6 +4090,10 @@ class SectionCalibrationMatrixService
 
         if ($mode === 'direct_input') {
             return $total !== '' ? "Entrada directa en {$total}" : 'Patrón de captura directa';
+        }
+
+        if ($mode === 'derived_auto_fill') {
+            return 'Llenado automático (derivado de otra hoja)';
         }
 
         $formulaTemplate = (string) ($patron['formula_template'] ?? '');
