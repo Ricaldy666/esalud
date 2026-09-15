@@ -4,7 +4,6 @@ namespace App\Domain\RemParser\Services;
 
 use App\Domain\RemParser\Models\RemTemplateStructure;
 use App\Domain\RuleEngine\Services\SectionCalibrationMatrixService;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -48,9 +47,10 @@ class StructureApprovalService
         $structure->status = 'active';
         $structure->save();
 
-        // Invalida el agregado de progreso cacheado (ver
-        // SectionCalibrationMatrixService::buildStructureCalibrationSummary())
-        // -- cambio de estructura activa invalida cualquier resumen previo.
+        // Invalida el agregado de progreso cacheado de la serie de ESTA
+        // estructura (BM-11.12 -- antes invalidaba siempre la clave de
+        // Serie A, sin importar la serie real activada) -- ver
+        // SectionCalibrationMatrixService::buildStructureCalibrationSummary().
         // DB::afterCommit() (no Cache::forget() directo): activate() puede
         // correr dentro de una transaccion mas amplia (ej.
         // CertifiedStructurePromotionService::commit()). Un forget()
@@ -62,8 +62,9 @@ class StructureApprovalService
         // el COMMIT real cierra esa ventana. Fuera de una transaccion
         // (caso normal), afterCommit() ejecuta el callback de inmediato --
         // sin cambio de comportamiento.
-        DB::afterCommit(function () {
-            Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+        $serie = $structure->serie;
+        DB::afterCommit(function () use ($serie) {
+            SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
         });
 
         return $structure;

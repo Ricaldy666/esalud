@@ -5,7 +5,6 @@ namespace App\Domain\RuleEngine\Services;
 use App\Domain\RuleEngine\Models\RemSheetUsageStatus;
 use App\Domain\RuleEngine\Models\RemSheetUsageStatusHistory;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 /**
@@ -122,10 +121,11 @@ class RemSheetUsageStatusService
             'structure_id' => $structureId,
         ]);
 
-        // Invalida el agregado de progreso cacheado (ver
-        // SectionCalibrationMatrixService::buildStructureCalibrationSummary())
+        // Invalida el agregado de progreso cacheado de ESTA serie (BM-11.12
+        // -- antes invalidaba siempre la clave de Serie A) -- ver
+        // SectionCalibrationMatrixService::buildStructureCalibrationSummary()
         // -- un cambio de estado de uso de hoja cambia el denominador de aplicables.
-        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+        SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
 
         return $row->fresh();
     }

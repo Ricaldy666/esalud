@@ -2,7 +2,6 @@
 
 namespace App\Domain\RuleEngine\Services;
 
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
@@ -87,7 +86,7 @@ class FunctionalRuleService
 
     // ─── Save per-row with versioning ────────────────────────────────
 
-    public function saveFunctionalRuleByRow(string $sheet, string $section, int $row, array $data): array
+    public function saveFunctionalRuleByRow(string $sheet, string $section, int $row, array $data, string $serie = 'A'): array
     {
         $all = $this->loadAll();
         $rowKey = "{$sheet}_{$section}_{$row}";
@@ -137,10 +136,17 @@ class FunctionalRuleService
         $all[$rowKey] = $record;
         $this->persistAll($all);
 
+        // BM-11.12: este metodo nunca invalidaba el resumen cacheado (gap
+        // preexistente, distinto del de saveQuestions() -- aqui simplemente
+        // no habia ninguna invalidacion, ni siquiera la de Serie A). Una
+        // decision explicita por fila tambien puede cambiar
+        // effective_section_reviewed, igual que saveQuestions().
+        SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
+
         return $record;
     }
 
-    public function clearFunctionalRuleByRow(string $sheet, string $section, int $row, array $metadata = []): ?array
+    public function clearFunctionalRuleByRow(string $sheet, string $section, int $row, array $metadata = [], string $serie = 'A'): ?array
     {
         $all = $this->loadAll();
         $rowKey = "{$sheet}_{$section}_{$row}";
@@ -160,6 +166,11 @@ class FunctionalRuleService
 
         unset($all[$rowKey]);
         $this->persistAll($all);
+
+        // BM-11.12: mismo gap que saveFunctionalRuleByRow() -- limpiar una
+        // decision explicita (para volver a heredar) tambien puede cambiar
+        // el resumen cacheado.
+        SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
 
         return $existing;
     }
@@ -204,7 +215,7 @@ class FunctionalRuleService
         'revalidation_source_type',
     ];
 
-    public function saveQuestions(string $sheet, string $section, array $questions): array
+    public function saveQuestions(string $sheet, string $section, array $questions, string $serie = 'A'): array
     {
         $all = $this->loadAll();
         $key = "{$sheet}_{$section}";
@@ -252,10 +263,11 @@ class FunctionalRuleService
             'section' => $section,
         ]);
 
-        // Invalida el agregado de progreso cacheado (ver
-        // SectionCalibrationMatrixService::buildStructureCalibrationSummary())
+        // Invalida el agregado de progreso cacheado de la serie realmente
+        // modificada (BM-11.12) -- ver
+        // SectionCalibrationMatrixService::buildStructureCalibrationSummary()
         // -- cualquier respuesta guardada puede cambiar effective_section_reviewed.
-        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+        SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
 
         return $existing;
     }
@@ -318,6 +330,7 @@ class FunctionalRuleService
         ?array $historicalRowsBeforeExclusion = null,
         ?array $excludedTotalRows = null,
         ?string $exclusionMechanism = null,
+        string $serie = 'A',
     ): array {
         $all = $this->loadAll();
         $key = "{$sheet}_{$section}";
@@ -381,7 +394,7 @@ class FunctionalRuleService
             'pattern_id' => $historicalPatternId,
         ]);
 
-        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+        SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
 
         return $existing;
     }
@@ -459,6 +472,7 @@ class FunctionalRuleService
         string $structureVersion,
         string $reviewedBy,
         string $reviewSourceType = 'manual',
+        string $serie = 'A',
     ): array {
         $all = $this->loadAll();
         $key = "{$sheet}_{$section}";
@@ -558,11 +572,12 @@ class FunctionalRuleService
             'pattern_id' => $historicalPatternId,
         ]);
 
-        // Invalida el agregado de progreso cacheado SOLO despues de que la
-        // persistencia real ya ocurrio -- mismo orden que saveQuestions()/
-        // applyQuickRevalidation() (nunca antes: si persistAll() lanzara,
-        // no queremos una cache invalidada sin escritura real detras).
-        Cache::forget(SectionCalibrationMatrixService::CALIBRATION_SUMMARY_CACHE_KEY);
+        // Invalida el agregado de progreso cacheado de la serie realmente
+        // modificada (BM-11.12) SOLO despues de que la persistencia real ya
+        // ocurrio -- mismo orden que saveQuestions()/applyQuickRevalidation()
+        // (nunca antes: si persistAll() lanzara, no queremos una cache
+        // invalidada sin escritura real detras).
+        SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
 
         return $existing;
     }
@@ -575,11 +590,11 @@ class FunctionalRuleService
 
     // ─── Bulk operations ─────────────────────────────────────────────
 
-    public function bulkSaveFunctionalRuleByRow(string $sheet, string $section, array $rowNumbers, array $data): array
+    public function bulkSaveFunctionalRuleByRow(string $sheet, string $section, array $rowNumbers, array $data, string $serie = 'A'): array
     {
         $saved = [];
         foreach ($rowNumbers as $row) {
-            $saved[] = $this->saveFunctionalRuleByRow($sheet, $section, (int) $row, $data);
+            $saved[] = $this->saveFunctionalRuleByRow($sheet, $section, (int) $row, $data, $serie);
         }
         return $saved;
     }

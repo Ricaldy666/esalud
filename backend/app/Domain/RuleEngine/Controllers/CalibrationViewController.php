@@ -91,9 +91,23 @@ class CalibrationViewController extends Controller
             'questions.*.reconciliation_status' => 'nullable|in:reviewed,pending,requiere_revalidacion,unresolved',
             'questions.*.derived_from_fingerprint' => 'nullable|array',
             'questions.*.derived_from_fingerprint.*' => 'string',
+            // BM-11.12 (ENGINE_UI_REDUNDANCY, BM-11.6/BM-11.8/BM-11.11):
+            // sin estas reglas, Illuminate\Http\Request::validate() descarta
+            // silenciosamente 'scope' del payload -- nunca llegaba a
+            // FunctionalRuleService::saveQuestions(), aunque el frontend
+            // (QuickCalibrationPanel::buildStructuredScope()) ya lo enviaba
+            // correctamente desde BM-11.8. Unica fuente funcional real de
+            // included_health_centers/excluded_health_centers para el flujo
+            // de preguntas de patron -- observation nunca participa.
+            'questions.*.scope' => 'nullable|array',
+            'questions.*.scope.mode' => 'nullable|string|in:all,included,excluded',
+            'questions.*.scope.included_health_centers' => 'nullable|array',
+            'questions.*.scope.included_health_centers.*' => 'string|max:255',
+            'questions.*.scope.excluded_health_centers' => 'nullable|array',
+            'questions.*.scope.excluded_health_centers.*' => 'string|max:255',
         ]);
 
-        $this->functionalRuleService->saveQuestions($sheet, $section, $validated['questions']);
+        $this->functionalRuleService->saveQuestions($sheet, $section, $validated['questions'], $serie);
 
         return response()->json([
             'data' => ['success' => true],
@@ -264,6 +278,7 @@ class CalibrationViewController extends Controller
                 canonicalFingerprint: $patternPlan['live_canonical_fingerprint'],
                 patternRows: $sortedRows,
                 revalidatedBy: $revalidatedBy,
+                serie: $serie,
             );
         } catch (\RuntimeException $e) {
             return response()->json([
@@ -491,6 +506,7 @@ class CalibrationViewController extends Controller
                     canonicalFingerprint: $patternPlan['live_canonical_fingerprint'],
                     patternRows: $sortedLiveRows,
                     revalidatedBy: $revalidatedBy,
+                    serie: $serie,
                 );
             } catch (\RuntimeException $e) {
                 return response()->json(['data' => null, 'message' => $e->getMessage(), 'errors' => ['pattern_not_found']], 404);
@@ -619,6 +635,7 @@ class CalibrationViewController extends Controller
                 historicalRowsBeforeExclusion: $sortedTagHistorical,
                 excludedTotalRows: $sortedTagExcluded,
                 exclusionMechanism: $tagMechanism,
+                serie: $serie,
             );
         } catch (\RuntimeException $e) {
             return response()->json(['data' => null, 'message' => $e->getMessage(), 'errors' => ['pattern_not_found']], 404);
@@ -801,6 +818,7 @@ class CalibrationViewController extends Controller
                 patternRows: $patternPlan['live_rows'],
                 structureVersion: (string) $activeStructure->version_number,
                 reviewedBy: $reviewedBy,
+                serie: $serie,
             );
         } catch (\RuntimeException $e) {
             return response()->json(['data' => null, 'message' => $e->getMessage(), 'errors' => ['pattern_not_found']], 404);

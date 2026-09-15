@@ -10,26 +10,59 @@ use Illuminate\Support\Facades\Cache;
 class SectionCalibrationMatrixService
 {
     /**
-     * Clave de cache del agregado de progreso -- ver
-     * buildStructureCalibrationSummary(). Se invalida explicitamente en
-     * FunctionalRuleService::saveQuestions() (cada vez que se guarda una
-     * respuesta de calibracion) y en StructureApprovalService::activate()
-     * (cada vez que cambia cual estructura es la activa). El TTL es solo
-     * una red de seguridad para cualquier otro camino de escritura no
-     * cubierto por esas dos invalidaciones explicitas.
+     * Clave BASE de cache del agregado de progreso -- ver
+     * buildStructureCalibrationSummary(). Serie A la usa tal cual (identica
+     * a como siempre existio, compatibilidad historica); cualquier otra
+     * serie usa la variante con sufijo que arma
+     * calibrationSummaryCacheKey() -- nunca construir la clave a mano fuera
+     * de ese metodo (BM-11.12: antes de esto, 5 call sites reales
+     * reconstruian "self::CALIBRATION_SUMMARY_CACHE_KEY" directamente sin
+     * sufijo de serie, invalidando siempre la clave de Serie A sin importar
+     * que serie se hubiera modificado en realidad -- ver
+     * calibrationSummaryCacheKey()/forgetCalibrationSummaryCache() para el
+     * punto unico de verdad actual).
      */
     public const CALIBRATION_SUMMARY_CACHE_KEY = 'rem:calibration_summary';
 
     /**
-     * TTL alto (1h) a proposito: la frescura real depende de las dos
-     * invalidaciones explicitas (saveQuestions/activate), no de este TTL --
-     * es solo la red de seguridad. Calculo en frio confirmado en ~60s
-     * contra la estructura activa (378 secciones, campaña Serie A completa)
-     * -- un TTL corto haria que esa demora se repitiera cada pocos minutos
-     * sin necesidad, ya que las dos invalidaciones explicitas ya cubren los
-     * unicos dos caminos que realmente cambian el resultado.
+     * TTL alto (1h) a proposito: la frescura real depende de las
+     * invalidaciones explicitas (ver forgetCalibrationSummaryCache()), no de
+     * este TTL -- es solo la red de seguridad. Calculo en frio confirmado en
+     * ~60s contra la estructura activa (378 secciones, campaña Serie A
+     * completa) -- un TTL corto haria que esa demora se repitiera cada pocos
+     * minutos sin necesidad, ya que las invalidaciones explicitas ya cubren
+     * los caminos reales que cambian el resultado.
      */
     private const CALIBRATION_SUMMARY_CACHE_TTL_SECONDS = 3600;
+
+    /**
+     * BM-11.12: punto unico de verdad para la clave de cache del resumen de
+     * calibracion de una serie -- Serie A conserva, por compatibilidad
+     * historica, la clave base sin sufijo (idéntica a como siempre existio);
+     * cualquier otra serie (BM, BS, D, P, futuras) obtiene una clave propia
+     * con sufijo ":{serie}", nunca colisiona con la de Serie A ni entre
+     * series distintas. Generico -- sin ningun hardcode de "BM" ni de
+     * ninguna otra serie especifica.
+     */
+    public static function calibrationSummaryCacheKey(string $serie): string
+    {
+        return $serie === 'A'
+            ? self::CALIBRATION_SUMMARY_CACHE_KEY
+            : self::CALIBRATION_SUMMARY_CACHE_KEY . ':' . $serie;
+    }
+
+    /**
+     * BM-11.12: unico punto real de invalidacion -- todo write path que
+     * pueda cambiar el resumen de una serie (preguntas de patron, revision
+     * rapida, resolucion human_review, decision funcional por fila,
+     * activacion de estructura, cambio de estado de uso de hoja) debe
+     * llamar a este metodo con la serie que realmente modifico, en vez de
+     * reconstruir la clave o invalidar la clave de Serie A a ciegas.
+     */
+    public static function forgetCalibrationSummaryCache(string $serie): void
+    {
+        Cache::forget(self::calibrationSummaryCacheKey($serie));
+    }
 
     /**
      * BM-2.6A (2026-09-11): motivo generico de clasificacion segura para
@@ -921,27 +954,25 @@ class SectionCalibrationMatrixService
      * cuentan por separado solo para presentacion, nunca se resta una de
      * la otra del total de completadas.
      */
-    // string $serie = 'A' (BM-2, 2026-09-11): compatibilidad historica
-    // OBLIGATORIA aqui, no solo por conveniencia -- CALIBRATION_SUMMARY_CACHE_KEY
-    // es una constante PUBLICA leida por Cache::forget() desde otros 4
-    // archivos (StructureApprovalService, FunctionalRuleService x3,
-    // RemSheetUsageStatusService), ninguno de los cuales forma parte del
-    // alcance autorizado de BM-2. Para serie='A' la clave de cache queda
-    // exactamente igual que antes (esos 5 call sites de Cache::forget()
-    // siguen invalidando lo mismo que siempre, sin tocarlos). Para
-    // cualquier otra serie se deriva una clave propia, aislada -- nunca
-    // colisiona con la de Serie A. Invalidar el resumen de una serie
-    // distinta de A queda pendiente de una fase futura que sí toque esos
-    // 4 archivos (no hay nada que invalidar todavia: ninguna serie
-    // distinta de A tiene estructura activa hoy).
+    // string $serie = 'A' (BM-2, 2026-09-11): compatibilidad historica --
+    // para serie='A' la clave de cache queda exactamente igual que siempre.
+    // BM-11.12 (2026-09-15): cerro el gap que este comentario documentaba
+    // como pendiente -- los 5 call sites reales que invalidan este resumen
+    // (StructureApprovalService::activate(), FunctionalRuleService
+    // ::saveQuestions()/applyQuickRevalidation()/resolveHumanReviewPattern(),
+    // RemSheetUsageStatusService::setStatus()), mas los 2 nuevos que antes no
+    // invalidaban nada (FunctionalRuleService::saveFunctionalRuleByRow()/
+    // clearFunctionalRuleByRow()), ahora usan todos
+    // SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie)
+    // -- la serie real que se modifico en cada caso, nunca Serie A a ciegas.
+    // Motivado por el guardado real de BM18/C (2026-09-15, BM-11.11): la
+    // primera vez que una serie distinta de A tuvo una estructura activa y
+    // un guardado funcional real, y el gap ya documentado aqui se manifesto
+    // (resumen BM cacheado en 0/6 mientras el estado real ya era 1/6).
     public function buildStructureCalibrationSummary(string $serie = 'A'): array
     {
-        $cacheKey = $serie === 'A'
-            ? self::CALIBRATION_SUMMARY_CACHE_KEY
-            : self::CALIBRATION_SUMMARY_CACHE_KEY . ':' . $serie;
-
         return Cache::remember(
-            $cacheKey,
+            self::calibrationSummaryCacheKey($serie),
             self::CALIBRATION_SUMMARY_CACHE_TTL_SECONDS,
             fn () => $this->computeStructureCalibrationSummary($serie),
         );

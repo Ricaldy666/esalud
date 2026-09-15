@@ -403,7 +403,7 @@ class CatalogController extends Controller
             $previous = $this->functionalRuleService->clearFunctionalRuleByRow($sheet, $section, $row, [
                 'updated_by' => $valid['updated_by'] ?? $valid['informed_by'] ?? '',
                 'inheritance_mode' => $valid['empty_behavior'],
-            ]);
+            ], $serie);
 
             $this->functionalRuleService->addDecisionHistory($sheet, $section, [
                 'action' => 'clear_row_functional_for_inheritance',
@@ -430,7 +430,7 @@ class CatalogController extends Controller
             $valid['functional_condition'] = $valid['functional_condition'] ?? 'Requiere revisión de Estadística.';
         }
 
-        $record = $this->functionalRuleService->saveFunctionalRuleByRow($sheet, $section, $row, $valid);
+        $record = $this->functionalRuleService->saveFunctionalRuleByRow($sheet, $section, $row, $valid, $serie);
 
         $this->functionalRuleService->addDecisionHistory($sheet, $section, [
             'action' => 'save_row_functional',
@@ -612,9 +612,18 @@ class CatalogController extends Controller
             'questions.*.responsible' => 'nullable|string|max:255',
             'questions.*.date' => 'nullable|string|max:50',
             'questions.*.status' => 'nullable|in:pending,answered,clarification',
+            // BM-11.12: mismo fix de CalibrationViewController::saveQuestions()
+            // -- consistencia, aunque esta ruta no tiene consumidor real en
+            // el frontend hoy (verificado en BM-11.11).
+            'questions.*.scope' => 'nullable|array',
+            'questions.*.scope.mode' => 'nullable|string|in:all,included,excluded',
+            'questions.*.scope.included_health_centers' => 'nullable|array',
+            'questions.*.scope.included_health_centers.*' => 'string|max:255',
+            'questions.*.scope.excluded_health_centers' => 'nullable|array',
+            'questions.*.scope.excluded_health_centers.*' => 'string|max:255',
         ]);
 
-        $updated = $this->functionalRuleService->saveQuestions($sheet, $section, $valid['questions']);
+        $updated = $this->functionalRuleService->saveQuestions($sheet, $section, $valid['questions'], $serie);
 
         return response()->json([
             'data' => [
@@ -652,7 +661,7 @@ class CatalogController extends Controller
         $rowNumbers = $valid['rowNumbers'];
         unset($valid['rowNumbers']);
 
-        $saved = $this->functionalRuleService->bulkSaveFunctionalRuleByRow($sheet, $section, $rowNumbers, $valid);
+        $saved = $this->functionalRuleService->bulkSaveFunctionalRuleByRow($sheet, $section, $rowNumbers, $valid, $serie);
         $total = count($saved);
 
         $this->functionalRuleService->addDecisionHistory($sheet, $section, [
