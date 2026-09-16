@@ -183,7 +183,20 @@ const A01_B_PATTERN_QUESTIONS: QuestionDefinition[] = [
   },
 ]
 
-const HUMAN_DECISION_SUFFIXES = new Set(['logic_correct'])
+// BM-11.40 (BM1138_PATTERN4_UI_GAP_DETECTED): 'empty' pertenece al set de
+// preguntas de patron (PATTERN_QUESTIONS/A01_B_PATTERN_QUESTIONS) y ya
+// contaba en answered/total, pero no pertenecia a ninguno de los dos sets
+// de abajo -- la unica fuente que decide que fila renderizar como
+// <QuestionRow> -- por lo que nunca tenia un control visible en pantalla.
+// Se agrega aqui, no a SUGGESTED_SUFFIXES, porque no existe un valor
+// sugerido por el sistema para "debe registrar 0 o puede quedar vacio"
+// (requiere siempre criterio de Estadistica APS, ver CLAUDE.md BM18/C) --
+// el grupo "Decisiones que debe confirmar Estadistica" es semanticamente
+// correcto y ya aloja la confirmacion de formula (ConfirmedPatternActions),
+// otra decision sin sugerencia automatica. Generico: sin sheet/section/
+// pattern_id hardcodeado, aplica igual a A01/A (PATTERN_QUESTIONS) y a
+// cualquier seccion BM/futura via A01_B_PATTERN_QUESTIONS.
+const HUMAN_DECISION_SUFFIXES = new Set(['logic_correct', 'empty'])
 const SUGGESTED_SUFFIXES = new Set(['all_est', 'exceptions', 'special', 'inconsistency'])
 const FORMULA_CONFIRMATION_ID_SUFFIX = 'formula_confirmation'
 
