@@ -195,6 +195,71 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+**AUDITORÍA READ-ONLY PRODUCCIÓN SERIE A + SERIE BM** — ver el checkpoint inmediatamente debajo ("CHECKPOINT 16-09-2026 — FIN DE JORNADA — SERIE A + REM BM LOCAL CERTIFICADAS / BM RESPALDADO EN ORIGIN", sección "Próximo paso exacto para mañana") para el detalle completo, las reglas de seguridad y el orden exacto de pasos. **No comenzar Serie D todavía.**
+
+## CHECKPOINT 16-09-2026 — FIN DE JORNADA — SERIE A + REM BM LOCAL CERTIFICADAS / BM RESPALDADO EN ORIGIN
+
+**⭐ REANUDAR AQUÍ — este checkpoint reemplaza como punto de reanudación inmediato al checkpoint "CHECKPOINT 16-09-2026 — BM-11.51/11.52" de abajo** (ese sigue vigente para su propio alcance histórico y detalle técnico completo de la certificación local BM — no se repite aquí — pero la jornada avanzó: los commits quedaron respaldados en `origin/main` y la jornada se cierra formalmente). **Esta fase es 100% documental — cero producción, cero código, cero BD.**
+
+### REM Serie A — estado LOCAL (sin cambios en esta jornada)
+
+Calibración local/repo **cerrada y certificada canónicamente al 100%**: estructura activa local `id=67 / version=35`, **306/306 secciones aplicables**, **22/22 hojas completas**, `REQUIRES_REMAP=0`. **Estado local certificado — no confundir con producción.** Producción tiene un estado histórico (última referencia conocida: estructura `19/v33`) que **deberá auditarse nuevamente antes de asumir nada** — existen diferencias/detalles pendientes de sincronización/verificación entre el estado certificado local y producción. **No asumir que los IDs locales (67) deben coincidir con los de producción (19)** — son entornos que evolucionaron por separado; la sincronización que corresponde es funcional/canónica, nunca de IDs.
+
+### REM Serie BM — estado LOCAL
+
+**`BM1151_REM_BM_LOCAL_END_TO_END_CERTIFIED`.** Estructura local `id=72 / version=1`. **6/6 secciones funcionales revisadas, 0 pendientes.** **12 patrones estructurales totales, 0 pendientes.** **2/2 hojas completas.** Reglas técnicas: **53 `sum_equals` + 37 `cross_sheet_equals` = 90 total**. Última reverificación LIVE local (`rule:validate`, dry-run, sin reprocesar upload #197): **90 evaluadas, 90 passed, 0 failed, 0 skipped, 0 invalid**.
+
+**Casos funcionales importantes** (detalle completo en el checkpoint BM-11.51/11.52 de abajo — resumen aquí):
+- **BM18A/A fila 119** — separador/artefacto estructural, sin concepto REM. Persistido: `logic_correct=no`, `empty=no_aplica`.
+- **BM18A/B fila 178** — separador/artefacto estructural, sin concepto REM. Persistido: `logic_correct=no`, `empty=no_aplica`.
+- **BM18A/B Ortopedia (filas 180-185)** — `empty=debe_registrar_cero`, `all_est=si`, `exceptions=no`, `inconsistency=advertencia`. **Criterio funcional provisional/recalibrable — NO es una regla oficial inmutable de MINSAL**; si Estadística APS determina otro criterio, se recalibra por la UI normal, sin tocar código.
+
+**Limitación conocida, documentada, no resuelta**: `RuleEngineService` todavía no integra universalmente las reglas funcionales por patrón (`getPatternFunctionalRulesForRows()`, usadas por `FunctionalQuestionsPanel.tsx`) — solo lee reglas directas por-fila. **No bloquea el workbook BM certificado actual** porque ni la fila 119 ni la fila 178 tienen ninguna regla técnica asociada.
+
+### Git / GitHub — BM-11.56 cerrado correctamente
+
+`origin/main` contiene ahora, en orden cronológico:
+```
+4861926  fix(rem): render empty behavior functional question
+bbc1378  fix(rem): support non-applicable functional patterns
+62242bf  docs: certify REM BM local end-to-end
+```
+Post-push: `HEAD = origin/main = 62242bf6d0a29cb757b805c0f81920ec6555bfc2`, ahead/behind = **0/0**. Veredicto: **`BM1156_CERTIFIED_COMMITS_PUSHED_TO_ORIGIN`**.
+
+### Calibración que NO viajó por Git
+
+`backend/storage/app/private/certificacion/reglas-funcionales.json` está **ignorado/no trackeado** (confirmado vía `git check-ignore -v`, gitignorado por `backend/storage/app/.gitignore` y `.../private/.gitignore`). El código/mecanismo genérico de BM (soporte `no_aplica`, exclusión de preguntas dependientes, resolución backend) **sí** está respaldado en GitHub — pero las **decisiones concretas** persistidas (fila 119, fila 178, Ortopedia) **no se transfieren automáticamente a otro entorno mediante `git pull`**. Esto deberá tratarse explícitamente durante la futura sincronización de producción (ver "Próximo paso exacto para mañana" abajo).
+
+### Working tree histórico — sin cambios, sin mezclar
+
+`frontend/vite.config.ts` (modificado), `backend/app/Console/Commands/DiagCheckAdminPasswordCommand.php`, `backend/app/Console/Commands/DiagResetAdminPasswordCommand.php` (untracked), `backend/demo/` (untracked) — históricos/protegidos, **no deben mezclarse con futuras fases salvo autorización separada**.
+
+### Producción — estado al cierre de esta jornada
+
+**Producción NO fue tocada durante todo el cierre BM.** Sin SSH, sin `git pull` en servidor, sin deploy, sin migrate, sin seed, sin cache clear, sin restart, sin Docker de producción, sin SQL, sin tinker, sin recalibración, sin modificación de uploads productivos. **No asumir que producción está sincronizada con local** — ni para Serie A ni para Serie BM.
+
+### Próximo paso exacto para mañana — PRODUCCIÓN SERIE A + SERIE BM
+
+**No comenzar Serie D todavía.** Cuando el usuario autorice explícitamente trabajo en el servidor:
+
+**FASE 1 — AUDITORÍA READ-ONLY DE PRODUCCIÓN** (exclusivamente lectura). Comparar el estado certificado LOCAL contra PRODUCCIÓN para:
+1. **REM Serie A.**
+2. **REM Serie BM.**
+
+Antes de cualquier escritura, determinar: commit/código realmente desplegado; estructuras activas; versiones; `rem_rules`; bindings; configuración/calibración existente; diferencias Serie A local vs. producción; qué falta para llevar Serie A al estado certificado local; existencia/estado de Serie BM en producción; qué necesita BM para reproducir el estado certificado local; estrategia para transportar calibraciones funcionales sin sobrescribir datos productivos.
+
+**Reglas para mañana, sin excepción:**
+- NO copiar BD local sobre producción.
+- NO reemplazar IDs productivos para hacerlos coincidir con local.
+- NO borrar uploads/`rem_data`.
+- NO ejecutar seed/recalibración masiva a ciegas.
+- NO usar `reconcileLiveCanonical()` en producción.
+- NO escribir nada hasta terminar la auditoría read-only y presentar un plan exacto al usuario.
+
+**Después de la auditoría**: Serie A → sincronizar de manera controlada y certificar producción. Serie BM → sincronizar de manera controlada y certificar producción.
+
+**Objetivo**: **SERIE A PRODUCCIÓN CERTIFICADA + SERIE BM PRODUCCIÓN CERTIFICADA.** Solo después de conseguir ambos estados, **comenzar Serie D**.
+
 ## CHECKPOINT 16-09-2026 — BM-11.51/11.52 — REM BM LOCAL END-TO-END CERTIFIED
 
 **⭐ REANUDAR AQUÍ — este checkpoint reemplaza como punto de reanudación inmediato al checkpoint "CHECKPOINT 16-09-2026 — BM-11.40/41/42/43" de abajo** (ese sigue vigente para su propio alcance histórico — diseño e implementación local del soporte `no_aplica`, auditoría de fila 178 — pero la campaña se cerró: las dos filas separadoras quedaron calibradas por el responsable funcional, Ortopedia quedó calibrada, y una revalidación LIVE completa (BM-11.49→BM-11.51, contra los servicios reales de ATHENEA, sin tinker/SQL) certificó **REM BM calibración local/repo cerrada y certificada end-to-end** contra la estructura activa. **No confundir con Serie A** — son cierres independientes; esta afirmación cubre exclusivamente Serie BM. Fase 100% documental salvo lo ya commiteado en `4861926` (BM-11.40) — el resto de los cambios de código (BM-11.48) sigue local, sin commit, a la espera de autorización explícita separada.
