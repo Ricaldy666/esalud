@@ -538,13 +538,56 @@ function hasCompleteCellEvidence(pattern: PatternGroup, warnings: string[] | und
   )
 }
 
+// BM-11.48 (NOT_APPLICABLE_GENERIC_FIX, diseño BM-11.47): 'empty' es la
+// unica señal de "este patron no corresponde a una fila/concepto
+// reportable" -- deliberadamente independiente de 'logic_correct' (una
+// formula mal detectada no implica que la fila no exista, ver BM-11.47
+// punto B). Nunca derivar esto de logic_correct.
+const NOT_APPLICABLE_EMPTY_RESPONSE = 'no_aplica'
+// Preguntas que solo tienen sentido cuando el patron SI es una fila/concepto
+// reportable (aplicabilidad por establecimiento, excepciones, severidad de
+// la inconsistencia) -- se excluyen del denominador cuando 'empty' vigente
+// es NOT_APPLICABLE_EMPTY_RESPONSE. 'empty' y 'logic_correct' (cuando
+// corresponde) permanecen siempre.
+const QUESTIONS_REQUIRING_APPLICABLE_PATTERN = new Set(['all_est', 'exceptions', 'inconsistency'])
+
+function currentPatternResponse(
+  pattern: PatternGroup,
+  idSuffix: string,
+  responses: Record<string, string>,
+  initialByKey: Map<string, CalibrationQuestion>
+) {
+  const id = patternQuestionId(pattern.id, idSuffix)
+  return responses[id] ?? initialByKey.get(id)?.response ?? ''
+}
+
+function isPatternDeclaredNotApplicable(
+  pattern: PatternGroup,
+  responses: Record<string, string>,
+  initialByKey: Map<string, CalibrationQuestion>
+) {
+  return (
+    currentPatternResponse(pattern, 'empty', responses, initialByKey) ===
+    NOT_APPLICABLE_EMPTY_RESPONSE
+  )
+}
+
 function questionsForPattern(
   pattern: PatternGroup,
   definitions: QuestionDefinition[],
-  warnings: string[] | undefined
+  warnings: string[] | undefined,
+  responses: Record<string, string>,
+  initialByKey: Map<string, CalibrationQuestion>
 ) {
-  if (!hasCompleteCellEvidence(pattern, warnings)) return definitions
-  return definitions.filter((definition) => definition.idSuffix !== 'logic_correct')
+  const base = hasCompleteCellEvidence(pattern, warnings)
+    ? definitions.filter((definition) => definition.idSuffix !== 'logic_correct')
+    : definitions
+
+  if (!isPatternDeclaredNotApplicable(pattern, responses, initialByKey)) return base
+
+  return base.filter(
+    (definition) => !QUESTIONS_REQUIRING_APPLICABLE_PATTERN.has(definition.idSuffix)
+  )
 }
 
 function sectionHasCompleteCellEvidence(patterns: PatternGroup[], warnings: string[] | undefined) {
@@ -898,7 +941,13 @@ export default function FunctionalQuestionsPanel({
     for (const pattern of patterns) {
       const blocked = needsRevalidation(pattern.reconciliation_status)
       const isReviewed = !blocked && reviewedPatterns[pattern.id]
-      const definitions = questionsForPattern(pattern, patternQuestions, warnings)
+      const definitions = questionsForPattern(
+        pattern,
+        patternQuestions,
+        warnings,
+        responses,
+        initialByKey
+      )
       const identity = {
         pattern_fingerprint: pattern.row_fingerprint,
         pattern_rows: pattern.pattern_rows,
@@ -991,7 +1040,13 @@ export default function FunctionalQuestionsPanel({
   const patternProgress = useMemo(() => {
     return patterns.map((pattern) => {
       const hasConfirmedEvidence = hasCompleteCellEvidence(pattern, warnings)
-      const definitions = questionsForPattern(pattern, patternQuestions, warnings)
+      const definitions = questionsForPattern(
+        pattern,
+        patternQuestions,
+        warnings,
+        responses,
+        initialByKey
+      )
       const rows = definitions.map((definition) => {
         const id = patternQuestionId(pattern.id, definition.idSuffix)
         const response = responses[id] ?? initialByKey.get(id)?.response ?? ''
@@ -1110,7 +1165,13 @@ export default function FunctionalQuestionsPanel({
     let changed = 0
     setResponseChanges((prev) => {
       const next = { ...prev }
-      for (const definition of questionsForPattern(pattern, patternQuestions, warnings)) {
+      for (const definition of questionsForPattern(
+        pattern,
+        patternQuestions,
+        warnings,
+        responses,
+        initialByKey
+      )) {
         const suggested = suggestedResponseFor(definition, pattern)
         if (!suggested) continue
         const id = patternQuestionId(pattern.id, definition.idSuffix)
@@ -1135,7 +1196,13 @@ export default function FunctionalQuestionsPanel({
       const next = { ...prev }
       for (const pattern of patterns) {
         if (!isSuggestionEligible(pattern)) continue
-        for (const definition of questionsForPattern(pattern, patternQuestions, warnings)) {
+        for (const definition of questionsForPattern(
+          pattern,
+          patternQuestions,
+          warnings,
+          responses,
+          initialByKey
+        )) {
           const suggested = suggestedResponseFor(definition, pattern)
           if (!suggested) continue
           const id = patternQuestionId(pattern.id, definition.idSuffix)
@@ -1222,9 +1289,15 @@ export default function FunctionalQuestionsPanel({
     setResponseChanges((prev) => {
       const next = { ...prev }
       for (const target of targets) {
-        for (const definition of questionsForPattern(sourcePattern, patternQuestions, warnings)) {
+        for (const definition of questionsForPattern(
+          sourcePattern,
+          patternQuestions,
+          warnings,
+          responses,
+          initialByKey
+        )) {
           if (
-            !questionsForPattern(target, patternQuestions, warnings).some(
+            !questionsForPattern(target, patternQuestions, warnings, responses, initialByKey).some(
               (candidate) => candidate.idSuffix === definition.idSuffix
             )
           )

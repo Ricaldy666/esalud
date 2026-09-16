@@ -726,9 +726,17 @@ class FunctionalRuleService
 
     private function patternQuestionsToFunctionalRule(string $sheet, string $section, array $pattern, array $questions): ?array
     {
+        // BM-11.48 (NOT_APPLICABLE_GENERIC_FIX, diseño BM-11.47): 'no_aplica'
+        // es una respuesta terminal tan valida como las otras dos -- señala
+        // que el patron/fila no corresponde a un concepto REM reportable.
+        // Reutiliza tal cual el mecanismo ya existente y probado de
+        // RuleEngineService::execute() (Step 2, "Remove rows only when
+        // no_aplica is formally approved") y de ValidateRemUploadJob (rama
+        // no-op 'Skipped entirely') -- ninguno de los dos se modifica aqui.
         $emptyQuestion = $this->findPatternQuestion($questions, ['empty', 'sin_datos'], [
             'debe_registrar_cero',
             'puede_quedar_vacio',
+            'no_aplica',
         ]);
 
         if ($emptyQuestion === null || !$this->isReviewedQuestion($emptyQuestion)) {
@@ -736,7 +744,7 @@ class FunctionalRuleService
         }
 
         $emptyBehavior = $emptyQuestion['response'] ?? null;
-        if (!in_array($emptyBehavior, ['debe_registrar_cero', 'puede_quedar_vacio'], true)) {
+        if (!in_array($emptyBehavior, ['debe_registrar_cero', 'puede_quedar_vacio', 'no_aplica'], true)) {
             return null;
         }
 
@@ -749,6 +757,13 @@ class FunctionalRuleService
         // solo lo hace cuando no trae un scope estructurado valido, que es
         // exactamente el comportamiento seguro que ya tenia el codigo
         // anterior para ese caso degenerado (preservado a proposito).
+        //
+        // Cuando $emptyBehavior==='no_aplica' (BM-11.48), el frontend ya no
+        // envia las preguntas all_est/exceptions/inconsistency para este
+        // patron (ver questionsForPattern() en FunctionalQuestionsPanel.tsx)
+        // -- ambas quedan null aqui, y resolveScope(null, null, null) cae en
+        // su "Caso A" ya existente ([[], [], true]: sin restriccion de
+        // establecimiento), sin inventar ningun scope/severity nuevo.
         $allEstQuestion = $this->findQuestionByIdSubstring($questions, ['all_est']);
         $exceptionsQuestion = $this->findQuestionByIdSubstring($questions, ['exception', 'excepcion']);
 

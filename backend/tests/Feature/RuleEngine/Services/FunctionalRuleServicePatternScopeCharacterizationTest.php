@@ -416,4 +416,114 @@ class FunctionalRuleServicePatternScopeCharacterizationTest extends TestCase
 
         $this->assertArrayNotHasKey(68, $resultGarbage, 'scope.included_health_centers sin ningun nombre utilizable se normaliza a [] -- invalido, fail-safe.');
     }
+
+    // ── BM-11.48 (NOT_APPLICABLE_GENERIC_FIX, diseño BM-11.47) ────────────
+    // empty='no_aplica' es una tercera respuesta terminal valida, ademas de
+    // debe_registrar_cero/puede_quedar_vacio -- señala que el patron no
+    // corresponde a un concepto REM reportable. El frontend (BM-11.48,
+    // FunctionalQuestionsPanel.tsx::questionsForPattern()) ya no envia
+    // all_est/exceptions/inconsistency para un patron en este estado -- los
+    // siguientes tests replican exactamente esa forma (solo la pregunta
+    // 'empty' presente), sin all_est/exceptions en absoluto.
+
+    public function test_empty_no_aplica_without_dependent_questions_generates_rule_with_no_aplica_behavior(): void
+    {
+        Storage::fake('local');
+
+        $questions = [
+            [
+                'id' => 'patron_14_empty',
+                'type' => 'pattern_question',
+                'pattern_id' => 14,
+                'pattern_key' => 'pattern_14',
+                'response' => 'no_aplica',
+                'review_status' => 'reviewed',
+                'status' => 'answered',
+            ],
+        ];
+
+        $result = $this->saveAndResolve($questions, [$this->pattern(14, [178])]);
+
+        $this->assertArrayHasKey(178, $result, 'no_aplica debe generar una regla real, no descartarse silenciosamente.');
+        $this->assertSame('no_aplica', $result[178]['empty_behavior']);
+        $this->assertSame([], $result[178]['included_health_centers'], 'sin all_est/exceptions presentes, resolveScope() cae en su Caso A existente -- sin scope inventado.');
+        $this->assertSame([], $result[178]['excluded_health_centers']);
+        $this->assertSame('aprobada', $result[178]['status']);
+        // severity nunca se inventa como 'no_aplica' -- cae al default seguro
+        // ya existente ('warning'), inerte porque RuleEngineService/
+        // ValidateRemUploadJob (no tocados) ignoran severity por completo
+        // cuando empty_behavior==='no_aplica' (BM-11.47 punto D).
+        $this->assertSame('warning', $result[178]['severity']);
+    }
+
+    public function test_empty_no_aplica_with_logic_correct_present_keeps_no_aplica_behavior(): void
+    {
+        Storage::fake('local');
+
+        // logic_correct es una señal independiente (BM-11.47 punto B) --
+        // su presencia/valor no debe alterar el empty_behavior resuelto.
+        $questions = [
+            [
+                'id' => 'patron_15_logic_correct',
+                'type' => 'pattern_question',
+                'pattern_id' => 15,
+                'pattern_key' => 'pattern_15',
+                'response' => 'no',
+                'review_status' => 'reviewed',
+                'status' => 'answered',
+            ],
+            [
+                'id' => 'patron_15_empty',
+                'type' => 'pattern_question',
+                'pattern_id' => 15,
+                'pattern_key' => 'pattern_15',
+                'response' => 'no_aplica',
+                'review_status' => 'reviewed',
+                'status' => 'answered',
+            ],
+        ];
+
+        $result = $this->saveAndResolve($questions, [$this->pattern(15, [179])]);
+
+        $this->assertArrayHasKey(179, $result);
+        $this->assertSame('no_aplica', $result[179]['empty_behavior']);
+    }
+
+    public function test_empty_puede_quedar_vacio_still_generates_rule_unaffected_by_no_aplica_support(): void
+    {
+        Storage::fake('local');
+
+        $questions = $this->baseQuestions(16, 'puede_quedar_vacio', 'si', 'no');
+        $result = $this->saveAndResolve($questions, [$this->pattern(16, [180])]);
+
+        $this->assertArrayHasKey(180, $result);
+        $this->assertSame('puede_quedar_vacio', $result[180]['empty_behavior']);
+        $this->assertSame([], $result[180]['included_health_centers']);
+        $this->assertSame([], $result[180]['excluded_health_centers']);
+    }
+
+    public function test_empty_response_outside_allowed_set_still_returns_null(): void
+    {
+        Storage::fake('local');
+
+        // Fail-safe: cualquier valor fuera de las 3 respuestas terminales
+        // reconocidas (ej. 'depende_del_establecimiento', legado o futuro)
+        // sigue sin generar ninguna regla -- no se ampliό el allow-list mas
+        // alla de lo pedido explicitamente.
+        $questions = [
+            [
+                'id' => 'patron_17_empty',
+                'type' => 'pattern_question',
+                'pattern_id' => 17,
+                'pattern_key' => 'pattern_17',
+                'response' => 'depende_del_establecimiento',
+                'review_status' => 'reviewed',
+                'status' => 'answered',
+            ],
+        ];
+
+        $result = $this->saveAndResolve($questions, [$this->pattern(17, [181])]);
+
+        $this->assertArrayNotHasKey(181, $result);
+    }
 }
