@@ -195,6 +195,163 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
+## CHECKPOINT 16-09-2026 — BM-11.51/11.52 — REM BM LOCAL END-TO-END CERTIFIED
+
+**⭐ REANUDAR AQUÍ — este checkpoint reemplaza como punto de reanudación inmediato al checkpoint "CHECKPOINT 16-09-2026 — BM-11.40/41/42/43" de abajo** (ese sigue vigente para su propio alcance histórico — diseño e implementación local del soporte `no_aplica`, auditoría de fila 178 — pero la campaña se cerró: las dos filas separadoras quedaron calibradas por el responsable funcional, Ortopedia quedó calibrada, y una revalidación LIVE completa (BM-11.49→BM-11.51, contra los servicios reales de ATHENEA, sin tinker/SQL) certificó **REM BM calibración local/repo cerrada y certificada end-to-end** contra la estructura activa. **No confundir con Serie A** — son cierres independientes; esta afirmación cubre exclusivamente Serie BM. Fase 100% documental salvo lo ya commiteado en `4861926` (BM-11.40) — el resto de los cambios de código (BM-11.48) sigue local, sin commit, a la espera de autorización explícita separada.
+
+### A. Estructura
+
+`rem_template_structures.id=72`, serie=BM, `version_number=1`, `status=active` — sin cambios en toda la campaña BM-11.40 a BM-11.51.
+
+### B. Estado funcional — 6/6 secciones revisadas, 0 pendientes
+
+Confirmado en vivo (no solo por archivo) contra los servicios reales (`SectionCalibrationMatrixService::buildStructureCalibrationSummary('BM')`): `sections_completed=6/6`, `sections_pending=0`, `progress_pct=100`, `sheets_completed=2/2`.
+
+| Sección | Patrones | Reviewed |
+|---|---|---|
+| BM18/A | 3 | 3/3 |
+| BM18/B | 1 | 1/1 |
+| BM18/C | 1 | 1/1 |
+| BM18/D | 1 | 1/1 |
+| **BM18A/A** | **2** | **2/2** |
+| **BM18A/B** | **4** | **4/4** |
+
+### C. Fila 119 (BM18A/A, pattern_id=2) — cerrada
+
+Auditoría técnica forense (BM-11.50): idéntica en plantilla oficial + 2 establecimientos reales, nunca usada, sin fórmula, sin regla técnica, `D/E/F` desbloqueadas sin relleno de captura — mismo perfil que fila 178. Comparación sistemática contra 10 posiciones análogas de "fila vacía entre bloques" en todo el archivo BM (incluidos los límites reales de sección de la propia hoja BM18): **fila 119 y fila 178 son las únicas 2 que rompen el patrón** (el resto, completamente bloqueadas). **Decisión del responsable funcional: separador/espaciado, NO prestación reportable.** Persistido: `logic_correct=no`, `empty=no_aplica`, `reviewed=true`. Regla funcional resuelta: `empty_behavior=no_aplica`, sin semántica artificial (`severity` cae al default inerte `warning`, nunca `no_aplica`; `included`/`excluded_health_centers=[]`).
+
+### D. Fila 178 (BM18A/B, pattern_id=3) — cerrada
+
+Misma naturaleza que fila 119 (BM-11.42): sin fórmula, sin regla técnica, nunca usada en 3 archivos, única fila desbloqueada entre 9 posiciones TOTAL→separador comparables de su propia sección. **Decisión del responsable funcional: separador/espaciado, NO prestación reportable.** Persistido: `logic_correct=no`, `empty=no_aplica`, `reviewed=true`. Regla funcional idéntica en forma a la de fila 119.
+
+### E. Ortopedia — filas 180-185 (BM18A/B, pattern_id=4) — cerrada
+
+Lectura técnica del XLSM confirmada (`formula_confirmation=confirmed`). Decisión funcional adoptada, **calibrable y provisional, no regla oficial de MINSAL**: `empty=debe_registrar_cero`, `all_est=si`, `exceptions=no`, `inconsistency=advertencia`, `reviewed=true`. Si Estadística APS determina posteriormente un criterio distinto (ej. `puede_quedar_vacio`), el cambio se hace por calibración normal en ATHENEA, sin tocar código — `puede_quedar_vacio` ya es una opción existente del mismo control.
+
+### F. Técnico — sin cambios respecto al baseline BM-6→BM-9
+
+53 `sum_equals` + 37 `cross_sheet_equals` = 90 reglas técnicas BM. Confirmado por manifiesto (`expected_rule_count`) y en vivo (`rule:validate`).
+
+### G. E2E — revalidación LIVE, no solo histórica
+
+Upload **#197** (`102412BM05.xlsm`, Posta Caleta Chanavayita, 2026-05) reutilizado en modo **dry-run/revalidación** (`rule:validate 197 72`, `temp:validate-flow 197`) — **nunca reprocesado, nunca modificado**. Resultado, reconfirmado dos veces (BM-11.49 y BM-11.51) con el código actual (post BM-11.48) y el worker local reiniciado: **90 evaluadas, 90 passed, 0 failed, 0 skipped, 0 invalid.** `rem_data=181` (37 BM18 + 144 BM18A, exacto: 84+1+59=144). Filas 186/206 (technical_totals) ausentes de `rem_data`, consistente con lo esperado.
+
+### H. Cobertura estructural — sin drift
+
+12 patrones totales en las 6 secciones (3+1+1+1+2+4). Cada `id`/`row_fingerprint`/cantidad de filas comparado punto a punto entre BM-11.49 y BM-11.51: **100% idénticos**. Ningún patrón nuevo, ninguno desaparecido, ningún fingerprint cambiado por las calibraciones de fila 119/178/Ortopedia.
+
+### I. Regresiones
+
+35 fallos preexistentes conocidos (`1 RuleEngineIntegrationTest + 30 FunctionalRuleEngineCertificationTest + 4 RuleEngineServiceTest`) — confirmados independientes del cambio de BM-11.48 mediante `git stash` explícito (mismo resultado con y sin el fix). **0 regresiones nuevas atribuibles a la campaña BM.**
+
+### J. Limitación arquitectónica conocida — documentada, no resuelta
+
+`RuleEngineService::execute()` solo lee reglas funcionales directas por-fila (`getFunctionalRulesForEngine()`), nunca las basadas en patrones (`getPatternFunctionalRulesForRows()`, usadas por `FunctionalQuestionsPanel.tsx`). **No bloquea este workbook**: ni la fila 119 ni la fila 178 tienen ninguna regla técnica asociada (0 de las 90 las referencia), por lo que ese motor nunca necesita excluirlas. Integrar ambas fuentes en `RuleEngineService` queda como trabajo futuro independiente, sin fecha, no iniciado.
+
+### K. Producción — PENDIENTE, explícitamente no tocada
+
+**NO desplegado. NO sincronizado. NO certificado en producción.** Todo lo de BM-11.40 a BM-11.51 vive exclusivamente en local (BD `esalud_dev` + `reglas-funcionales.json` local, gitignorado) y en el commit local `4861926` (sin push). Último estado conocido de producción sigue siendo el histórico (Serie A `19/v33`, sin ningún avance de BM) — no revalidado en esta campaña.
+
+### Veredicto textual — usar exactamente esta redacción en referencias futuras
+
+**"REM BM calibración local/repo cerrada y certificada end-to-end."** — **nunca** "todos los REM están calibrados" ni generalizar a Serie A (que es un cierre completamente independiente, ya cerrado desde antes, sin relación con esta campaña).
+
+### Estado Git al cierre de este checkpoint
+
+`HEAD=4861926` (contiene ya el commit `fix(rem): render empty behavior functional question`, BM-11.40) · `origin/main=7e2069d` · ahead/behind=1/0. Cambios de código de BM-11.48 (soporte `no_aplica`) siguen **sin commitear** — ver BM-11.52 para el análisis de qué corresponde al próximo commit. Sin stage, sin push. Los 4 históricos de siempre (`vite.config.ts`, 2× `Diag*Command.php`, `backend/demo/`) sin tocar.
+
+### Próximo paso
+
+Cerrar el commit local de BM-11.48 (soporte `no_aplica`) cuando se autorice explícitamente — alcance exacto documentado en el reporte de BM-11.52 de esta misma jornada, no repetido aquí. Después: decisión pendiente sobre push/sincronización con producción (no iniciada, no autorizada).
+
+## CHECKPOINT 16-09-2026 — BM-11.40/41/42/43 — UI GAP `empty` CORREGIDO (LOCAL, SIN COMMIT) + PATTERN 3/4 DE BM18A/B AUDITADOS — SIN DECISIÓN FUNCIONAL AÚN
+
+**⭐ REANUDAR AQUÍ — este checkpoint reemplaza como punto de reanudación inmediato al checkpoint "CHECKPOINT 15-09-2026 — FIN DE JORNADA — BM18A/B" de abajo** (ese sigue vigente para su propio alcance histórico — el hallazgo `BM1138_PATTERN4_UI_GAP_DETECTED` y el estado de BM18/A,B,C,D+BM18A/A al cierre del 15-09 — pero la campaña avanzó: el gap de UI ya fue corregido localmente, y Pattern 3 (fila 178) y Pattern 4 (Ortopedia) de `BM18A/B` fueron auditados a fondo). **Esta fase (BM-11.40 a BM-11.43) es 100% read-only salvo el propio código de UI (BM-11.40) y este mismo archivo — ningún BD/tinker/SQL/commit/push/stage tocado.**
+
+**BM-11.40 — fix genérico del gap `empty`, LOCAL, SIN COMMIT.** `HUMAN_DECISION_SUFFIXES` en `frontend/src/features/rule-engine/components/patterns/FunctionalQuestionsPanel.tsx` pasó de `Set(['logic_correct'])` a `Set(['logic_correct', 'empty'])` — una línea + comentario. Causa: `empty` pertenecía a `PATTERN_QUESTIONS`/`A01_B_PATTERN_QUESTIONS` y ya contaba en `answered`/`total`, pero no pertenecía a `HUMAN_DECISION_SUFFIXES` ni a `SUGGESTED_SUFFIXES` — las únicas listas que decidían qué `<QuestionRow>` se renderiza — por lo que nunca tenía control visible y bloqueaba permanentemente `canReview` para cualquier patrón con evidencia de celda. Se eligió `HUMAN_DECISION_SUFFIXES` (no `SUGGESTED_SUFFIXES`) porque no existe valor sugerible por el sistema para esa pregunta. Genérico, sin hardcodes de sheet/section/pattern. Verificado: `tsc -b` limpio, `eslint` limpio, `npm run build` exitoso, y **verificado visualmente por el usuario en ATHENEA local** — Pattern 1 sigue 5/5 revisado, Pattern 2 sigue 5/5 revisado, Pattern 3 sigue 0/5 intacto, Pattern 4 ahora muestra el control y sigue 0/5 (sin guardar). **Sin tests automatizados nuevos** (frontend no tiene infraestructura de test unitario — `package.json` sin script `test`, sin vitest/jest — no se creó una para este cambio mínimo, por instrucción explícita). **Sigue sin commit/stage/push** — único archivo funcional modificado en el working tree además de este `CLAUDE.md`.
+
+**BM-11.41 — auditoría Pattern 4 (Ortopedia, filas 180-185) — veredicto `BM1141_EMPTY_REQUIRES_STATISTICS_DECISION`.** Evidencia XLSM cruda (plantilla + ambos establecimientos reales + origen del upload #197, extraídos vía filesystem/ZIP/XML, sin tinker): `D180:D185` tiene validación Excel `type="whole" operator="greaterThanOrEqual" formula1="0" allowBlank="1"` — técnicamente permite blanco — y esa **misma validación XML** (mismo nodo `sqref`) cubre también parte de las celdas D del Pattern 2. `E180:F185` tiene `type="whole" operator="equal" formula1="0" allowBlank="1"` (forzadas a 0, estructuralmente inertes, confirma BM-11.37). Datos reales: ambos establecimientos disponibles registran **0 explícito** en las 6 filas, nunca blanco — cero evidencia empírica de un caso real en blanco, ni en Pattern 4 ni en su antecedente Pattern 2 (que igualmente registra 0 explícito en casi todas sus filas). Antecedente (`reglas-funcionales.json`, no heredado automáticamente): Pattern 1 y Pattern 2 de esta misma sección ya resolvieron `empty=puede_quedar_vacio` bajo el mismo perfil de validación. Manual REM (pág. 628-630): sin regla de consistencia para esta sección, sin mención de la convención 0-vs-vacío. **Conclusión**: incluso con evidencia técnica fuerte y un antecedente directo, no se decide por evidencia sola — mismo estándar ya aplicado a `BM18/C` en este archivo. Pregunta pendiente para Estadística APS: *"Cuando no se realizó ninguna prestación de Ortopedia (Infiltración local, Rodillera/yeso, Velpeau, Yeso antebraquial, Yeso braquicarpiano, Luxaciones menores) durante el mes, ¿debe registrarse 0 o puede quedar vacío?"* + consulta secundaria: *"¿Existe una razón funcional por la que estas prestaciones no usan las mismas columnas complementarias (E/F) que el resto de la Sección B?"*. **Pattern 4 sigue sin ninguna respuesta guardada.**
+
+**BM-11.42 — auditoría Pattern 3 (fila 178) — veredicto `BM1142_PATTERN3_READY_FOR_HUMAN_DECISION`.** Hallazgos certificados (idénticos en plantilla oficial + 2 XLSM reales + origen del upload #197): `A178`/`B178` vacíos (sin código ni descripción — único caso en toda la sección); `C178` vacía y **sin fórmula** (única fila de "dato" sin `C=SUM(D:E)`); `D178`/`E178` desbloqueadas (`protection locked="0"`) pero con estilo `fillId="0"` — **sin el relleno amarillo de celda de captura** que sí tienen todas las celdas de entrada reales de la sección (D180, D176, E176, etc., todas `fillId="22"`); `F178` no existe como nodo XML en ningún archivo; sin merge (`mergeCells` no la incluye); D178/E178 siempre vacías en los 3 archivos, nunca usadas por ningún establecimiento real. **Hallazgo comparativo decisivo**: de las 9 filas TOTAL de esta sección (128,140,148,158,164,169,177,186,206), la fila inmediatamente posterior a cada una es un separador — en **8 de 9 casos ese separador está completamente bloqueado**; la fila 178 (posterior al TOTAL de la fila 177) es la **única de las 9 posiciones estructuralmente idénticas que quedó desbloqueada**. Manual REM: confirma el orden real de categorías (Ginecología termina en 177, Ortopedia empieza en 179) pero no describe ningún concepto para una fila separadora. Cero reglas técnicas la referencian (`rem-bm-2026-internal-rules-manifest.json`/`-cross-sheet-...json`, búsqueda exhaustiva sin resultados). **Defectos técnicos de ATHENEA descartados uno por uno** (parser, cell-data, merge, header-como-dato, fingerprint, regla existente) — el sistema detecta correctamente algo que es real y verificable en el propio archivo Excel oficial; no hay ningún defecto en el pipeline de ATHENEA. **Conclusión**: alta confianza técnica de que la fila 178 es un artefacto/separador de la plantilla oficial de MINSAL sin concepto REM asociado — la auditoría técnica está completa y no requiere más recolección de evidencia, pero la confirmación formal ("esta fila no corresponde a un concepto reportable, tratar como NO APLICA/separador") sigue pendiente de un humano (Estadística APS y/o responsable funcional) antes de persistirse. **Pattern 3 sigue sin ninguna respuesta guardada.**
+
+**BM-11.43 — estado exacto de `BM18A/B` y siguiente frente real de calibración BM.**
+
+`BM18A/B` (4 patrones): **Pattern 1 = revisado** (intacto, guardado en fase BM-11.36) · **Pattern 2 = revisado** (intacto, guardado en fase BM-11.36) · **Pattern 3 = pendiente exclusivamente de confirmación humana** (fila 178, ver BM-11.42; sin respuesta guardada) · **Pattern 4 = pendiente exclusivamente de confirmación de Estadística APS** (Ortopedia, ver BM-11.41; sin respuesta guardada). La sección está **técnicamente analizada al 100%** pero **funcionalmente bloqueada en 2 de sus 4 patrones** — no declarar `BM18A/B` certificada.
+
+**Reconfirmación del estado real de las otras 5 secciones BM** (verificado en esta fase leyendo directamente `backend/storage/app/private/certificacion/reglas-funcionales.json`, gitignorado/local, nunca vía tinker/BD): `BM18/C`, `BM18/B`, `BM18/D`, `BM18/A` y `BM18A/A` tienen **todos sus patrones con `review_status=reviewed` y un registro `section_review` con `response=revisada`**, todos con `structure_version="72"` (coincide con la estructura activa vigente) y con `reviewed_at`/`updated_at` del **2026-09-15** (mismo día documentado en el checkpoint de abajo como "guardados/revisados") — es decir, estas 5 secciones están genuinamente calibradas (guardadas + revisadas + con la estructura vigente), no solo "guardadas" en un sentido débil. **Salvedad honesta**: esta verificación fue por inspección directa del archivo persistido (fuente de verdad), no por una re-ejecución en vivo del escáner de patrones (`PatternMigrationScanner`/`buildPatternMatrix`) — no se puede descartar al 100% sin esa re-ejecución que la estructura activa haya cambiado desde el 15-09 de forma que genere un patrón nuevo no cubierto (mismo tipo de gap que ya se documentó para `A30/C` en Serie A, donde el agregado puede mostrar "completado" con reconciliación v1 mientras el fingerprint v2 ya cambió). No se ejecutó esa re-verificación en vivo en esta fase (sería escritura de caché/lectura vía backend, fuera del alcance 100% read-only autorizado hoy).
+
+**Siguiente frente identificado: NO existe una sección BM nueva pendiente de calibración.** `BM18A/B` es la **última** sección del orden ya definido en este archivo (`BM18/C → BM18/B → BM18/D → BM18/A → BM18A/A → BM18A/B`, ver checkpoints "2026-09-14" más abajo) — las 5 anteriores ya están (con la salvedad de arriba) guardadas y revisadas. El único frente real y pendiente de **toda** la campaña de calibración funcional BM es **cerrar los propios Pattern 3 y Pattern 4 de `BM18A/B`** — no hay ningún "después de BM18A/B" en el roadmap BM tal como está definido hoy. Al resolver ambos (con autorización explícita, turno a turno, y solo tras criterio de Estadística APS/responsable funcional), correspondería: (1) marcar `BM18A/B` como sección revisada; (2) ejecutar la re-verificación en vivo pendiente (salvedad arriba) sobre las 6 secciones antes de declarar la Serie BM funcionalmente cerrada; (3) recién entonces evaluar cierre canónico de calibración funcional BM y, por separado, el commit/push del fix de BM-11.40 (previa verificación visual ya obtenida) y de cualquier respuesta persistida.
+
+**Git al cierre de esta fase**: `HEAD = origin/main = 7e2069d`, ahead/behind **0/0**. Working tree: `CLAUDE.md` (esta actualización) + `frontend/src/features/rule-engine/components/patterns/FunctionalQuestionsPanel.tsx` (BM-11.40, funcional, sin commit) + los 4 históricos de siempre (`vite.config.ts`, 2× `Diag*Command.php`, `backend/demo/`) sin tocar. Sin stage, sin commit, sin push, sin BD, sin producción en ninguna fase de BM-11.40 a BM-11.43.
+
+## CHECKPOINT 15-09-2026 — FIN DE JORNADA — BM18A/B
+
+**⭐ REANUDAR AQUÍ — este checkpoint reemplaza como punto de reanudación inmediato a "CIERRE 2026-09-14 (continuación #6)" de abajo** (ese sigue vigente para su propio alcance histórico — BM18/C, ENGINE_UI_REDUNDANCY Aplicación/Excepciones ya corregido en fases posteriores — pero la campaña avanzó mucho más: BM18/A,B,C,D y BM18A/A quedaron guardados/revisados, BM18A/B quedó parcialmente guardado (patrones 1/2), y se descubrió un UI_GAP genérico real bloqueando la calibración del patrón 4. **Esta fase (BM-11.39) es 100% documental — ningún código, BD, commit o push tocado.**
+
+### Estado general
+
+- **REM Serie A**: calibración local/repo cerrada y certificada canónicamente. Baseline: `AUTO_MIGRATE=304`, `NO_UTILIZADA=75`, `NOT_CALIBRATABLE=2`, `QUICK_CONFIRMATION=0`, `MISMATCH=0`, `NEW_SECTION=0`, `FULL_REVALIDATION=0` — reconfirmado en vivo repetidas veces durante la jornada (`rem:simulate-fingerprint-migration --dry-run`), sin desviación en ningún punto.
+- **REM BM**: reglas técnicas certificadas, sin cambios en la jornada. `rem_rules` activas = **841**, `rem_rule_bindings` = **1722**, `cross_sheet_equals` = **37**. Upload real de certificación **#197** (`102412BM05.xlsm`): **90 evaluadas / 90 passed / 0 failed / 0 skipped / 0 invalid** — reconfirmado sin reproceso en cada fase de la jornada.
+- **Producción**: NO tocada en ningún punto de la jornada — cero SSH/Docker/deploy/migrate/seed/restart/cache-clear. No asumir sincronización con local.
+
+### BM18A/B — 4 patrones estructurales
+
+- **Pattern 1** — 30 filas (Forma A: D/E editables, F bloqueada). **Calibrado/revisado** (`puede_quedar_vacio`/`si`/`no`/`advertencia`/`si`/`confirmed`, guardado real BM-11.36). **Conservar intacto.**
+- **Pattern 2** — 22 filas (Forma B: D/E/F todas editables). **Calibrado/revisado**, mismo guardado BM-11.36. **Conservar intacto.**
+- **Pattern 3** — fila 178 (aislada, sin código/label/fórmula, `mode=direct_input`). **Sin decisión.** Clasificación BM-11.35: `REQUIRES_HUMAN_CONFIRMATION` (evidencia insuficiente para `RESIDUAL_UNUSED`, a diferencia de fila 119 — no tiene la firma de separador visual deliberado que sí tiene fila 119). **No tocar hasta su propia auditoría/calibración.**
+- **Pattern 4** — filas **180-185**, categoría **Ortopedia y Traumatología**, 6 filas, fórmula real `C=SUM(D:E)` por fila. **D editable** (capturable). **E bloqueada/no aplicable** en estas 6 filas y en su propio TOTAL (fila 186: `D186=SUM(D180:D185)` real, `E186` sin ninguna fórmula) — evidencia estructural de punta a punta, certificada en BM-11.37. `pattern_id=4` es una **reconstrucción por trazado de código** (orden de inserción en `buildDynamicPatternDefinitions()`), no confirmada contra una consulta en vivo — verificar visualmente al retomar. Sin contaminación cruzada con fila 178 ni con patrones 1/2 (confirmado exhaustivamente en BM-11.36/37/38).
+
+### BM-11.37 — Ortopedia lista para calibración humana
+
+**Veredicto: `BM1137_ORTHOPEDIA_READY_FOR_HUMAN_CALIBRATION`.**
+
+Hallazgos principales: filas 180-185 correctamente aisladas como patrón propio; E (y F) estructuralmente inertes para Ortopedia según evidencia XLSM (plantilla oficial + 2 establecimientos reales, idéntico en los 3); el manual oficial **no documenta** el motivo de negocio (no se inventa criterio MINSAL). Criterio provisional planteado (sin guardar): alcance todos los establecimientos, sin excepciones, severidad advertencia — sujeto a confirmación de Estadística APS, especialmente en cuanto a por qué E/F no aplican a esta categoría.
+
+### Estado visual al cerrar la jornada
+
+El usuario dejó seleccionadas **en memoria de React, sin guardar**, para pattern_4:
+- `all_est = si`
+- `exceptions = no`
+- `inconsistency = advertencia`
+
+**Estas selecciones NO están persistidas.** Al reiniciar el navegador/sesión probablemente deban seleccionarse nuevamente. **No se pulsó** "Guardar respuestas" ni "Marcar patrón como revisado".
+
+### BM-11.38 — UI GAP CONFIRMADO
+
+**Veredicto: `BM1138_PATTERN4_UI_GAP_DETECTED`.**
+
+`FunctionalQuestionsPanel.tsx` contabiliza para pattern_4 **cinco** respuestas: `patron_4_all_est`, `patron_4_exceptions`, `patron_4_inconsistency`, `patron_4_empty`, `patron_4_formula_confirmation`.
+
+Estado real: `all_est`/`exceptions`/`inconsistency` = provisionales, solo estado React (sin guardar); `empty` = pendiente y **sin ningún control renderizado**; `formula_confirmation` = pendiente pero **sí** tiene botón visible ("Confirmar lectura del Excel").
+
+**Gap exacto** (código, líneas ~692-694 y ~1423-1633 de `FunctionalQuestionsPanel.tsx`): para cualquier sección que no sea literalmente `sheet==='A01' && section==='A'`, el conjunto de preguntas usado es `A01_B_PATTERN_QUESTIONS` (mal nombrado — es el genérico de facto). `empty` pertenece a esas definiciones (cuenta en `total`) pero **no está** en `HUMAN_DECISION_SUFFIXES` (`{'logic_correct'}`) ni en `SUGGESTED_SUFFIXES` (`{'all_est','exceptions','special','inconsistency'}`) — las dos únicas listas que la UI usa para decidir qué renderizar. Resultado: `empty` nunca tiene un `<QuestionRow>` en pantalla, en ninguna sección BM ni en ninguna otra sección no-A01/A.
+
+**Consecuencia**: `canReview` exige `answered === total`; como `empty` nunca puede pasar a "respondida" por esta vía, **"Marcar patrón como revisado" queda permanentemente deshabilitado** para pattern_4 (y para cualquier patrón `possible_business_exception` de cualquier sección BM que deba calibrarse individualmente, no solo BM18A/B).
+
+**El problema es GENÉRICO — no debe resolverse con hardcode de BM18A/B ni de las filas 180-185.**
+
+### PUNTO EXACTO PARA RETOMAR MAÑANA
+
+**Próxima fase: BM-11.40 — Diseño y corrección genérica del UI gap `empty`.**
+
+Objetivo: 1) estudiar la corrección mínima/genérica; 2) hacer que `empty` tenga un control humano visible apropiado; 3) no alterar semántica de patrones ya calibrados; 4) preservar A01/A y Serie A; 5) preservar BM patrones 1/2 (BM18A/B) y todo lo demás ya guardado (BM18/A,B,C,D, BM18A/A); 6) preservar pattern 3/fila 178 sin tocar; 7) verificar localmente en ATHENEA antes de nada más; 8) recién después completar la calibración de pattern 4; 9) guardar y certificar BM18A/B; 10) commit/push solo después de verificación funcional local confirmada por el usuario.
+
+**No implementar BM-11.40 hoy.**
+
+### Git al cierre
+
+`HEAD = origin/main = 7e2069d`, ahead/behind = **0/0**, nada staged. Excluidos de siempre, sin tocar: `frontend/vite.config.ts`, `backend/app/Console/Commands/DiagCheckAdminPasswordCommand.php`, `backend/app/Console/Commands/DiagResetAdminPasswordCommand.php`, `backend/demo/` — no incorporarlos a ningún commit REM futuro.
+
+### Regla operativa — vigente permanentemente
+
+- Prohibido `tinker` incluso para `SELECT`/echo durante estas campañas de calibración/auditoría.
+- Operaciones destructivas o de simulación de escritura solamente contra entorno de tests aislado (`esalud_testing`, `RefreshDatabase`), nunca contra `esalud_dev`.
+- Producción fuera de alcance hasta autorización explícita, turno a turno.
+- Git push **no equivale** a deploy de producción.
+- Antes de cualquier commit/push de una corrección funcional, el usuario debe verla funcionando localmente en ATHENEA.
+
+---
+
 ### ⭐ REANUDAR AQUÍ — PRÓXIMA JORNADA — CIERRE 2026-09-14 (continuación #6), REM BM — BM-11.1 CRITERIO FUNCIONAL BM18/C DETERMINADO (REQUIERE ESTADÍSTICA) + ENGINE_UI_REDUNDANCY PENDIENTE DE AUDITORÍA — leer esto primero, antes que todo lo demás de esta sección
 
 **Veredicto: `BM112_CIERRE_JORNADA_BM_FUNCIONAL_DOCUMENTADO`.** Reemplaza como punto de reanudación inmediato al checkpoint "2026-09-14 (continuación #5), BM-10.1/10.2/10.3..." de abajo (ese sigue vigente para su propio alcance — el fix genérico de preguntas/etiquetas funcionales, ya commiteado y pusheado — pero la campaña avanzó al primer intento real de determinar el criterio de `BM18/C`: se agotó toda la evidencia local disponible, se encontró un hallazgo de UI adicional pendiente de corrección, y la calibración de `BM18/C` sigue sin guardarse — correctamente, porque requiere criterio de Estadística APS). `main` = `origin/main` = **`022077b`** (se actualizará al pushear este checkpoint). **Ningún código, test, ni BD tocados en BM-11.1/11.2 — 100% documental/read-only.**
