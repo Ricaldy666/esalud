@@ -220,16 +220,34 @@ class FunctionalRuleService
         $all = $this->loadAll();
         $key = "{$sheet}_{$section}";
 
-        $existing = $all['_questions'][$key] ?? [];
+        $existing = array_values($all['_questions'][$key] ?? []);
         $history = $all['_questions_history'][$key] ?? [];
 
+        // Emparejamiento por identidad estable ('id'), no por posicion --
+        // mismo criterio que resolveHumanReviewPattern(). Antes se usaba
+        // $existing[$i]: si el payload cambiaba de orden o de largo (ej. un
+        // patron no_aplica deja de enviar all_est/exceptions/inconsistency),
+        // cada pregunta se mezclaba con la que ocupaba su misma posicion y
+        // heredaba sus metadatos (pattern_key, fingerprint, estado de
+        // reconciliacion...). Las preguntas existentes que no vienen en el
+        // payload se conservan intactas, en su lugar.
+        $indexById = [];
+        foreach ($existing as $idx => $item) {
+            $id = is_array($item) ? ($item['id'] ?? null) : null;
+            if (is_string($id) && $id !== '' && !isset($indexById[$id])) {
+                $indexById[$id] = $idx;
+            }
+        }
+
         foreach ($questions as $i => $q) {
-            $old = $existing[$i] ?? [];
+            $targetIndex = $this->resolveExistingQuestionIndex($q, $i, $existing, $indexById);
+            $old = $targetIndex !== null ? ($existing[$targetIndex] ?? []) : [];
             $newStatus = $q['response'] ?? $old['response'] ?? '';
             $oldStatus = $old['response'] ?? '';
 
             if ($newStatus !== $oldStatus && !empty($newStatus)) {
                 $history[] = [
+                    'question_id' => $q['id'] ?? $old['id'] ?? null,
                     'type' => $q['type'] ?? $old['type'] ?? 'unknown',
                     'previous' => $old['response'] ?? '',
                     'new' => $newStatus,
@@ -250,9 +268,19 @@ class FunctionalRuleService
                 ? array_diff_key($q, array_flip(self::PROTECTED_V2_FIELDS))
                 : $q;
 
-            $existing[$i] = array_merge($old, $incoming, [
+            $merged = array_merge($old, $incoming, [
                 'updated_at' => now()->toIso8601String(),
             ]);
+
+            if ($targetIndex === null) {
+                $existing[] = $merged;
+                $newId = $merged['id'] ?? null;
+                if (is_string($newId) && $newId !== '') {
+                    $indexById[$newId] = array_key_last($existing);
+                }
+            } else {
+                $existing[$targetIndex] = $merged;
+            }
         }
 
         $all['_questions'][$key] = $existing;
@@ -270,6 +298,29 @@ class FunctionalRuleService
         SectionCalibrationMatrixService::forgetCalibrationSummaryCache($serie);
 
         return $existing;
+    }
+
+    /**
+     * Indice de la pregunta existente que corresponde a $q, o null si es nueva.
+     * Con 'id' se empareja solo por identidad. Sin 'id' (payload legado) se
+     * conserva el emparejamiento por posicion unicamente si la pregunta en esa
+     * posicion tampoco tiene 'id' -- nunca se sobrescribe una pregunta
+     * identificada con una anonima.
+     */
+    private function resolveExistingQuestionIndex(array $q, int|string $position, array $existing, array $indexById): ?int
+    {
+        $id = $q['id'] ?? null;
+        if (is_string($id) && $id !== '') {
+            return $indexById[$id] ?? null;
+        }
+
+        if (!is_int($position) || !isset($existing[$position]) || !is_array($existing[$position])) {
+            return null;
+        }
+
+        $existingId = $existing[$position]['id'] ?? null;
+
+        return (is_string($existingId) && $existingId !== '') ? null : $position;
     }
 
     /**

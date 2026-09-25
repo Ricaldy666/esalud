@@ -170,6 +170,17 @@ class ValidateRemUploadJob implements ShouldQueue
         // cachea la relacion en el modelo, sin consultas repetidas.
         $healthCenterName = $upload->healthCenter?->name;
 
+        // Serie real de la carga, resuelta igual que StructureResolverService
+        // (rem_type ya almacena la serie: A, BM, BS, D, P...). Antes se omitia
+        // y getPatternsForValidation() caia en su default 'A': para cualquier
+        // otra serie buscaba la hoja en la estructura activa de Serie A, no la
+        // encontraba y devolvia cero patrones -- las decisiones por patron
+        // (incluido no_aplica) nunca llegaban a este validador.
+        $serie = strtoupper(trim((string) $upload->rem_type));
+        if ($serie === '') {
+            $serie = 'A';
+        }
+
         foreach ($rowsBySection as $rows) {
             $firstRowData = $rows->first()?->data ?? [];
             $sheet = (string) ($firstRowData['section'] ?? $rows->first()?->section ?? '');
@@ -184,7 +195,7 @@ class ValidateRemUploadJob implements ShouldQueue
                 // (id + filas), unico dato que getPatternFunctionalRulesForRows()
                 // consume aqui. Evita reconstruir column_groups y el detalle
                 // enriquecido por fila, que esta ruta de validacion masiva nunca usa.
-                $patterns = $matrixService->getPatternsForValidation($sheet, $section);
+                $patterns = $matrixService->getPatternsForValidation($sheet, $section, $serie);
                 $patternRules = $functionalRuleService->getPatternFunctionalRulesForRows(
                     $sheet,
                     $section,

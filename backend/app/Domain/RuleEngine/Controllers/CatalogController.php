@@ -618,6 +618,9 @@ class CatalogController extends Controller
 
         $valid = $request->validate([
             'questions' => 'required|array',
+            // Identidad estable de la pregunta: saveQuestions() empareja por
+            // 'id', no por posicion -- sin esta regla validate() la descartaba.
+            'questions.*.id' => 'sometimes|string',
             'questions.*.type' => 'nullable|string|max:100',
             'questions.*.question' => 'nullable|string',
             'questions.*.response' => 'nullable|string|max:2000',

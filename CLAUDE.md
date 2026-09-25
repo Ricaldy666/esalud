@@ -195,7 +195,79 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
-**AUDITORÍA READ-ONLY PRODUCCIÓN SERIE A + SERIE BM** — ver el checkpoint inmediatamente debajo ("CHECKPOINT 16-09-2026 — FIN DE JORNADA — SERIE A + REM BM LOCAL CERTIFICADAS / BM RESPALDADO EN ORIGIN", sección "Próximo paso exacto para mañana") para el detalle completo, las reglas de seguridad y el orden exacto de pasos. **No comenzar Serie D todavía.**
+**REM Serie D (LOCAL)** — la REM BM quedó recertificada en local el 25-09-2026 (ver checkpoint inmediatamente debajo), después de corregir dos defectos de código detectados en una prueba real. La **auditoría read-only de producción Serie A + BM se realiza aparte** (reglas de seguridad y pasos en el checkpoint "CHECKPOINT 16-09-2026 — FIN DE JORNADA", sección "Próximo paso exacto para mañana", que siguen vigentes sin cambios). Serie D se desarrolla en local, reutilizando el pipeline certificado de A/BM, con autorización explícita turno a turno.
+
+## CHECKPOINT 25-09-2026 — CIERRE DEFINITIVO LOCAL REM BM (POST-FIX)
+
+**⭐ REANUDAR AQUÍ — reemplaza como punto de reanudación inmediato al checkpoint "CHECKPOINT 16-09-2026 — FIN DE JORNADA" de abajo** (ese sigue vigente para el estado de Serie A y para las reglas de la futura auditoría de producción). **Esto certifica REM BM en LOCAL, no en producción. Producción NO fue tocada en ningún momento de esta jornada.**
+
+### Cómo se llegó aquí
+
+Una prueba real de BM hecha desde la UI de ATHENEA (uploads #198–#202, Posta Caleta Chanavayita, 2026-05) terminó en `with_errors`: la fila **119 de BM18A/A** (separador calibrado `no_aplica`) aparecía como error "debe registrar 0". Las 90 reglas técnicas pasaban en todas las cargas — el error era 100% de la validación funcional. La investigación read-only encontró dos defectos de código, ambos corregidos en este commit.
+
+### Bug 1 — `ValidateRemUploadJob` resolvía patrones con Serie A por defecto
+
+`evaluateFunctionalRules()` llamaba `SectionCalibrationMatrixService::getPatternsForValidation($sheet, $section)` **sin serie**; el parámetro tiene default `'A'`. Para BM (y cualquier serie ≠ A), `buildMatrix()` buscaba la hoja en la estructura activa de Serie A, no la encontraba (`not_found`) y devolvía **cero patrones**: ninguna decisión por patrón (incluido `no_aplica`) llegaba al validador funcional. Solo se aplicaban las decisiones explícitas por fila, y `resolveEffectiveFunctionalRules()` heredaba una regla de fila (`BM18A_A_13`, `debe_registrar_cero`) a toda la sección, incluida la fila 119 (D/E/F desbloqueadas). El bug existía el 16-09 pero no se manifestaba porque BM18A/A no tenía todavía ninguna regla por fila heredable.
+
+**Fix**: la serie se toma de `rem_type` de la carga (normalizada, fallback `'A'`), mismo criterio que `StructureResolverService` del motor técnico, y se pasa explícita a `getPatternsForValidation()`. Genérico para A/BM/BS/D/P y series futuras; comportamiento de Serie A idéntico (antes `'A'` por default, ahora explícito).
+
+### Bug 2 — `FunctionalRuleService::saveQuestions()` emparejaba preguntas por posición
+
+Cada pregunta entrante se fusionaba con `$existing[$i]` (misma posición), no con la pregunta de su mismo `id`. Desde BM-11.48 la UI deja de enviar `all_est`/`exceptions`/`inconsistency` de un patrón `no_aplica`, el payload se acorta y las posiciones se desplazan: las preguntas heredaban metadatos ajenos (`pattern_key`, fingerprint, `reconciliation_status`) y `_questions_history` registraba pares "anterior→nuevo" de preguntas distintas. Las respuestas elegidas NO se alteraban (`response` siempre viene del payload).
+
+**Fix**: emparejamiento por `id` (mismo criterio que ya usaba `resolveHumanReviewPattern()`); las preguntas existentes no enviadas se conservan intactas en su lugar; una pregunta nueva se agrega al final; un payload legado sin `id` solo empareja por posición si la pregunta en esa posición tampoco tiene `id` (nunca pisa una identificada); el historial registra además `question_id`. `CatalogController::saveQuestions()` ahora acepta `questions.*.id` (antes `validate()` lo descartaba). Datos reales al momento del fix: 4012 preguntas, 0 `id` duplicados, 1 sin `id` (registro de prueba antiguo de A01_A).
+
+### Tests y regresión
+
+- **12/12 tests nuevos pasan**: `ValidateRemUploadJobSerieResolutionTest` (6 — incluye servicio de matriz real contra estructuras A/BM en `esalud_testing`, fila `no_aplica` que ya no hereda `debe_registrar_cero`, Serie A intacta, normalización de `rem_type`) + `FunctionalRuleServiceSaveQuestionsIdentityTest` (6 — reorden, preguntas dependientes que desaparecen por `no_aplica`, fingerprint v2 que no migra, pregunta nueva que no pisa, historial correcto, payload legado sin `id`). Ambos archivos **fallan contra el código original** (verificado con `git stash` temporal del fix, luego restaurado).
+- `ValidateRemUploadFunctionalRulesTest.php`: 2 expectativas de mock ajustadas a `('A01','B','A')` (serie explícita).
+- Regresión `Feature/RuleEngine`+`Feature/Calibration`+`Unit/RuleEngine`+`Unit/RemParser`: 804 tests, 768 passed, 1 skipped, **35 failed = exactamente el baseline histórico** (30 `FunctionalRuleEngineCertificationTest` + 4 `RuleEngineServiceTest` + 1 `RuleEngineIntegrationTest`). `Feature/REM`: **309/309**, luego el mismo OOM preexistente de PhpSpreadsheet en `SectionDetectorServiceRealFileRegressionTest`. **0 regresiones nuevas.**
+
+### Prueba real post-fix (worker reiniciado por el usuario)
+
+| Upload | Técnico | Funcional |
+|---|---|---|
+| #203 | 90/90 | 3 advertencias `debe_registrar_cero` (celdas vacías intencionales: filas 139, 154, 185) |
+| #204 | 90/90 | 9 advertencias `debe_registrar_cero` (filas 16, 26, 72, 87, 118, 139, 157, 176, 205) |
+| **#205** | **90/90** | **0 errores, 0 advertencias** |
+
+Todas las advertencias de #203/#204 provienen de preguntas de patrón con `debe_registrar_cero` (BM18A/A P1; BM18A/B P1, P2 y P4 Ortopedia) — ninguna por herencia de fila. **#205 confirmó el comportamiento limpio al completar los ceros requeridos.**
+
+### Última prueba real certificada — upload #205
+
+- Estructura activa BM: **72/v1** · establecimiento: **Posta Caleta Chanavayita** (DEIS 102412) · período: **2026-05**.
+- `rem_data` **181** · `rem_technical_totals` **20**.
+- Reglas técnicas: **90** (**53 `sum_equals` + 37 `cross_sheet_equals`**) → **90 passed / 0 failed / 0 skipped / 0 invalid** (reconfirmado además en dry-run con `rule:validate 205 72` tras la limpieza de metadatos).
+- Resultado funcional: **0 errores / 0 advertencias**.
+- **Fila 119 BM18A/A: `no_aplica` confirmado** · **Fila 178 BM18A/B: `no_aplica` confirmado** — ambas llegaron completamente vacías en #203/#204/#205 y no generaron ningún resultado funcional.
+- **`debe_registrar_cero` confirmado** mediante las pruebas reales #203/#204.
+
+### Calibración funcional — decisiones del 25-09 (vigentes, elegidas por el usuario)
+
+Durante la prueba el usuario guardó decisiones nuevas desde la UI, que quedan como calibración vigente: BM18A/A patrón 1 y BM18A/B patrones 1 y 2 en `debe_registrar_cero` (el 16-09 estaban documentados como `puede_quedar_vacio`), más 16 decisiones por fila nuevas `debe_registrar_cero` (BM18/A filas 24–31 y 34–37, BM18/D filas 60–62, BM18A/A fila 13). Filas 119/178 siguen `no_aplica`; Ortopedia sigue con su criterio provisional/recalibrable (no es política MINSAL inmutable).
+
+### Limpieza determinista de metadatos contaminados (autorizada explícitamente)
+
+- **22 campos eliminados en 5 preguntas BM** (`pattern_id`, `pattern_key`, `pattern_fingerprint`, `pattern_rows`, y `reconciliation_status` en las dos `section_review`): `BM18A_A` → `section_review`, `general_bm18a_a_complementary`; `BM18A_B` → `section_review`, `general_bm18a_b_main_rule`, `general_bm18a_b_complementary`. Condiciones verificadas antes de escribir: `id` sin prefijo `patron_`, `type` ∈ {`section_review`, `general_question`}, exactamente una coincidencia por `id`; escritura atómica con el mismo formato de `persistAll()` (round-trip byte-idéntico comprobado antes).
+- Diff semántico recursivo completo: 22 diferencias, todas `REMOVED` y autorizadas. **0 cambios en respuestas funcionales** (`response`, `review_status`, `reviewed_at`, `reviewed_by`, `observation`, `status`), 0 en preguntas de patrón, 0 en reglas por fila. Re-auditoría: 0 hallazgos en las 6 secciones BM. Reglas funcionales resueltas por el servicio real (en memoria, sin BD) idénticas antes/después.
+- Motivo: la contaminación era inerte para validación/reconciliación, pero `markPatternReviewed()` (frontend) actualiza por `pattern_id` y podía degradar `section_review` de `section_reviewed` a `reviewed`.
+- **Respaldo**: `backend/storage/app/private/certificacion/reglas-funcionales.json.pre-bm-metadata-cleanup-20260925_095415`.
+- **SHA-256 original = respaldo**: `5080bd1ea8eaaff5bc420c33fd7263823408e7939f91bb11e2dabb0b5f65960d`.
+- **SHA-256 posterior**: `8caf69cdc11f84b9e4de2575ac3a7501a290731ee7f86a26d8743b31e8cabebc`.
+- `#205` no se reprocesó: `rem:reprocess` borra `rem_data`/totales y reencola, pero **no borra los `rem_validation_results` previos** — habría duplicado resultados. No existe comando de validación funcional sin escritura.
+
+### Fuera de Git / fuera de alcance — explícito
+
+- **`reglas-funcionales.json` continúa fuera de Git** (gitignorado) y **el respaldo también está fuera de Git** — la calibración BM del 25-09 no viaja por `git pull`; la futura sincronización con producción debe tratarla aparte.
+- **Producción NO fue tocada** (sin SSH, deploy, Docker, migraciones, seeders, SQL). Esto certifica **BM LOCAL, no producción**.
+- **Deuda técnica, NO resuelta**: 6 preguntas sin patrón de Serie A (de 328) con campos de patrón — mismo síntoma histórico, documentado, sin tocar.
+- **Deuda técnica separada, NO resuelta**: `SectionCalibrationMatrixService::getActiveStructure()` fija `anio=2026` — revisar antes de trabajar con plantillas de otro año.
+- **Mejora futura, no bloqueante**: el frontend (`FunctionalQuestionsPanel.tsx`) reenvía los campos existentes de cada pregunta (`buildQuestion()` con `...existing`) y `markPatternReviewed()`/`reviewedPatterns` operan por `pattern_id` sin filtrar por `type` — conviene filtrar por `type` en una fase aparte. Con el fix del backend y los datos limpios ya no produce contaminación.
+- `review_status` presentes en preguntas generales sin respuesta: probablemente arrastrados, valor original no demostrable, inertes — deliberadamente NO limpiados.
+
+### Git
+
+Commit `fix(rem): correct BM functional validation and question identity` — exactamente 7 archivos: `ValidateRemUploadJob.php`, `FunctionalRuleService.php`, `CatalogController.php`, `ValidateRemUploadFunctionalRulesTest.php`, `ValidateRemUploadJobSerieResolutionTest.php`, `FunctionalRuleServiceSaveQuestionsIdentityTest.php`, `CLAUDE.md`. Fuera del commit, sin tocar: los 4 históricos protegidos (`frontend/vite.config.ts`, 2× `Diag*Command.php`, `backend/demo/`).
 
 ## CHECKPOINT 16-09-2026 — FIN DE JORNADA — SERIE A + REM BM LOCAL CERTIFICADAS / BM RESPALDADO EN ORIGIN
 

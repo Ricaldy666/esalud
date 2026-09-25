@@ -237,7 +237,7 @@ class ValidateRemUploadFunctionalRulesTest extends TestCase
 
         $matrixService = Mockery::mock(SectionCalibrationMatrixService::class);
         $matrixService->shouldReceive('getPatternsForValidation')
-            ->with('A01', 'B')
+            ->with('A01', 'B', 'A')
             ->once()
             ->andReturn([
                 [
@@ -806,7 +806,7 @@ class ValidateRemUploadFunctionalRulesTest extends TestCase
     {
         $matrixService = Mockery::mock(SectionCalibrationMatrixService::class);
         $matrixService->shouldReceive('getPatternsForValidation')
-            ->with('A01', 'B')
+            ->with('A01', 'B', 'A')
             ->once()
             ->andReturn([
                 [
