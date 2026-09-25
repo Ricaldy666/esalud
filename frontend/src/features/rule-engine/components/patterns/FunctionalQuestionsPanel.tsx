@@ -12,7 +12,15 @@ import {
 import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
+import { invalidateSectionCalibration } from '../../hooks/invalidateSectionCalibration'
 import { calibrationService } from '../../services/calibration'
+import {
+  applyPatternReview,
+  canRecalibratePattern,
+  finishRecalibration,
+  isPatternLocked,
+  startRecalibration,
+} from './patternRecalibration'
 import type {
   CalibrationQuestion,
   ColumnGroup,
@@ -66,6 +74,7 @@ const OPTION_SETS = {
     ['debe_registrar_cero', 'Debe registrar 0'],
     ['puede_quedar_vacio', 'Puede quedar vacío'],
     ['no_aplica', 'No aplica'],
+    ['no_se_puede_ingresar_informacion', 'No se puede ingresar información'],
     ['depende_del_establecimiento', 'Depende del establecimiento'],
   ],
   applicability: [
@@ -817,6 +826,9 @@ export default function FunctionalQuestionsPanel({
   const [responseChanges, setResponseChanges] = useState<Record<string, string>>({})
   const [observationChanges, setObservationChanges] = useState<Record<string, string>>({})
   const [reviewedPatternChanges, setReviewedPatternChanges] = useState<Record<number, boolean>>({})
+  // Patrones revisados que el usuario desbloqueo con "Recalibrar patron".
+  // Solo estado de pantalla: activarlo no escribe nada.
+  const [recalibratingPatterns, setRecalibratingPatterns] = useState<Record<number, boolean>>({})
   const [sectionReviewedChange, setSectionReviewedChange] = useState(false)
 
   const responses = useMemo(
@@ -941,6 +953,10 @@ export default function FunctionalQuestionsPanel({
     for (const pattern of patterns) {
       const blocked = needsRevalidation(pattern.reconciliation_status)
       const isReviewed = !blocked && reviewedPatterns[pattern.id]
+      // En recalibracion, la revision del patron queda con el usuario y la
+      // fecha actuales; si no, se conserva la revision existente (sin cambios).
+      const recalibrating = Boolean(recalibratingPatterns[pattern.id])
+      const recalibratedAt = new Date().toISOString()
       const definitions = questionsForPattern(
         pattern,
         patternQuestions,
@@ -972,8 +988,16 @@ export default function FunctionalQuestionsPanel({
             review_status: isReviewed
               ? 'reviewed'
               : (existingByKey.get(id)?.review_status ?? 'pending'),
-            reviewed_at: isReviewed ? existingByKey.get(id)?.reviewed_at : undefined,
-            reviewed_by: isReviewed ? existingByKey.get(id)?.reviewed_by : undefined,
+            reviewed_at: isReviewed
+              ? recalibrating
+                ? recalibratedAt
+                : existingByKey.get(id)?.reviewed_at
+              : undefined,
+            reviewed_by: isReviewed
+              ? recalibrating
+                ? userName
+                : existingByKey.get(id)?.reviewed_by
+              : undefined,
           }
         )
         next.push(question)
@@ -998,8 +1022,16 @@ export default function FunctionalQuestionsPanel({
             review_status: isReviewed
               ? 'reviewed'
               : (existingByKey.get(id)?.review_status ?? 'pending'),
-            reviewed_at: isReviewed ? existingByKey.get(id)?.reviewed_at : undefined,
-            reviewed_by: isReviewed ? existingByKey.get(id)?.reviewed_by : undefined,
+            reviewed_at: isReviewed
+              ? recalibrating
+                ? recalibratedAt
+                : existingByKey.get(id)?.reviewed_at
+              : undefined,
+            reviewed_by: isReviewed
+              ? recalibrating
+                ? userName
+                : existingByKey.get(id)?.reviewed_by
+              : undefined,
           }
         )
         next.push(question)
@@ -1032,7 +1064,10 @@ export default function FunctionalQuestionsPanel({
       calibrationService.savePatternQuestions(serie, sheet, section, questions),
     onSuccess: () => {
       toast.success('Respuestas guardadas correctamente')
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
+      setRecalibratingPatterns({})
+      // Incluye la tabla por fila: una decision por grupo (ej. no_aplica de
+      // filas especiales) cambia la regla aplicada de sus filas.
+      return invalidateSectionCalibration(queryClient, serie, sheet, section)
     },
     onError: () => toast.error('Error al guardar respuestas'),
   })
@@ -1334,17 +1369,35 @@ export default function FunctionalQuestionsPanel({
     const reviewedAt = new Date().toISOString()
     setReviewedPatternChanges((prev) => ({ ...prev, [patternId]: true }))
 
-    const questions = buildAllQuestions().map((question) => {
-      if (question.pattern_id !== patternId) return question
-      return {
-        ...question,
-        review_status: 'reviewed' as const,
-        reviewed_at: question.reviewed_at ?? reviewedAt,
-        reviewed_by: question.reviewed_by ?? userName,
-      }
+    // Solo preguntas de patron de ESTE pattern_id (nunca section_review ni
+    // generales): la seccion confirmada conserva su marca. En recalibracion,
+    // la revision queda con el usuario y la fecha actuales.
+    const questions = applyPatternReview(buildAllQuestions(), patternId, {
+      recalibrating: Boolean(recalibratingPatterns[patternId]),
+      reviewedAt,
+      reviewedBy: userName,
     })
 
     saveMutation.mutate(questions)
+  }
+
+  const beginPatternRecalibration = (patternId: number) => {
+    const ok = window.confirm(
+      'Recalibrar este patrón permite cambiar su decisión funcional revisada. No se guarda nada hasta que presione "Guardar recalibración". La certificación técnica y el estado de la sección no cambian. ¿Continuar?'
+    )
+    if (!ok) return
+    setRecalibratingPatterns((prev) => startRecalibration(prev, patternId))
+  }
+
+  const cancelPatternRecalibration = (patternId: number) => {
+    // Descarta en pantalla los cambios no guardados de ese patron y lo
+    // vuelve a bloquear. No escribe nada.
+    const prefix = `patron_${patternId}_`
+    const dropPattern = (prev: Record<string, string>) =>
+      Object.fromEntries(Object.entries(prev).filter(([key]) => !key.startsWith(prefix)))
+    setResponseChanges(dropPattern)
+    setObservationChanges(dropPattern)
+    setRecalibratingPatterns((prev) => finishRecalibration(prev, patternId))
   }
 
   const markSectionReviewed = () => {
@@ -1513,6 +1566,9 @@ export default function FunctionalQuestionsPanel({
               SUGGESTED_SUFFIXES.has(definition.idSuffix)
             )
             const eligible = isSuggestionEligible(pattern)
+            const recalibrating = Boolean(recalibratingPatterns[pattern.id])
+            const lockState = { readOnly, reviewed, recalibrating }
+            const locked = isPatternLocked(lockState)
             const equivalentCount = patterns.filter(
               (candidate) =>
                 candidate.id !== pattern.id &&
@@ -1561,7 +1617,7 @@ export default function FunctionalQuestionsPanel({
                       <>
                         <button
                           onClick={() => fillPatternSuggestions(pattern)}
-                          disabled={!eligible || reviewed || saveMutation.isPending}
+                          disabled={!eligible || locked || saveMutation.isPending}
                           className="rounded-lg border border-indigo-200 bg-white px-3 py-1.5 text-xs font-medium text-indigo-700 transition-colors hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Aplicar estándar REM al patrón
@@ -1569,18 +1625,40 @@ export default function FunctionalQuestionsPanel({
                         <button
                           onClick={() => applyToEquivalentPatterns(pattern)}
                           disabled={
-                            !eligible || equivalentCount === 0 || reviewed || saveMutation.isPending
+                            !eligible || equivalentCount === 0 || locked || saveMutation.isPending
                           }
                           className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Aplicar a patrones equivalentes
                         </button>
+                        {canRecalibratePattern(lockState) && (
+                          <button
+                            onClick={() => beginPatternRecalibration(pattern.id)}
+                            disabled={saveMutation.isPending}
+                            className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Recalibrar patrón
+                          </button>
+                        )}
+                        {recalibrating && (
+                          <button
+                            onClick={() => cancelPatternRecalibration(pattern.id)}
+                            disabled={saveMutation.isPending}
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Cancelar recalibración
+                          </button>
+                        )}
                         <button
                           onClick={() => markPatternReviewed(pattern.id)}
-                          disabled={!canReview || reviewed || saveMutation.isPending}
+                          disabled={!canReview || locked || saveMutation.isPending}
                           className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                          {reviewed ? 'Patrón revisado' : 'Marcar patrón como revisado'}
+                          {recalibrating
+                            ? 'Guardar recalibración'
+                            : reviewed
+                              ? 'Patrón revisado'
+                              : 'Marcar patrón como revisado'}
                         </button>
                       </>
                     )}
@@ -1621,6 +1699,17 @@ export default function FunctionalQuestionsPanel({
                   </div>
                 )}
 
+                {recalibrating && (
+                  <div className="mb-3 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>
+                      Recalibrando este patrón: puede cambiar su decisión funcional. Se guardará con
+                      su usuario y la fecha de hoy al presionar «Guardar recalibración». La
+                      certificación técnica y el estado de la sección no cambian.
+                    </span>
+                  </div>
+                )}
+
                 <PatternExplanation pattern={pattern} section={section} />
 
                 {pattern.possible_business_exception && (
@@ -1648,7 +1737,7 @@ export default function FunctionalQuestionsPanel({
                         value={confirmationResponse}
                         observation={confirmationObservation}
                         observationMissing={confirmationObservationMissing}
-                        readOnly={readOnly || reviewed}
+                        readOnly={locked}
                         onConfirm={() =>
                           setResponseChanges((prev) => ({ ...prev, [confirmationId]: 'confirmed' }))
                         }
@@ -1671,7 +1760,7 @@ export default function FunctionalQuestionsPanel({
                           legacy={legacy}
                           observationMissing={observationMissing}
                           helperText={observationHelp(definition.kind, response)}
-                          readOnly={readOnly || reviewed}
+                          readOnly={locked}
                           onValueChange={(value) =>
                             setResponseChanges((prev) => ({ ...prev, [id]: value }))
                           }
@@ -1705,7 +1794,7 @@ export default function FunctionalQuestionsPanel({
                                   ? `Sugerido: ${optionLabel(definition.kind, suggestedResponseFor(definition, pattern))}`
                                   : ''
                             }
-                            readOnly={readOnly || reviewed}
+                            readOnly={locked}
                             onValueChange={(value) =>
                               setResponseChanges((prev) => ({ ...prev, [id]: value }))
                             }

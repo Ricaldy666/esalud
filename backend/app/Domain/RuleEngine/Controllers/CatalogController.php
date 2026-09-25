@@ -397,6 +397,10 @@ class CatalogController extends Controller
             'informed_by' => 'nullable|string|max:255',
             'updated_by' => 'nullable|string|max:255',
             'status' => 'nullable|in:propuesta,validada,rechazada,pending,aprobada',
+            // Alcance opcional por columnas (letras); sin 'columns' la
+            // decision aplica a la fila completa, como siempre.
+            'columns' => 'nullable|array',
+            'columns.*' => ['string', 'regex:/^[A-Za-z]{1,3}$/'],
         ]);
 
         if (in_array($valid['empty_behavior'] ?? null, ['heredar_patron', 'heredar_seccion'], true)) {

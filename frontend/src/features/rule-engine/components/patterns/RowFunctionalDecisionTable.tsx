@@ -1,16 +1,24 @@
 ﻿import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
-import { AlertTriangle, Save } from 'lucide-react'
+import { AlertTriangle, Info, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
 import { DataTable } from '@/shared/components/DataTable'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/ui/dialog'
 import { calibrationService } from '../../services/calibration'
 import type { RowFunctionalDecision } from '../../types/calibration'
 
 type EditableDecision =
   | 'debe_registrar_cero'
   | 'puede_quedar_vacio'
+  | 'no_se_puede_ingresar_informacion'
   | 'heredar_patron'
   | 'heredar_seccion'
   | 'requiere_revision'
@@ -37,15 +45,26 @@ const DECISION_LABELS: Record<string, string> = {
   debe_registrar_cero: 'Debe registrar 0',
   puede_quedar_vacio: 'Puede quedar vacio',
   pendiente_definicion: 'Requiere revision',
-  heredar_patron: 'Heredar del patron',
-  heredar_seccion: 'Heredar de la seccion',
+  heredar_patron: 'Usar la decisión del grupo',
+  heredar_seccion: 'Usar la decisión de la sección',
   requiere_revision: 'Requiere revision',
+  no_aplica: 'No aplica',
+  no_se_puede_ingresar_informacion: 'No se puede ingresar información',
+}
+
+// Solo presentacion: el valor almacenado/enviado no cambia.
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pendiente',
+  propuesta: 'Propuesta',
+  aprobada: 'Aprobada',
+  rechazada: 'Rechazada',
+  validada: 'Validada',
 }
 
 const ORIGIN_LABELS: Record<string, string> = {
   row: 'Fila',
-  pattern: 'Patron',
-  section: 'Seccion',
+  pattern: 'Grupo de filas',
+  section: 'Sección',
   none: 'Sin decision',
 }
 
@@ -57,6 +76,8 @@ function label(value?: string | null) {
 function effect(value: EditableDecision) {
   if (value === 'debe_registrar_cero') return 'exigira registrar 0 cuando no existan prestaciones'
   if (value === 'puede_quedar_vacio') return 'podra quedar vacia'
+  if (value === 'no_se_puede_ingresar_informacion')
+    return 'no podra recibir informacion (0 o cualquier valor sera incumplimiento)'
   if (value === 'requiere_revision') return 'quedara pendiente de revision'
   return 'heredara el criterio funcional'
 }
@@ -64,7 +85,8 @@ function effect(value: EditableDecision) {
 function defaultSelection(row: RowFunctionalDecision): EditableDecision {
   if (
     row.explicit_decision === 'debe_registrar_cero' ||
-    row.explicit_decision === 'puede_quedar_vacio'
+    row.explicit_decision === 'puede_quedar_vacio' ||
+    row.explicit_decision === 'no_se_puede_ingresar_informacion'
   ) {
     return row.explicit_decision
   }
@@ -74,19 +96,23 @@ function defaultSelection(row: RowFunctionalDecision): EditableDecision {
   return 'requiere_revision'
 }
 
-function reviewedText(row: RowFunctionalDecision) {
-  const user = row.reviewed_by?.trim()
-  const date = row.reviewed_at ? new Date(row.reviewed_at).toLocaleString('es-CL') : ''
-  if (user && date) return `${user} - ${date}`
-  return user || date || '-'
+function statusLabel(row: RowFunctionalDecision, derived: boolean) {
+  if (derived) return 'No aplica'
+  if (!row.status) return '-'
+  return STATUS_LABELS[row.status] ?? row.status
+}
+
+function originLabel(row: RowFunctionalDecision, derived: boolean) {
+  if (derived) return 'Técnica / Automática'
+  return ORIGIN_LABELS[row.origin] ?? row.origin
 }
 
 function inheritedText(row: RowFunctionalDecision) {
   if (row.has_explicit_decision) return 'Decision propia'
   if (!row.inherited_decision) return 'Sin decision heredada'
   if (row.source_row) return `Hereda desde fila ${row.source_row}`
-  if (row.origin === 'pattern') return 'Hereda desde el patron'
-  if (row.origin === 'section') return 'Hereda desde la seccion'
+  if (row.origin === 'pattern') return 'Usa la decisión del grupo'
+  if (row.origin === 'section') return 'Usa la decisión de la sección'
   return 'Sin decision heredada'
 }
 
@@ -110,6 +136,7 @@ export default function RowFunctionalDecisionTable({
   const queryClient = useQueryClient()
   const user = useAuthStore((state) => state.user)
   const [drafts, setDrafts] = useState<Record<number, EditableDecision>>({})
+  const [detailRow, setDetailRow] = useState<RowFunctionalDecision | null>(null)
   const isDerived = captureMode === 'derived_auto_fill'
 
   const { data, isLoading } = useQuery({
@@ -145,6 +172,10 @@ export default function RowFunctionalDecisionTable({
       } else if (decision === 'puede_quedar_vacio') {
         payload.status = 'aprobada'
         payload.functional_condition = 'Puede quedar vacia segun criterio de Estadistica'
+      } else if (decision === 'no_se_puede_ingresar_informacion') {
+        payload.status = 'aprobada'
+        payload.functional_condition =
+          'No se puede ingresar informacion segun criterio de Estadistica'
       } else if (decision === 'requiere_revision') {
         payload.status = 'propuesta'
         payload.functional_condition = 'Requiere revision de Estadistica'
@@ -209,52 +240,36 @@ export default function RowFunctionalDecisionTable({
     {
       header: 'Concepto',
       accessorKey: 'concept',
+      // TableCell aplica whitespace-nowrap por defecto; las columnas de texto
+      // libre deben poder partir linea para que la tabla quepa sin scroll.
       cell: ({ row }) => (
-        <div className="min-w-44 text-slate-700">{row.original.concept || '-'}</div>
+        <div className="min-w-36 max-w-72 whitespace-normal break-words text-slate-700">
+          {row.original.concept || '-'}
+        </div>
       ),
     },
     {
       header: 'Profesional',
       accessorKey: 'professional',
       cell: ({ row }) => (
-        <div className="min-w-36 text-slate-700">{row.original.professional || '-'}</div>
+        <div className="min-w-24 max-w-48 whitespace-normal break-words text-slate-700">
+          {row.original.professional || '-'}
+        </div>
       ),
     },
     {
+      // Resume lo que antes ocupaba "Decision propia" + "Hereda de": mismas
+      // funciones y los mismos campos (has_explicit_decision/explicit_decision/
+      // inherited_decision/origin/source_row), solo presentado en una celda.
       header: () => (
-        <span title="Decision propia: configurada manualmente para esa fila.">Decision propia</span>
-      ),
-      id: 'explicit_decision',
-      cell: ({ row }) =>
-        rowIsDerived(row.original, isDerived) ? (
-          <span className="text-slate-400">No aplica</span>
-        ) : (
-          <DecisionBadge
-            value={row.original.explicit_decision}
-            explicit={row.original.has_explicit_decision}
-          />
-        ),
-    },
-    {
-      header: () => (
-        <span title="Hereda de: origen de la decision cuando la fila no tiene una configuracion propia.">
-          Hereda de
+        <span title="Decision propia de la fila, o de donde hereda cuando no tiene una.">
+          Decisión
         </span>
       ),
-      id: 'inherited',
-      cell: ({ row }) =>
-        rowIsDerived(row.original, isDerived) ? (
-          <div className="text-slate-400">No aplica</div>
-        ) : (
-          <>
-            <div className="text-slate-600">{inheritedText(row.original)}</div>
-            {!row.original.has_explicit_decision && row.original.inherited_decision && (
-              <div className="mt-0.5 text-[11px] text-slate-500">
-                {label(row.original.inherited_decision)}
-              </div>
-            )}
-          </>
-        ),
+      id: 'decision',
+      cell: ({ row }) => (
+        <DecisionSummary row={row.original} derived={rowIsDerived(row.original, isDerived)} />
+      ),
     },
     {
       header: () => (
@@ -275,45 +290,33 @@ export default function RowFunctionalDecisionTable({
         ),
     },
     {
-      header: 'Origen',
-      accessorKey: 'origin',
-      cell: ({ row }) => (
-        <span className="text-slate-700">
-          {rowIsDerived(row.original, isDerived)
-            ? 'Técnica / Automática'
-            : (ORIGIN_LABELS[row.original.origin] ?? row.original.origin)}
-        </span>
-      ),
-    },
-    {
       header: 'Estado',
       accessorKey: 'status',
       cell: ({ row }) => (
-        <span className="text-slate-700">
-          {rowIsDerived(row.original, isDerived) ? 'No aplica' : (row.original.status ?? '-')}
+        <span className="text-xs text-slate-700">
+          {statusLabel(row.original, rowIsDerived(row.original, isDerived))}
         </span>
       ),
     },
-    {
-      header: 'Revision',
-      id: 'reviewed',
-      cell: ({ row }) => (
-        <div className="min-w-40 text-slate-600">{reviewedText(row.original)}</div>
-      ),
-    },
-    {
-      header: 'Observacion',
-      id: 'observation',
-      cell: ({ row }) => (
-        <div className="min-w-44 text-slate-600">
-          {row.original.observation || row.original.condition || '-'}
-        </div>
-      ),
-    },
+    // Origen, Revision y Observacion ya no ocupan columnas: se consultan en
+    // el detalle de la fila (DetailButton -> RowDetailDialog). En modo solo
+    // lectura no existe la columna Accion, asi que el detalle va en su propia
+    // columna angosta.
+    ...(readOnly
+      ? [
+          {
+            header: () => <span className="sr-only">Detalle</span>,
+            id: 'detalle',
+            cell: ({ row }: { row: { original: RowFunctionalDecision } }) => (
+              <DetailButton row={row.original} onOpen={setDetailRow} />
+            ),
+          } satisfies ColumnDef<RowFunctionalDecision>,
+        ]
+      : []),
     ...(!readOnly
       ? [
           {
-            header: 'Accion rapida',
+            header: 'Acción',
             id: 'accion',
             cell: ({ row }: { row: { original: RowFunctionalDecision } }) => {
               // BM-11.25: columna disponible siempre que la tabla no sea
@@ -322,13 +325,19 @@ export default function RowFunctionalDecisionTable({
               // empty_behavior ni el boton Guardar, porque ese eje no
               // aplica a una fila 100% calculada.
               if (rowIsDerived(row.original, isDerived)) {
-                return <span className="text-xs text-slate-400">No aplica</span>
+                return (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-slate-400">No aplica</span>
+                    <DetailButton row={row.original} onOpen={setDetailRow} />
+                  </div>
+                )
               }
               const selected = drafts[row.original.row] ?? defaultSelection(row.original)
               return (
-                <div className="min-w-56">
-                  <div className="flex items-center gap-2">
+                <div>
+                  <div className="flex items-center gap-1.5">
                     <select
+                      aria-label={`Accion rapida para la fila ${row.original.row}`}
                       value={selected}
                       onChange={(event) =>
                         setDrafts((current) => ({
@@ -340,8 +349,11 @@ export default function RowFunctionalDecisionTable({
                     >
                       <option value="debe_registrar_cero">Debe registrar 0</option>
                       <option value="puede_quedar_vacio">Puede quedar vacio</option>
-                      <option value="heredar_patron">Heredar del patron</option>
-                      <option value="heredar_seccion">Heredar de la seccion</option>
+                      <option value="no_se_puede_ingresar_informacion">
+                        No se puede ingresar información
+                      </option>
+                      <option value="heredar_patron">Usar la decisión del grupo</option>
+                      <option value="heredar_seccion">Usar la decisión de la sección</option>
                       <option value="requiere_revision">Requiere revision</option>
                     </select>
                     <button
@@ -353,6 +365,7 @@ export default function RowFunctionalDecisionTable({
                       <Save className="h-3.5 w-3.5" />
                       Guardar
                     </button>
+                    <DetailButton row={row.original} onOpen={setDetailRow} />
                   </div>
                 </div>
               )
@@ -375,7 +388,7 @@ export default function RowFunctionalDecisionTable({
               ? 'Filas de referencia -- esta seccion se completa automaticamente, no requieren decision de vacio.'
               : anyRowDerived
                 ? 'Algunas filas se completan automaticamente (ver aviso abajo); el resto requiere revision habitual.'
-                : 'Revise por que cada fila exige 0, permite vacio o hereda una decision.'}
+                : 'Ajuste aquí solo las filas que necesiten un criterio distinto al de su grupo.'}
           </p>
         </div>
         {!allRowsDerived && inconsistentCount > 0 && (
@@ -403,21 +416,138 @@ export default function RowFunctionalDecisionTable({
       )}
 
       <DataTable columns={columns} data={rows} getRowClassName={getRowClassName} />
+
+      <RowDetailDialog
+        row={detailRow}
+        derived={detailRow ? rowIsDerived(detailRow, isDerived) : false}
+        onClose={() => setDetailRow(null)}
+      />
     </section>
   )
 }
 
-function DecisionBadge({ value, explicit }: { value: string | null; explicit: boolean }) {
-  if (!value) return <span className="text-slate-400">Sin decision</span>
+function DecisionSummary({ row, derived }: { row: RowFunctionalDecision; derived: boolean }) {
+  if (derived) {
+    return (
+      <div className="min-w-28 whitespace-normal">
+        <div className="text-xs font-medium text-slate-400">No aplica</div>
+        <div className="mt-0.5 text-[11px] text-slate-400">Lógica automática</div>
+      </div>
+    )
+  }
+
+  const detail = row.has_explicit_decision ? row.explicit_decision : row.inherited_decision
+
   return (
-    <span
-      className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium ${
-        explicit
-          ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200'
-          : 'bg-slate-100 text-slate-600'
-      }`}
+    <div className="min-w-28 whitespace-normal">
+      <div
+        className={`text-xs font-medium ${row.has_explicit_decision ? 'text-indigo-700' : 'text-slate-600'}`}
+      >
+        {inheritedText(row)}
+      </div>
+      {detail && <div className="mt-0.5 text-[11px] text-slate-500">{label(detail)}</div>}
+    </div>
+  )
+}
+
+function DetailButton({
+  row,
+  onOpen,
+}: {
+  row: RowFunctionalDecision
+  onOpen: (row: RowFunctionalDecision) => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(row)}
+      title="Ver detalle"
+      aria-label={`Ver detalle de la fila ${row.row}`}
+      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
     >
-      {label(value)}
-    </span>
+      <Info className="h-4 w-4" />
+    </button>
+  )
+}
+
+function DetailField({ term, value }: { term: string; value: string }) {
+  return (
+    <div className="grid grid-cols-[8.5rem_1fr] gap-3 py-2">
+      <dt className="text-xs font-medium text-slate-500">{term}</dt>
+      <dd className="text-sm text-slate-800 whitespace-pre-wrap break-words">{value}</dd>
+    </div>
+  )
+}
+
+// Muestra solo campos que ya trae RowFunctionalDecision -- los opcionales
+// (revisor, fecha, observacion, condicion) se omiten si no existen.
+function RowDetailDialog({
+  row,
+  derived,
+  onClose,
+}: {
+  row: RowFunctionalDecision | null
+  derived: boolean
+  onClose: () => void
+}) {
+  const reviewer = row?.reviewed_by?.trim()
+  const reviewedAt = row?.reviewed_at ? new Date(row.reviewed_at).toLocaleString('es-CL') : ''
+  const observation = row?.observation?.trim()
+  const condition = row?.condition?.trim()
+
+  return (
+    <Dialog open={row !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="w-full border border-slate-200 bg-white shadow-xl sm:max-w-lg">
+        {row && (
+          <>
+            <DialogHeader className="border-b border-slate-100 pb-3">
+              <DialogTitle className="text-base font-semibold text-slate-900">
+                Fila {row.row}
+              </DialogTitle>
+              <DialogDescription className="text-slate-500">
+                {[row.concept, row.professional].filter(Boolean).join(' / ') || 'Sin concepto'}
+              </DialogDescription>
+            </DialogHeader>
+            <dl className="divide-y divide-slate-100">
+              <DetailField
+                term="Regla aplicada"
+                value={derived ? 'Lógica automática / Derivada' : label(row.effective_decision)}
+              />
+              <DetailField term="Origen" value={originLabel(row, derived)} />
+              {!derived && (
+                <DetailField
+                  term="Decisión propia"
+                  value={
+                    row.has_explicit_decision ? label(row.explicit_decision) : 'Sin decisión propia'
+                  }
+                />
+              )}
+              {!derived && (
+                <DetailField
+                  term="Hereda de"
+                  value={
+                    row.has_explicit_decision
+                      ? 'No hereda (tiene decisión propia)'
+                      : [
+                          inheritedText(row),
+                          row.inherited_decision ? label(row.inherited_decision) : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' — ')
+                  }
+                />
+              )}
+              <DetailField term="Estado" value={statusLabel(row, derived)} />
+              {reviewer && <DetailField term="Revisado por" value={reviewer} />}
+              {reviewedAt && <DetailField term="Fecha/hora" value={reviewedAt} />}
+              {observation && <DetailField term="Observación" value={observation} />}
+              {condition && condition !== observation && (
+                <DetailField term="Condición funcional" value={condition} />
+              )}
+            </dl>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   )
 }

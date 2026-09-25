@@ -11,11 +11,10 @@ import { SectionCalibrationTable } from '../components/SectionCalibrationTable'
 import PatternCalibrationSummary from '../components/patterns/PatternCalibrationSummary'
 import QuickCalibrationPanel from '../components/patterns/QuickCalibrationPanel'
 import RowFunctionalDecisionTable from '../components/patterns/RowFunctionalDecisionTable'
+import { isCalibrationReadOnly } from '../components/patterns/patternRecalibration'
 import type { CalibrationQuestion, PatternMatrixResponse } from '../types/calibration'
 
 type TabView = 'matrix' | 'patterns'
-
-const READ_ONLY_ROLES = ['Revisor', 'Auditor']
 
 export default function CalibrationSectionPage() {
   const { templateId, series, sheet, section } = useParams<{
@@ -28,7 +27,7 @@ export default function CalibrationSectionPage() {
   const preliminaryMode = searchParams.get('preliminar') === '1'
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
-  const isReadOnly = user?.roles.some((role) => READ_ONLY_ROLES.includes(role)) ?? false
+  const isReadOnly = isCalibrationReadOnly(user?.roles)
   const [tab, setTab] = useState<TabView>('matrix')
   const [showAdvanced, setShowAdvanced] = useState(false)
   const { data: matrixData, isLoading: matrixLoading } = useCalibrationMatrix(
@@ -199,7 +198,14 @@ export default function CalibrationSectionPage() {
 
       {!patternLoading && patternData && !showAdvanced && (
         <>
+          {/* key por seccion: las demas secciones se precargan con la misma
+              query key, asi que al navegar los datos llegan desde cache y sin
+              key React reutilizaria la instancia, arrastrando el estado local
+              (respuestas en pantalla, borradores por fila) de la seccion
+              anterior. La key garantiza un estado inicial leido de los datos
+              guardados de ESTA seccion. */}
           <QuickCalibrationPanel
+            key={`quick-${series}-${sheet}-${section}`}
             serie={series ?? 'A'}
             sheet={sheet ?? 'A01'}
             section={section ?? 'A'}
@@ -211,9 +217,14 @@ export default function CalibrationSectionPage() {
             structureVersion={String(templateId ?? '')}
             candidateSections={candidateSections}
             onOpenAdvanced={() => setShowAdvanced(true)}
+            onOpenGroupCalibration={() => {
+              setTab('patterns')
+              setShowAdvanced(true)
+            }}
             onNavigateSection={navigateToSection}
           />
           <RowFunctionalDecisionTable
+            key={`rows-${series}-${sheet}-${section}`}
             serie={series ?? 'A'}
             sheet={sheet ?? 'A01'}
             section={section ?? 'A'}

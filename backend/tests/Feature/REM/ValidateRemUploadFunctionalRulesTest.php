@@ -509,7 +509,10 @@ class ValidateRemUploadFunctionalRulesTest extends TestCase
             ]),
         );
 
-        $this->assertCount(0, $results);
+        // Solo se evalua la herencia funcional: C31 (bloqueada, sin formula,
+        // sin valor de plantilla en este fixture) con 0 es ademas una
+        // violacion estructural, cubierta en ValidateRemUploadForbiddenDataEntryTest.
+        $this->assertCount(0, $results->where('rule_type', 'functional_rule'));
     }
 
     public function test_row_without_real_editable_cells_does_not_inherit_debe_registrar_cero(): void
@@ -530,7 +533,10 @@ class ValidateRemUploadFunctionalRulesTest extends TestCase
             ]),
         );
 
-        $this->assertCount(0, $results);
+        // Solo se evalua la herencia funcional: C31 (bloqueada, sin formula,
+        // sin valor de plantilla en este fixture) con 0 es ademas una
+        // violacion estructural, cubierta en ValidateRemUploadForbiddenDataEntryTest.
+        $this->assertCount(0, $results->where('rule_type', 'functional_rule'));
     }
 
     public function test_puede_quedar_vacio_empty_row_generates_passed_traceable_result(): void

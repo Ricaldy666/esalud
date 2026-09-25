@@ -195,7 +195,54 @@ Implementar 2FA sin resolver el hallazgo #1 daría falsa sensación de seguridad
 
 ## Próximo paso vigente
 
-**REM Serie D (LOCAL)** — la REM BM quedó recertificada en local el 25-09-2026 (ver checkpoint inmediatamente debajo), después de corregir dos defectos de código detectados en una prueba real. La **auditoría read-only de producción Serie A + BM se realiza aparte** (reglas de seguridad y pasos en el checkpoint "CHECKPOINT 16-09-2026 — FIN DE JORNADA", sección "Próximo paso exacto para mañana", que siguen vigentes sin cambios). Serie D se desarrolla en local, reutilizando el pipeline certificado de A/BM, con autorización explícita turno a turno.
+**1) Commit del trabajo de calibración/validación del 25-09** (ver checkpoint inmediatamente debajo, "UX CALIBRACIÓN + VALIDACIÓN FUNCIONAL"), solo con autorización explícita. **2) Decidir** si se conservan o revierten las decisiones funcionales de prueba listadas en ese checkpoint (no restaurar automáticamente: son recalibrables). **3) REM Serie D (LOCAL)**, reutilizando el pipeline certificado de A/BM, con autorización explícita turno a turno. La **auditoría read-only de producción Serie A + BM se realiza aparte** (reglas de seguridad y pasos en el checkpoint "CHECKPOINT 16-09-2026 — FIN DE JORNADA", sección "Próximo paso exacto para mañana", que siguen vigentes sin cambios).
+
+## CHECKPOINT 25-09-2026 — FIN DE JORNADA — UX CALIBRACIÓN + VALIDACIÓN FUNCIONAL (PRE-COMMIT)
+
+**⭐ REANUDAR AQUÍ.** Veredicto de la auditoría final: **`PRE_COMMIT_AUDIT_READY`**. Trabajo 100% LOCAL, **sin commit ni push** al cerrar este checkpoint (HEAD = `origin/main` = `59bdf2d`). Producción no tocada.
+
+### Criterio vigente: certificación ≠ calibración
+
+- **Certificación técnica**: ATHENEA fue comprobada de extremo a extremo contra la estructura REM (hojas, filas, columnas, celdas habilitadas/bloqueadas, fórmulas, totales, reglas técnicas) y detecta tanto información faltante como información ingresada donde no corresponde.
+- **Calibración funcional**: decisiones de Estadística (`empty_behavior`, severidad, establecimientos, excepciones). **Son recalibrables** y una recalibración **no invalida** la certificación técnica. Un patrón "revisado" = decisión revisada vigente, **no** congelada.
+
+### Qué se implementó (local, sin commit)
+
+1. **Protección estructural automática** (`ValidateRemUploadJob::structuralInputViolations()`, `rule_type=structural_input`, severidad ERROR, mensaje "Se ingresó información en una celda no habilitada"): celda bloqueada/no habilitada según `cell-data` + valor distinto del que trae la plantilla (`valor_bruto`) = incumplimiento. Bloqueada vacía o con el valor original de plantilla = correcto. Fórmulas ignoradas. Sin `cell-data` confiable = no se evalúa.
+2. **Nueva decisión funcional `no_se_puede_ingresar_informacion`** (`FunctionalRuleService::FORBIDDEN_DATA_ENTRY`; UI: "No se puede ingresar información"). Semántica: **null / vacío real = permitido; cualquier valor, incluido `0`, `"0"`, `0.0`, `"0.0"` = incumplimiento** (severidad calibrada, default ERROR). Evalúa celdas de captura editables (las bloqueadas quedan para la protección estructural). Disponible por grupo/patrón y por fila. **`no_aplica`, `debe_registrar_cero` y `puede_quedar_vacio` sin cambios.**
+3. **Prioridad**: la decisión propia de fila prevalece sobre la del grupo; la nueva decisión **nunca se hereda** por sección ni por firma estructural. Modelo preparado para `columns` opcional (sin UI de selección todavía; sin `columns` = fila completa).
+4. **Recalibración de patrones revisados** (`patternRecalibration.ts`, `FunctionalQuestionsPanel.tsx`): patrón revisado inicialmente en solo lectura; "Recalibrar patrón" (oculto para Revisor/Auditor) desbloquea solo ese patrón sin escribir; "Cancelar recalibración" descarta sin escribir; "Guardar recalibración" usa el guardado actual y actualiza `reviewed_at`/`reviewed_by` con la revisión actual. Sección sigue confirmada, certificación técnica intacta. Marcar un patrón ahora solo toca preguntas de patrón (nunca `section_review`).
+5. **UX de calibración para Estadística**: vista principal en lenguaje operativo (grupos de filas similares / filas especiales / filas de cálculo automático, dos preguntas simples, opciones avanzadas e información técnica colapsadas); tabla "Decisiones funcionales por fila" de 7 columnas con detalle en diálogo.
+6. **Guardar sin navegación automática** ("Confirmar calibración" guarda y permanece; "Siguiente sección"/"Sección anterior" independientes, con aviso si hay cambios sin guardar).
+7. **Refresco inmediato sin F5** (`invalidateSectionCalibration()` invalida las 6 queries de la sección; `key` por sección en `QuickCalibrationPanel`/`RowFunctionalDecisionTable` para no arrastrar estado local entre secciones precargadas).
+8. **Identidad de preguntas en `saveQuestions()`**: empareja por `id`; preguntas legadas sin `id` por su texto (misma identidad del frontend, `id || question`), cada una una sola vez. Corrige la duplicación de "Test question?" en A01/A (4 copias limpiadas con respaldo `reglas-funcionales.json.pre-legacy-dup-cleanup-20260925_115619`).
+9. **Presentación diferenciada de errores** (`functionalErrorPresentation.ts`, `FunctionalErrorDetail.tsx`): `debe_registrar_cero` → "Registrar 0" (textos idénticos a los previos); `no_se_puede_ingresar_informacion` → "Celdas con información que deben quedar vacías" / "Eliminar información". Decisiones mostradas con etiqueta legible, nunca el enum.
+
+### Evidencia real
+
+- **Prueba real BM18/D** (después de reiniciar el worker): fila 60 `debe_registrar_cero` + D60 vacía → advertencia correcta; fila 61 `no_se_puede_ingresar_informacion` + C61=0 y D61=0 → **ERROR**, detecta C61 y D61, UI "Eliminar información"; la decisión de fila prevalece sobre el grupo (`puede_quedar_vacio`).
+- La carga **#209** se procesó con un worker iniciado a las 09:43 (código anterior a la fase 1/2) y no detectó la fila 61: **no es un fallo del código actual** (revalidada con el código actual: detecta todas las formas de 0).
+- Revalidación sin persistencia: **Serie A #187 y BM #205 con 0 falsos positivos estructurales**; pruebas controladas en memoria (BM18A E180=5, A01 E23=7) detectadas como ERROR. BM #205 sigue 90/90 técnico, 0 errores, 0 advertencias.
+
+### Regla operativa — reiniciar el worker
+
+**Después de cualquier cambio en código PHP, reiniciar `queue:work` antes de probar cargas reales** (`php artisan queue:restart` + `php artisan queue:work database --queue=default`). Un worker no recarga código: sin reinicio, las cargas se procesan con el código anterior.
+
+### Tests finales
+
+Backend: Unit + Feature/RuleEngine + Feature/Calibration 833 tests, 797 passed, **35 failed = baseline histórico exacto** (30 `FunctionalRuleEngineCertificationTest` + 4 `RuleEngineServiceTest` + 1 `RuleEngineIntegrationTest`), 1 skipped. Feature/REM 309/309 antes del test pesado; test pesado 3/3 con `memory_limit=4G`; archivos posteriores 81 tests, 75 passed, 6 failed **preexistentes** (4 `StructurePersistenceServiceTest` + 2 `StructureApprovalServiceCacheInvalidationTest`, verificados idénticos en HEAD sin estos cambios; antes quedaban ocultos por el OOM). Feature/Auth 66/66. Frontend: `npm test` 17/17 (runner nativo de Node, sin dependencias nuevas), `tsc -b` OK, `npm run lint` 0 errores (1 warning preexistente en `RemUploadForm.tsx`), `npm run build` OK. **Cero regresiones nuevas.**
+
+### Integridad técnica (sin cambios)
+
+Estructuras activas **A 67/v35** y **BM 72/v1** (36 estructuras, 0 eliminadas); `rem_rules` 888 (841 activas); `rem_rule_bindings` 1745 (1722 activos); 67 → 451 reglas (421 `sum_equals` + 30 `required_and_le_parent`), 72 → 90 (53 `sum_equals` + 37 `cross_sheet_equals`). Última modificación de estructuras/reglas/bindings: 2026-09-14. Clasificación canónica Serie A 304/75/2/0/0/0/0.
+
+### Decisiones funcionales de prueba — recalibrables, NO restaurar automáticamente
+
+`reglas-funcionales.json` (gitignorado, hash `b8ea99d4…`). Frente a la referencia certificada de la mañana (`8caf69cd…`), cambiaron desde la UI: **BM18/D fila 61** → `no_se_puede_ingresar_informacion` (Francisco Arcos, prueba real; decidir conservar/revertir); **A02/A patrón 1** → `puede_quedar_vacio` (prueba de UI; decidir); **A01/A patrones 1–3** → agregadas `logic_correct = si` (creadas por la prueba de UI, sin efecto en validación). Respaldos del día (gitignorados): `.pre-bm-metadata-cleanup-20260925_095415`, `.pre-restore-serie-a-tests-20260925_113959`, `.pre-legacy-dup-cleanup-20260925_115619`.
+
+### Deuda técnica pendiente (sin fecha)
+
+`extractDataValidation()` no captura validaciones de datos del Excel (0/125.418 celdas); `getActiveStructure()` fija `anio=2026`; 6 preguntas históricas de Serie A con campos de patrón contaminados; UI para elegir `columns`; el detalle de un error `structural_input` muestra solo el mensaje (sin bloque de celdas); `reglas-funcionales.json` no viaja por Git (la calibración local no llega a producción con el commit).
 
 ## CHECKPOINT 25-09-2026 — CIERRE DEFINITIVO LOCAL REM BM (POST-FIX)
 

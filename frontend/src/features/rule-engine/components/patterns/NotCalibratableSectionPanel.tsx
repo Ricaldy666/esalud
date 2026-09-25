@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Settings2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
+import { invalidateSectionCalibration } from '../../hooks/invalidateSectionCalibration'
 import { calibrationService } from '../../services/calibration'
 import type {
   CalibrationApplicability,
@@ -72,8 +73,9 @@ export function NotCalibratableSectionPanel({
       calibrationService.savePatternQuestions(serie, sheet, section, payload),
     onSuccess: () => {
       toast.success('Sección cerrada: no requiere calibración funcional.')
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
-      if (nextSection && onNavigateSection) onNavigateSection(nextSection)
+      // Guardar ya no cambia de seccion: se avanza con "Siguiente sección".
+      // Se refrescan todas las queries de la seccion (ver helper).
+      return invalidateSectionCalibration(queryClient, serie, sheet, section)
     },
     onError: () => {
       toast.error('No se pudo guardar el cierre de la sección.')
@@ -211,16 +213,15 @@ export function NotCalibratableSectionPanel({
                 className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saveMutation.isPending ? 'Guardando...' : 'Confirmar diagnóstico y cerrar sección'}
-                {nextSection && <ArrowRight className="ml-1 inline h-4 w-4" />}
               </button>
             )}
-            {!readOnly && closure && nextSection && onNavigateSection && (
+            {nextSection && onNavigateSection && (
               <button
                 type="button"
                 onClick={() => onNavigateSection(nextSection)}
                 className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
               >
-                Sección siguiente
+                Siguiente sección
                 <ArrowRight className="h-4 w-4" />
               </button>
             )}

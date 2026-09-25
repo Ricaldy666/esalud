@@ -161,8 +161,155 @@ class FunctionalRuleServiceSaveQuestionsIdentityTest extends TestCase
         $this->assertCount(3, $stored);
         $this->assertSame('patron_1_empty', $stored[0]['id']);
         $this->assertSame('debe_registrar_cero', $stored[0]['response'], 'Una pregunta anonima no pisa una identificada.');
-        $this->assertSame('despues', $stored[1]['response'], 'Una pregunta legada sin id sigue emparejando por posicion.');
+        $this->assertSame('despues', $stored[1]['response'], 'Una pregunta legada sin id se empareja por su texto.');
         $this->assertSame('otra', $stored[2]['response']);
+    }
+
+    // ─── Preguntas sin id (legado) — regresion 2026-09-25 ──────────────
+    // El frontend identifica cada pregunta por `id || question` y reenvia
+    // las no renderizadas al FINAL del payload, no en su posicion guardada.
+    // Una pregunta sin id que cambia de posicion se agregaba como nueva en
+    // cada guardado (A01/A llego a 5 copias de "Test question?").
+
+    public function test_legacy_question_without_id_at_a_different_position_is_not_duplicated(): void
+    {
+        $this->seedQuestions([
+            $this->question('patron_1_empty', 1, 'debe_registrar_cero', 'rowset_p1'),
+            $this->legacyQuestion(),
+            ['id' => 'section_review', 'type' => 'section_review', 'response' => 'revisada', 'review_status' => 'section_reviewed'],
+        ]);
+
+        $this->service()->saveQuestions(self::SHEET, self::SECTION, [
+            ['id' => 'patron_1_empty', 'question' => 'q', 'response' => 'debe_registrar_cero'],
+            ['id' => 'section_review', 'type' => 'section_review', 'question' => 'Seccion A revisada', 'response' => 'revisada'],
+            $this->legacyQuestion(['response' => 'Respuesta editada']),
+        ], 'BM');
+
+        $stored = $this->stored();
+        $legacy = $this->legacyCopies($stored);
+
+        $this->assertCount(3, $stored, 'No se agrega ninguna pregunta nueva.');
+        $this->assertCount(1, $legacy, 'La pregunta sin id sigue existiendo una sola vez.');
+        $this->assertSame('Respuesta editada', $legacy[array_key_first($legacy)]['response']);
+        $this->assertSame(1, array_key_first($legacy), 'Conserva su posicion guardada.');
+    }
+
+    public function test_repeated_saves_never_duplicate_the_legacy_question(): void
+    {
+        // Mismo shape real que A01/A: preguntas identificadas + una sin id;
+        // el payload trae preguntas nuevas con id y la legada al final.
+        $this->seedQuestions([
+            $this->question('patron_1_empty', 1, 'debe_registrar_cero', 'rowset_p1'),
+            $this->question('patron_2_empty', 2, 'debe_registrar_cero', 'rowset_p2'),
+            ['id' => 'section_review', 'type' => 'section_review', 'response' => 'revisada', 'review_status' => 'section_reviewed'],
+            $this->legacyQuestion(),
+        ]);
+
+        $payload = [
+            ['id' => 'patron_1_empty', 'question' => 'q1', 'response' => 'puede_quedar_vacio'],
+            ['id' => 'patron_2_empty', 'question' => 'q2', 'response' => 'puede_quedar_vacio'],
+            ['id' => 'section_review', 'type' => 'section_review', 'question' => 'Seccion A revisada', 'response' => 'revisada'],
+            ['id' => 'patron_1_logic_correct', 'question' => 'logica', 'response' => 'si', 'pattern_id' => 1],
+            $this->legacyQuestion(),
+        ];
+
+        foreach (range(1, 3) as $ignored) {
+            $this->service()->saveQuestions(self::SHEET, self::SECTION, $payload, 'BM');
+        }
+
+        $stored = $this->stored();
+
+        $this->assertCount(1, $this->legacyCopies($stored), 'Tres guardados no crean copias de la pregunta sin id.');
+        $this->assertCount(5, $stored, '4 existentes + 1 pregunta nueva con id, agregada una sola vez.');
+        $this->assertSame(1, count(array_filter($stored, fn ($q) => ($q['id'] ?? null) === 'patron_1_logic_correct')));
+    }
+
+    public function test_identified_questions_keep_their_identity_when_a_legacy_question_is_present(): void
+    {
+        $this->seedQuestions([
+            $this->question('patron_1_empty', 1, 'puede_quedar_vacio', 'rowset_p1'),
+            $this->legacyQuestion(),
+            $this->question('patron_2_empty', 2, 'puede_quedar_vacio', 'rowset_p2'),
+        ]);
+
+        $this->service()->saveQuestions(self::SHEET, self::SECTION, [
+            $this->legacyQuestion(),
+            ['id' => 'patron_2_empty', 'question' => 'q2', 'response' => 'no_aplica'],
+            ['id' => 'patron_1_empty', 'question' => 'q1', 'response' => 'debe_registrar_cero'],
+        ], 'BM');
+
+        $byId = $this->storedById();
+
+        $this->assertCount(3, $this->stored());
+        $this->assertSame('debe_registrar_cero', $byId['patron_1_empty']['response']);
+        $this->assertSame('rowset_p1', $byId['patron_1_empty']['pattern_fingerprint']);
+        $this->assertSame('no_aplica', $byId['patron_2_empty']['response']);
+        $this->assertSame('rowset_p2', $byId['patron_2_empty']['pattern_fingerprint']);
+        $this->assertCount(1, $this->legacyCopies($this->stored()));
+    }
+
+    public function test_hidden_dependents_with_a_legacy_question_cause_no_positional_contamination(): void
+    {
+        $this->seedQuestions([
+            $this->question('patron_2_empty', 2, 'puede_quedar_vacio', 'rowset_p2'),
+            $this->question('patron_2_all_est', 2, 'si', 'rowset_p2'),
+            $this->question('patron_2_exceptions', 2, 'no', 'rowset_p2'),
+            $this->legacyQuestion(),
+            ['id' => 'section_review', 'type' => 'section_review', 'response' => 'pendiente'],
+        ]);
+
+        // no_aplica: la UI deja de enviar all_est/exceptions; la legada va al final.
+        $this->service()->saveQuestions(self::SHEET, self::SECTION, [
+            ['id' => 'patron_2_empty', 'question' => 'q', 'response' => 'no_aplica'],
+            ['id' => 'section_review', 'type' => 'section_review', 'question' => 'Seccion A revisada', 'response' => 'revisada'],
+            $this->legacyQuestion(),
+        ], 'BM');
+
+        $stored = $this->stored();
+        $byId = $this->storedById();
+        $legacy = $this->legacyCopies($stored);
+
+        $this->assertCount(5, $stored);
+        $this->assertCount(1, $legacy);
+        $this->assertArrayNotHasKey('pattern_key', $legacy[array_key_first($legacy)], 'La legada no hereda campos de patron.');
+        $this->assertArrayNotHasKey('pattern_key', $byId['section_review']);
+        $this->assertSame('si', $byId['patron_2_all_est']['response']);
+        $this->assertSame('no', $byId['patron_2_exceptions']['response']);
+    }
+
+    public function test_two_legacy_questions_with_the_same_text_are_matched_once_each(): void
+    {
+        $this->seedQuestions([
+            $this->legacyQuestion(['response' => 'primera']),
+            $this->legacyQuestion(['response' => 'segunda']),
+        ]);
+
+        $this->service()->saveQuestions(self::SHEET, self::SECTION, [
+            $this->legacyQuestion(['response' => 'primera editada']),
+            $this->legacyQuestion(['response' => 'segunda editada']),
+        ], 'BM');
+
+        $stored = $this->stored();
+
+        $this->assertCount(2, $stored);
+        $this->assertSame('primera editada', $stored[0]['response']);
+        $this->assertSame('segunda editada', $stored[1]['response']);
+    }
+
+    private function legacyQuestion(array $overrides = []): array
+    {
+        return array_merge([
+            'type' => 'aggregate_pattern',
+            'question' => 'Test question?',
+            'response' => 'All rows use same pattern',
+            'observation' => 'Test obs',
+            'status' => 'answered',
+        ], $overrides);
+    }
+
+    private function legacyCopies(array $stored): array
+    {
+        return array_filter($stored, fn ($q) => empty($q['id']) && ($q['question'] ?? null) === 'Test question?');
     }
 
     private function service(): FunctionalRuleService
@@ -202,6 +349,9 @@ class FunctionalRuleServiceSaveQuestionsIdentityTest extends TestCase
     {
         $byId = [];
         foreach ($this->stored() as $question) {
+            if (empty($question['id'])) {
+                continue; // preguntas legadas sin id: ver legacyCopies()
+            }
             $byId[$question['id']] = $question;
         }
 

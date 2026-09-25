@@ -415,6 +415,10 @@ export type RowFunctionalDecisionValue =
   | 'debe_registrar_cero'
   | 'puede_quedar_vacio'
   | 'pendiente_definicion'
+  // "No se puede ingresar información": vacío = correcto; 0 o cualquier valor
+  // = incumplimiento. Distinto de 'no_aplica' (no validar).
+  | 'no_se_puede_ingresar_informacion'
+  | 'no_aplica'
   | null
 
 export type RowFunctionalDecisionOrigin = 'row' | 'pattern' | 'section' | 'none'

@@ -252,6 +252,17 @@ class ValidateRemUploadJob implements ShouldQueue
                         $coordinates = implode(', ', array_column($missingCells, 'coordinate'));
                         $results->push($this->makeFunctionalResult($upload, $sheet, $rowNum, $concept, $professional, $calibratedSeverity ?? 'warning', false, "La fila {$rowNum}, {$label}, debe registrar 0 explícitamente en {$coordinates}.", $fr, $missingCells, $row->data));
                     }
+                } elseif ($emptyBehavior === FunctionalRuleService::FORBIDDEN_DATA_ENTRY) {
+                    // "No se puede ingresar informacion": vacio = correcto;
+                    // 0 o cualquier valor = incumplimiento. Se evaluan las
+                    // celdas de captura de la fila, o solo las columnas que la
+                    // decision declare explicitamente.
+                    $filledCells = $this->forbiddenEntryFilledCellDetails($row->data, $fr, $cellDataStorage);
+                    if (!empty($filledCells)) {
+                        $coordinates = implode(', ', array_column($filledCells, 'coordinate'));
+                        $calibratedSeverity = $this->normalizeFunctionalSeverity($fr['severity'] ?? null);
+                        $results->push($this->makeFunctionalResult($upload, $sheet, $rowNum, $concept, $professional, $calibratedSeverity ?? 'error', false, "La fila {$rowNum}, {$label}, no admite información y se registró un valor en {$coordinates}.", $fr, $filledCells, $row->data));
+                    }
                 } elseif ($emptyBehavior === 'puede_quedar_vacio') {
                     // El calibrador es la fuente de verdad: si la fila esta vacia, la decision
                     // se respeta y queda trazada como cumplida (passed=true), sin generar
@@ -273,6 +284,16 @@ class ValidateRemUploadJob implements ShouldQueue
                     // Always informational — no pass/fail
                 } elseif ($emptyBehavior === 'no_aplica') {
                     // Skipped entirely — no evaluation needed
+                }
+            }
+
+            // Proteccion estructural (independiente de la calibracion): una
+            // celda bloqueada/no habilitada en la plantilla certificada no debe
+            // recibir informacion distinta de la que trae la propia plantilla.
+            foreach ($rows as $row) {
+                $violations = $this->structuralInputViolations($row->data ?? [], $cellDataStorage);
+                if (!empty($violations)) {
+                    $results->push($this->makeStructuralInputResult($upload, $sheet, $row->data, $violations));
                 }
             }
 
@@ -379,6 +400,13 @@ class ValidateRemUploadJob implements ShouldQueue
         }
 
         if (($functionalRule['empty_behavior'] ?? null) === null) {
+            return false;
+        }
+
+        // "No se puede ingresar informacion" solo aplica a las filas donde se
+        // decidio (fila explicita o filas del grupo): nunca se hereda a otras
+        // filas por firma estructural ni por seccion.
+        if (($functionalRule['empty_behavior'] ?? null) === FunctionalRuleService::FORBIDDEN_DATA_ENTRY) {
             return false;
         }
 
@@ -648,6 +676,150 @@ class ValidateRemUploadJob implements ShouldQueue
         return "Columna {$column}";
     }
 
+    /**
+     * Celdas con informacion dentro del alcance de una decision "no se puede
+     * ingresar informacion": las celdas de captura de la fila (editables, no
+     * formula), o solo las columnas declaradas en $functionalRule['columns'].
+     * 0 cuenta como informacion. Las celdas bloqueadas quedan a cargo de la
+     * proteccion estructural (structuralInputViolations), sin duplicar.
+     */
+    private function forbiddenEntryFilledCellDetails(array $rowData, array $functionalRule, CellDataStorageService $cellDataStorage): array
+    {
+        $sheet = (string) ($rowData['section'] ?? '');
+        $section = (string) ($rowData['rem_section_code'] ?? '');
+        $rowNumber = $rowData['row_number'] ?? null;
+        if ($sheet === '' || $section === '' || $rowNumber === null) {
+            return [];
+        }
+
+        $columns = FunctionalRuleService::normalizeColumns($functionalRule['columns'] ?? null);
+        $details = [];
+        foreach ($this->applicableEditableInputCoordinates($rowData, $cellDataStorage) as $coordinate => $value) {
+            $column = strtoupper((string) preg_replace('/\d+/', '', $coordinate));
+            if ($columns !== [] && !in_array($column, $columns, true)) {
+                continue;
+            }
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $cell = $cellDataStorage->getCellForCoordinate($sheet, $section, $coordinate) ?? [];
+            $details[] = [
+                'coordinate' => $coordinate,
+                'column' => $column,
+                'label' => $this->labelForColumn($sheet, $section, $column, (int) $rowNumber, $cellDataStorage),
+                'value' => $value,
+                'expected_value' => null,
+                'editable' => ($cell['es_editable'] ?? true) === true,
+                'blocked' => ($cell['esta_bloqueada'] ?? false) === true,
+                'color' => $cell['color_fondo']['nombre_inferido'] ?? $cell['color_fondo']['rgb'] ?? null,
+            ];
+        }
+
+        return $details;
+    }
+
+    /**
+     * Proteccion estructural: celdas que la plantilla certificada marca como
+     * bloqueadas/no habilitadas (cell-data) y que recibieron un valor distinto
+     * del que trae la propia plantilla. Se ignoran formulas y celdas sin
+     * cell-data confiable (sin informacion de bloqueo): nunca se decide sin
+     * evidencia.
+     */
+    private function structuralInputViolations(array $rowData, CellDataStorageService $cellDataStorage): array
+    {
+        $sheet = (string) ($rowData['section'] ?? '');
+        $section = (string) ($rowData['rem_section_code'] ?? '');
+        $rowNumber = $rowData['row_number'] ?? null;
+        if ($sheet === '' || $section === '' || $rowNumber === null) {
+            return [];
+        }
+
+        $violations = [];
+        foreach ($rowData['values'] ?? [] as $column => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $column = strtoupper((string) $column);
+            $coordinate = $column . (int) $rowNumber;
+            $cell = $cellDataStorage->getCellForCoordinate($sheet, $section, $coordinate);
+            if ($cell === null || (!array_key_exists('esta_bloqueada', $cell) && !array_key_exists('es_editable', $cell))) {
+                continue;
+            }
+            if (($cell['es_formula'] ?? false) === true || !empty($cell['formula'])) {
+                continue;
+            }
+            $blocked = ($cell['esta_bloqueada'] ?? false) === true || ($cell['es_editable'] ?? true) === false;
+            if (!$blocked) {
+                continue;
+            }
+
+            $templateValue = $cell['valor_bruto'] ?? null;
+            if ($this->valueMatchesTemplate($value, $templateValue)) {
+                continue;
+            }
+
+            $violations[] = [
+                'coordinate' => $coordinate,
+                'column' => $column,
+                'label' => $this->labelForColumn($sheet, $section, $column, (int) $rowNumber, $cellDataStorage),
+                'value' => $value,
+                'template_value' => $templateValue,
+                'expected_value' => $templateValue,
+                'editable' => false,
+                'blocked' => true,
+                'color' => $cell['color_fondo']['nombre_inferido'] ?? $cell['color_fondo']['rgb'] ?? null,
+            ];
+        }
+
+        return $violations;
+    }
+
+    /**
+     * true si el valor cargado es exactamente el que trae la plantilla en esa
+     * celda (ej. un 0 o una etiqueta preimpresa). Una celda de plantilla vacia
+     * nunca "coincide" con un valor ingresado.
+     */
+    private function valueMatchesTemplate(mixed $value, mixed $templateValue): bool
+    {
+        if ($templateValue === null || $templateValue === '') {
+            return false;
+        }
+        if (is_numeric($value) && is_numeric($templateValue)) {
+            return abs((float) $value - (float) $templateValue) < 1e-9;
+        }
+
+        return trim((string) $value) === trim((string) $templateValue);
+    }
+
+    private function makeStructuralInputResult(RemUpload $upload, string $sheet, array $rowData, array $violations): array
+    {
+        $rowNum = (int) ($rowData['row_number'] ?? 0);
+        $coordinates = implode(', ', array_column($violations, 'coordinate'));
+
+        return [
+            'rem_upload_id' => $upload->id,
+            'rule_key' => 's_' . $sheet . '_' . $rowNum,
+            'rule_type' => 'structural_input',
+            'severity' => 'error',
+            'passed' => false,
+            'message' => "[{$sheet}] Se ingresó información en una celda no habilitada (fila {$rowNum}: {$coordinates}).",
+            'context' => json_encode([
+                'section' => $sheet,
+                'rem_section_code' => $rowData['rem_section_code'] ?? null,
+                'row_number' => $rowNum,
+                'concept' => $rowData['concept'] ?? '',
+                'profesional' => $rowData['professional'] ?? '',
+                'pending_cells' => $violations,
+                'pending_cells_count' => count($violations),
+                'protection' => 'structural_blocked_cell',
+            ]),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+
     private function makeFunctionalResult(RemUpload $upload, string $section, int $rowNum, string $concept, string $professional, string $severity, bool $passed, string $message, array $functionalRule, array $pendingCells = [], array $rowData = []): array
     {
         $label = trim("{$concept} / {$professional}", ' /');
@@ -655,6 +827,7 @@ class ValidateRemUploadJob implements ShouldQueue
             'debe_registrar_cero' => "Revise la fila {$rowNum} y registre 0 explícitamente en las celdas habilitadas que quedaron sin dato.",
             'incluir' => "Revise la fila {$rowNum} y complete los datos requeridos según la decisión funcional.",
             'excluir' => "La fila {$rowNum} está excluida por decisión funcional. Verifique si corresponde mantener los datos.",
+            FunctionalRuleService::FORBIDDEN_DATA_ENTRY => "Revise la fila {$rowNum}: no se puede ingresar información en esas celdas. Déjelas vacías.",
             default => "Revise la fila {$rowNum} y verifique los valores registrados.",
         };
 

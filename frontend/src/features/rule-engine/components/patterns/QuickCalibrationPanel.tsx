@@ -5,12 +5,14 @@ import {
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
-  ClipboardCheck,
+  ChevronDown,
+  ChevronRight,
   Settings2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/app/store/authStore'
 import { useHealthCenters } from '@/features/health-centers/hooks/useHealthCenters'
+import { invalidateSectionCalibration } from '../../hooks/invalidateSectionCalibration'
 import { calibrationService } from '../../services/calibration'
 import { MismatchResolutionPanel } from './MismatchResolutionPanel'
 import { NotCalibratableSectionPanel } from './NotCalibratableSectionPanel'
@@ -68,6 +70,10 @@ interface Props {
   structureVersion: string
   candidateSections?: EquivalentCandidateInput[]
   onOpenAdvanced: () => void
+  // Abre la misma vista avanzada, pero directamente en la calibracion por
+  // grupo (usada para las filas especiales). Opcional: si no se entrega se
+  // usa onOpenAdvanced.
+  onOpenGroupCalibration?: () => void
   onNavigateSection: (section: string) => void
 }
 
@@ -399,6 +405,56 @@ function patternRowsText(patterns: PatternGroup[]) {
   return rows[0] === rows[rows.length - 1] ? String(rows[0]) : `${rows[0]}-${rows[rows.length - 1]}`
 }
 
+// Texto compacto y exacto de un conjunto de filas: tramos consecutivos como
+// "11–22", separados por coma ("124–127, 145, 161–163").
+function rowRangesText(rows: number[], maxSegments = 6) {
+  const unique = [...new Set(rows)].sort((a, b) => a - b)
+  if (unique.length === 0) return 'sin filas'
+  const segments: string[] = []
+  let start = unique[0]
+  let previous = unique[0]
+  for (const row of unique.slice(1)) {
+    if (row === previous + 1) {
+      previous = row
+      continue
+    }
+    segments.push(start === previous ? String(start) : `${start}–${previous}`)
+    start = row
+    previous = row
+  }
+  segments.push(start === previous ? String(start) : `${start}–${previous}`)
+  if (segments.length <= maxSegments) return segments.join(', ')
+  const hidden = segments.length - maxSegments
+  return `${segments.slice(0, maxSegments).join(', ')} y ${hidden} tramo${hidden === 1 ? '' : 's'} más`
+}
+
+// Etiquetas de presentacion para los valores internos existentes. Los
+// valores guardados no cambian.
+const EMPTY_LABELS: Record<string, string> = {
+  debe_registrar_cero: 'Debe registrar 0',
+  puede_quedar_vacio: 'Puede quedar vacío',
+  no_aplica: 'No aplica',
+  no_se_puede_ingresar_informacion: 'No se puede ingresar información',
+}
+const SEVERITY_LABELS: Record<string, string> = {
+  error: 'Error',
+  advertencia: 'Advertencia',
+}
+const SPECIAL_LABELS: Record<string, string> = {
+  si: 'Validar',
+  no: 'Solo informativas',
+}
+const LOGIC_LABELS: Record<string, string> = {
+  si: 'Correcta',
+  parcialmente: 'Parcialmente',
+  por_definir: 'Por definir',
+}
+
+function answerLabel(labels: Record<string, string>, value: string | null | undefined) {
+  if (!value) return 'Sin definir'
+  return labels[value] ?? value
+}
+
 function getInitialResponse(questions: CalibrationQuestion[], id: string) {
   return questions.find((question) => questionKey(question) === id)?.response ?? ''
 }
@@ -475,6 +531,7 @@ export default function QuickCalibrationPanel({
   structureVersion,
   candidateSections = [],
   onOpenAdvanced,
+  onOpenGroupCalibration,
   onNavigateSection,
 }: Props) {
   const user = useAuthStore((state) => state.user)
@@ -617,10 +674,14 @@ export default function QuickCalibrationPanel({
   // render en cascada de un setState dentro de useEffect).
   const sectionKey = `${sheet}_${section}`
   const [forceFullReview, setForceFullReview] = useState(false)
+  // Confirmacion visible del ultimo guardado exitoso en ESTA seccion (solo
+  // presentacion; se limpia al cambiar de seccion junto con forceFullReview).
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null)
   const [lastSectionKey, setLastSectionKey] = useState(sectionKey)
   if (lastSectionKey !== sectionKey) {
     setLastSectionKey(sectionKey)
     setForceFullReview(false)
+    setLastSavedAt(null)
   }
 
   const [showProblem, setShowProblem] = useState(false)
@@ -641,6 +702,10 @@ export default function QuickCalibrationPanel({
   const [inheritedFrom, setInheritedFrom] = useState<EquivalentCandidateInput | null>(null)
   const [hideEquivalent, setHideEquivalent] = useState(false)
   const [showDecisionDetails, setShowDecisionDetails] = useState(false)
+  // Solo presentacion: abrir/cerrar bloques secundarios. No participan del
+  // payload ni del calculo de decisiones.
+  const [showSectionTechnical, setShowSectionTechnical] = useState(false)
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
 
   const primaryPattern = quickPatterns[0]
   const primaryId = primaryPattern?.id ?? 1
@@ -706,20 +771,39 @@ export default function QuickCalibrationPanel({
   const showDecisionControls = showDecisionDetails || needsManualDecisionView
   const canFastSave =
     answeredDecisions === totalDecisions && !showProblem && blockedPatterns.length === 0
+  // Solo para avisar antes de salir de la seccion: compara las respuestas en
+  // pantalla con las guardadas (mismas claves que el estado inicial). No
+  // interviene en el guardado.
+  const hasUnsavedChanges = (Object.keys(responses) as DecisionKey[]).some(
+    (key) =>
+      (responses[key] ?? '') !== getInitialResponse(questions, patternQuestionId(primaryId, key))
+  )
+  const goToSection = (target: string) => {
+    if (
+      hasUnsavedChanges &&
+      !window.confirm(
+        'Hay respuestas sin guardar en esta sección. ¿Desea salir de todos modos? Los cambios no guardados se perderán.'
+      )
+    ) {
+      return
+    }
+    onNavigateSection(target)
+  }
 
   const saveMutation = useMutation({
     mutationFn: (payload: CalibrationQuestion[]) =>
       calibrationService.savePatternQuestions(serie, sheet, section, payload),
     onSuccess: () => {
       toast.success(
-        showProblem
-          ? 'Problema reportado correctamente.'
-          : nextSection
-            ? 'Sección guardada. Abriendo la siguiente sección.'
-            : 'Sección guardada correctamente.'
+        showProblem ? 'Problema reportado correctamente.' : 'Calibración guardada correctamente.'
       )
-      queryClient.invalidateQueries({ queryKey: ['pattern-matrix', serie, sheet, section] })
-      if (!showProblem && nextSection) onNavigateSection(nextSection)
+      // Guardar ya no cambia de seccion: el funcionario queda en la misma
+      // para comprobar lo guardado y avanza con "Siguiente sección" cuando
+      // quiera. Se retorna la invalidacion para que la mutation siga
+      // "pendiente" hasta que toda la pantalla de la seccion ya se volvio a
+      // leer del backend (estado revisado, grupos, tabla por fila).
+      if (!showProblem) setLastSavedAt(new Date())
+      return invalidateSectionCalibration(queryClient, serie, sheet, section)
     },
     onError: () => toast.error('No se pudo guardar la calibración rápida'),
   })
@@ -772,6 +856,34 @@ export default function QuickCalibrationPanel({
     scopeMode === 'included' ? mode === 'aplica' || mode === 'obligatorio' : mode === 'no_aplica'
   )
   const needsEstablishmentScope = scopeMode !== 'all'
+
+  // Presentacion de la vista simple (no cambia ninguna regla de guardado):
+  // las opciones avanzadas quedan cerradas por defecto, salvo que falte una
+  // respuesta que canFastSave exige o que el alcance por establecimiento
+  // este activo -- nunca se esconde algo que bloquearia el guardado.
+  const advancedOptionsNeedAnswer =
+    !responses.all_est ||
+    !responses.exceptions ||
+    (Boolean(complementaryGroup) && !responses.special) ||
+    needsEstablishmentScope
+  const advancedOptionsOpen = showAdvancedOptions || advancedOptionsNeedAnswer
+  const establishmentsSummary = !responses.all_est
+    ? 'Sin definir'
+    : responses.all_est === 'depende'
+      ? 'Solo algunos establecimientos'
+      : responses.exceptions === 'si'
+        ? 'Todos, con excepciones'
+        : responses.exceptions === 'no'
+          ? 'Todos, sin excepciones'
+          : 'Todos los establecimientos'
+  const calibrationStatusLabel =
+    blockedPatterns.length > 0
+      ? 'Requiere revisión'
+      : sectionReviewed
+        ? 'Calibración confirmada'
+        : answeredDecisions > 0
+          ? 'En progreso'
+          : 'Sin iniciar'
 
   const applySuggestions = () => {
     if (!confirmedEvidence) {
@@ -1044,7 +1156,7 @@ export default function QuickCalibrationPanel({
     }
     if (!showProblem && blockedPatterns.length > 0) {
       toast.warning(
-        'Uno o más patrones de esta sección requieren revalidación y no pueden certificarse desde la calibración rápida. Abra "Ver evidencia técnica" para revisarlos patrón por patrón.'
+        'Uno o más grupos de filas de esta sección deben revisarse nuevamente y no pueden confirmarse desde esta vista. Abra "Calibración avanzada" para revisarlos grupo por grupo.'
       )
       return
     }
@@ -1143,6 +1255,88 @@ export default function QuickCalibrationPanel({
     )
   }
 
+  // "Resumen automatico" original, sin cambios de contenido: ahora vive
+  // dentro de "Ver informacion tecnica de la seccion" (vista secundaria).
+  const technicalSummary = (
+    <>
+      {isHybridSection ? (
+        <div className="mt-3 space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+          <p className="font-medium">
+            Sección mixta: parte del llenado es automático (derivado de otra hoja/columna) y parte
+            requiere captura funcional.
+          </p>
+          <p>
+            {derivedRowCount} fila{derivedRowCount === 1 ? '' : 's'} se calcula
+            {derivedRowCount === 1 ? '' : 'n'} automáticamente — no requiere
+            {derivedRowCount === 1 ? '' : 'n'} decisión de "Sin datos", severidad, aplicación ni
+            excepciones.
+          </p>
+          <p>
+            El resto de las filas de esta sección sí requiere su calibración funcional habitual (ver
+            más abajo).
+          </p>
+          {verticalConsolidation && (
+            <p>Además, existe una fila TOTAL real que se trata como consolidación vertical.</p>
+          )}
+        </div>
+      ) : isDerivedAutoFill ? (
+        <div className="mt-3 space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
+          <p className="font-medium">Sección de llenado automático (derivada de otra hoja).</p>
+          <p>
+            Todas las celdas de esta sección son fórmulas (locales y/o referencias a otra hoja); no
+            existe ninguna celda de captura editable. El llenado se completa automáticamente.
+          </p>
+          <p>
+            El sistema ya certificó y ejecuta reglas técnicas reales para esta sección — no se
+            genera ninguna decisión de "Sin datos"/Severidad/Aplicación/Excepciones, porque no
+            aplican a una fila que nunca queda vacía por elección humana.
+          </p>
+          {verticalConsolidation && (
+            <p>Además, existe una fila TOTAL real que se trata como consolidación vertical.</p>
+          )}
+        </div>
+      ) : directInputEvidence ? (
+        <div className="mt-3 space-y-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+          <p className="font-medium">Captura directa desde el REM.</p>
+          <p>
+            Esta sección no posee reglas matemáticas horizontales; los datos son ingresados por el
+            funcionario.
+          </p>
+          <p>
+            El sistema validará criterios funcionales sobre esos datos: si se debe registrar 0 o
+            permitir vacío, severidad de inconsistencias, aplicabilidad y excepciones.
+          </p>
+          {verticalConsolidation && (
+            <p>Además, existe una fila TOTAL que se trata como consolidación vertical.</p>
+          )}
+        </div>
+      ) : confirmedEvidence ? (
+        <div className="mt-3 space-y-2 text-sm text-slate-700">
+          <p>
+            Esta sección posee cálculos horizontales entre columnas. El sistema validará que los
+            totales y componentes registrados mantengan esas relaciones.
+          </p>
+          {rules.map((rule) => (
+            <p key={rule}>✓ {rule}</p>
+          ))}
+          {ageGroup && <p>✓ Rango etario detectado: {range(ageGroup)}</p>}
+          {complementaryColumns.length > 0 && (
+            <p>
+              ✓ Variables complementarias:{' '}
+              {complementaryColumns.map((column) => column.label || column.letter).join(', ')}
+            </p>
+          )}
+          {verticalConsolidation && <p>✓ Consolidación vertical detectada en fila TOTAL.</p>}
+        </div>
+      ) : (
+        <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+          Esta sección usa estructura preliminar. Debe confirmar manualmente la lógica detectada
+          antes de guardar.
+        </div>
+      )}
+    </>
+  )
+
   return (
     <div className="space-y-5">
       {blockedPatterns.length > 0 && (
@@ -1150,14 +1344,15 @@ export default function QuickCalibrationPanel({
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <p className="font-semibold">
-              {blockedPatterns.length} patrón{blockedPatterns.length === 1 ? '' : 'es'} de esta
-              sección requiere{blockedPatterns.length === 1 ? '' : 'n'} revalidación.
+              {blockedPatterns.length} grupo{blockedPatterns.length === 1 ? '' : 's'} de filas de
+              esta sección debe{blockedPatterns.length === 1 ? '' : 'n'} revisarse nuevamente.
             </p>
             <p className="mt-1">
-              El conjunto de filas de este patrón cambió respecto a la última calibración. No se
-              aplicó ninguna respuesta anterior automáticamente. Use{' '}
-              <span className="font-medium">Ver evidencia técnica</span> para revisar cada patrón y
-              su respuesta histórica antes de certificar la sección.
+              Las filas de {blockedPatterns.length === 1 ? 'este grupo' : 'estos grupos'} cambiaron
+              respecto a la última calibración. No se aplicó ninguna respuesta anterior
+              automáticamente. Revíse{blockedPatterns.length === 1 ? 'lo' : 'los'} en{' '}
+              <span className="font-medium">Calibración avanzada</span> antes de confirmar la
+              sección.
             </p>
           </div>
         </div>
@@ -1173,21 +1368,18 @@ export default function QuickCalibrationPanel({
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
             <p className="font-semibold">
-              {exceptionPatterns.length} patrón{exceptionPatterns.length === 1 ? '' : 'es'} de esta
-              sección {exceptionPatterns.length === 1 ? 'se detectó' : 'se detectaron'} como posible
-              {exceptionPatterns.length === 1 ? '' : 's'} excepción de negocio (patrón
-              {exceptionPatterns.length === 1 ? '' : 'es'}{' '}
-              {exceptionPatterns.map((pattern) => pattern.id).join(', ')}, {exceptionRowCount} fila
-              {exceptionRowCount === 1 ? '' : 's'}).
+              Esta sección tiene {exceptionRowCount} fila{exceptionRowCount === 1 ? '' : 's'}{' '}
+              especial{exceptionRowCount === 1 ? '' : 'es'} (fila
+              {exceptionRowCount === 1 ? '' : 's'}{' '}
+              {rowRangesText(exceptionPatterns.flatMap((pattern) => pattern.filas))}).
             </p>
             <p className="mt-1">
-              Esta{exceptionRowCount === 1 ? '' : 's'} fila{exceptionRowCount === 1 ? '' : 's'}{' '}
+              Se comporta{exceptionRowCount === 1 ? '' : 'n'} distinto al resto y{' '}
               <span className="font-semibold">
-                no se incluye{exceptionRowCount === 1 ? '' : 'n'} en "Confirmar y guardar sección"
+                no recibe{exceptionRowCount === 1 ? '' : 'n'} la decisión general de la sección
               </span>
-              : revíse{exceptionPatterns.length === 1 ? 'la' : 'las'} de forma individual en{' '}
-              <span className="font-medium">Ver evidencia técnica</span> antes de certificar la
-              sección.
+              . Decída{exceptionRowCount === 1 ? 'la' : 'las'} por separado desde la lista de grupos
+              de filas (por ejemplo, «No aplica» cuando no corresponden a un concepto del REM).
             </p>
           </div>
         </div>
@@ -1196,7 +1388,7 @@ export default function QuickCalibrationPanel({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-              Calibración rápida
+              Calibración de la sección
             </p>
             <h2 className="mt-1 text-xl font-bold text-slate-900">
               Sección {section} — {sectionTitle || data.section.titulo}
@@ -1204,71 +1396,112 @@ export default function QuickCalibrationPanel({
           </div>
           <span
             className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${
-              confirmedEvidence
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border-amber-200 bg-amber-50 text-amber-700'
+              blockedPatterns.length > 0
+                ? 'border-amber-200 bg-amber-50 text-amber-700'
+                : sectionReviewed
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border-slate-200 bg-slate-50 text-slate-600'
             }`}
           >
-            {confirmedEvidence ? (
+            {sectionReviewed && blockedPatterns.length === 0 ? (
               <CheckCircle2 className="h-3.5 w-3.5" />
-            ) : (
+            ) : blockedPatterns.length > 0 ? (
               <AlertTriangle className="h-3.5 w-3.5" />
-            )}
-            Evidencia técnica: {confirmedEvidence ? 'OK' : 'Preliminar'}
+            ) : null}
+            {calibrationStatusLabel}
           </span>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatusMetric label="Filas analizadas" value={patternRowsText(quickPatterns)} />
-          <StatusMetric
-            label="Decisiones funcionales"
-            value={`${answeredDecisions}/${totalDecisions}`}
-          />
-          <StatusMetric label="Problemas reportados" value={String(reportedProblems)} />
-          <StatusMetric
-            label="Estado"
-            value={
-              blockedPatterns.length > 0
-                ? 'Requiere revalidación'
-                : sectionReviewed
-                  ? 'Lista para certificar'
-                  : 'Pendiente'
-            }
-          />
+        <div className="mt-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-sm font-medium text-slate-800">
+              {answeredDecisions} de {totalDecisions} decisiones completadas
+            </p>
+            <p className="text-xs text-slate-500">
+              {quickPatterns.reduce((total, pattern) => total + pattern.filas.length, 0)} filas
+              analizadas · filas {patternRowsText(quickPatterns)}
+            </p>
+          </div>
+          <div
+            className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100"
+            role="progressbar"
+            aria-label="Progreso de la calibración"
+            aria-valuemin={0}
+            aria-valuemax={totalDecisions}
+            aria-valuenow={answeredDecisions}
+          >
+            <div
+              className="h-full rounded-full bg-emerald-500 transition-all"
+              style={{
+                width: `${totalDecisions > 0 ? Math.round((answeredDecisions / totalDecisions) * 100) : 0}%`,
+              }}
+            />
+          </div>
         </div>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatusMetric label="Tipo de sección" value={sectionType} />
-          <StatusMetric
-            label="Consolidación vertical"
-            value={verticalConsolidation ? 'Sí' : 'No detectada'}
-          />
-          <StatusMetric
-            label="Diferencias detectadas"
-            value={String((data.warnings ?? []).length)}
-          />
-          <StatusMetric label="Confianza técnica" value={confidence} />
-        </div>
-      </div>
 
-      <div className="grid gap-3 lg:grid-cols-4">
-        <StatusMetric
-          label="Evidencia técnica"
-          value={
-            confirmedEvidence
-              ? 'Verificada'
-              : data.patterns.some((pattern) => pattern.source === 'cell_data')
-                ? 'Disponible'
-                : 'Pendiente'
-          }
-        />
-        <StatusMetric
-          label="Calibración funcional"
-          value={
-            sectionReviewed ? 'Revisada' : answeredDecisions > 0 ? 'En revisión' : 'Sin iniciar'
-          }
-        />
-        <StatusMetric label="Preparación del motor" value="No generada" />
-        <StatusMetric label="Activación productiva" value="Inactiva" />
+        {(reportedProblems > 0 || !confirmedEvidence) && (
+          <div className="mt-4 space-y-2">
+            {reportedProblems > 0 && (
+              <p className="flex items-center gap-1.5 text-sm text-red-700">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                {reportedProblems} problema{reportedProblems === 1 ? '' : 's'} reportado
+                {reportedProblems === 1 ? '' : 's'} en esta sección.
+              </p>
+            )}
+            {!confirmedEvidence && (
+              <p className="flex items-center gap-1.5 text-sm text-amber-700">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                La lectura automática de esta sección es preliminar: confirme más abajo si es
+                correcta.
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Mismo estado de siempre, solo fuera de la vista principal: nada de
+            esto se recalcula aqui ni cambia su significado. */}
+        <Disclosure
+          className="mt-4"
+          title="Ver información técnica de la sección"
+          open={showSectionTechnical}
+          onToggle={() => setShowSectionTechnical((value) => !value)}
+        >
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <StatusMetric label="Tipo de sección" value={sectionType} />
+            <StatusMetric
+              label="Consolidación vertical"
+              value={verticalConsolidation ? 'Sí' : 'No detectada'}
+            />
+            <StatusMetric
+              label="Diferencias detectadas"
+              value={String((data.warnings ?? []).length)}
+            />
+            <StatusMetric label="Confianza técnica" value={confidence} />
+            <StatusMetric
+              label="Evidencia técnica"
+              value={
+                confirmedEvidence
+                  ? 'Verificada'
+                  : data.patterns.some((pattern) => pattern.source === 'cell_data')
+                    ? 'Disponible'
+                    : 'Pendiente'
+              }
+            />
+            <StatusMetric
+              label="Calibración funcional"
+              value={
+                sectionReviewed ? 'Revisada' : answeredDecisions > 0 ? 'En revisión' : 'Sin iniciar'
+              }
+            />
+            <StatusMetric label="Preparación del motor" value="No generada" />
+            <StatusMetric label="Activación productiva" value="Inactiva" />
+          </div>
+          <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            <p className="text-xs font-semibold text-slate-600">Resumen automático</p>
+            {technicalSummary}
+          </div>
+          <p className="mt-3 text-[11px] text-slate-400">Firma técnica: {currentSignatureId}</p>
+        </Disclosure>
       </div>
 
       {equivalentCandidate && !hideEquivalent && !inheritedFrom && (
@@ -1321,101 +1554,36 @@ export default function QuickCalibrationPanel({
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-          <ClipboardCheck className="h-4 w-4 text-emerald-600" />
-          Resumen automático
-        </h3>
-        {isHybridSection ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
-            <p className="font-medium">
-              Sección mixta: parte del llenado es automático (derivado de otra hoja/columna) y parte
-              requiere captura funcional.
-            </p>
-            <p>
-              {derivedRowCount} fila{derivedRowCount === 1 ? '' : 's'} se calcula
-              {derivedRowCount === 1 ? '' : 'n'} automáticamente — no requiere
-              {derivedRowCount === 1 ? '' : 'n'} decisión de "Sin datos", severidad, aplicación ni
-              excepciones.
-            </p>
-            <p>
-              El resto de las filas de esta sección sí requiere su calibración funcional habitual
-              (ver más abajo).
-            </p>
-            {verticalConsolidation && (
-              <p>Además, existe una fila TOTAL real que se trata como consolidación vertical.</p>
-            )}
-          </div>
-        ) : isDerivedAutoFill ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3 text-sm text-indigo-900">
-            <p className="font-medium">Sección de llenado automático (derivada de otra hoja).</p>
-            <p>
-              Todas las celdas de esta sección son fórmulas (locales y/o referencias a otra hoja);
-              no existe ninguna celda de captura editable. El llenado se completa automáticamente.
-            </p>
-            <p>
-              El sistema ya certificó y ejecuta reglas técnicas reales para esta sección — no se
-              genera ninguna decisión de "Sin datos"/Severidad/Aplicación/Excepciones, porque no
-              aplican a una fila que nunca queda vacía por elección humana.
-            </p>
-            {verticalConsolidation && (
-              <p>Además, existe una fila TOTAL real que se trata como consolidación vertical.</p>
-            )}
-          </div>
-        ) : directInputEvidence ? (
-          <div className="mt-3 space-y-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
-            <p className="font-medium">Captura directa desde el REM.</p>
-            <p>
-              Esta sección no posee reglas matemáticas horizontales; los datos son ingresados por el
-              funcionario.
-            </p>
-            <p>
-              El sistema validará criterios funcionales sobre esos datos: si se debe registrar 0 o
-              permitir vacío, severidad de inconsistencias, aplicabilidad y excepciones.
-            </p>
-            {verticalConsolidation && (
-              <p>Además, existe una fila TOTAL que se trata como consolidación vertical.</p>
-            )}
-          </div>
-        ) : confirmedEvidence ? (
-          <div className="mt-3 space-y-2 text-sm text-slate-700">
-            <p>
-              Esta sección posee cálculos horizontales entre columnas. El sistema validará que los
-              totales y componentes registrados mantengan esas relaciones.
-            </p>
-            {rules.map((rule) => (
-              <p key={rule}>✓ {rule}</p>
-            ))}
-            {ageGroup && <p>✓ Rango etario detectado: {range(ageGroup)}</p>}
-            {complementaryColumns.length > 0 && (
-              <p>
-                ✓ Variables complementarias:{' '}
-                {complementaryColumns.map((column) => column.label || column.letter).join(', ')}
-              </p>
-            )}
-            {verticalConsolidation && <p>✓ Consolidación vertical detectada en fila TOTAL.</p>}
-          </div>
-        ) : (
-          <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-            Esta sección usa estructura preliminar. Debe confirmar manualmente la lógica detectada
-            antes de guardar.
-          </div>
-        )}
-      </div>
+      {(isHybridSection || isDerivedAutoFill) && (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-5 py-4 text-sm text-indigo-900">
+          {isDerivedAutoFill
+            ? 'Todas las filas de esta sección se calculan automáticamente: no requieren decidir qué registrar cuando no hay atenciones. Solo confirme que el cálculo es correcto.'
+            : `${derivedRowCount} fila${derivedRowCount === 1 ? '' : 's'} de esta sección se calcula${derivedRowCount === 1 ? '' : 'n'} automáticamente y no requiere${derivedRowCount === 1 ? '' : 'n'} decidir qué registrar cuando no hay atenciones. El resto de las filas sí requiere su decisión habitual.`}
+        </div>
+      )}
+
+      <RowGroupsOverview
+        patterns={quickPatterns}
+        questions={questions}
+        readOnly={readOnly}
+        onOpenGroupCalibration={onOpenGroupCalibration ?? onOpenAdvanced}
+      />
 
       <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Decisiones funcionales</h3>
+            <h3 className="text-sm font-semibold text-slate-900">
+              Decisión para los grupos de filas similares
+            </h3>
             <p className="mt-1 text-xs text-slate-500">
               {showDecisionControls
-                ? 'Complete solo lo que requiere criterio funcional.'
-                : 'No hay fórmulas técnicas que confirmar. Puede aceptar la recomendación o ajustar manualmente.'}
+                ? 'Responda en el lenguaje del REM. La decisión se aplica a todas las filas de los grupos similares.'
+                : 'Estas son las decisiones actuales de la sección. Puede ajustarlas si es necesario.'}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
-              {answeredDecisions}/{totalDecisions}
+              {answeredDecisions} de {totalDecisions}
             </span>
             {!showDecisionControls && (
               <button
@@ -1458,28 +1626,38 @@ export default function QuickCalibrationPanel({
                   .
                 </>
               ) : (
-                `Esta decisión se aplicará a ${quickSaveFunctionalRows.length} filas funcionales de esta sección.`
+                `Esta decisión se aplicará a ${quickSaveFunctionalRows.length} filas de esta sección.`
               )}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Puedes cambiar una fila de forma individual en la tabla inferior.
+              Si una fila necesita un criterio distinto, ajústela en «Decisiones funcionales por
+              fila», más abajo.
             </p>
           </div>
         )}
 
         {!showDecisionControls && (
-          <div className="mt-4 rounded-lg border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-950">
-            <p className="font-semibold">Configuración recomendada</p>
-            <div className="mt-2 grid gap-2 md:grid-cols-2">
-              <p>Sin datos: pendiente de definir por Estadística.</p>
-              <p>Severidad: Error.</p>
-              <p>Aplicación: todos los establecimientos que reportan la hoja.</p>
-              {complementaryGroup && (
-                <p>Variables complementarias: validar de forma independiente.</p>
-              )}
-            </div>
+          // Resumen de las respuestas REALES actuales (mismo estado
+          // `responses` que se guarda), en lugar del texto fijo anterior.
+          <div className="mt-4 grid gap-2 rounded-lg border border-indigo-100 bg-indigo-50 p-4 text-sm text-indigo-950 md:grid-cols-2">
+            <p>
+              Si no hay atenciones: <strong>{answerLabel(EMPTY_LABELS, responses.empty)}</strong>
+            </p>
+            <p>
+              Si un dato no cumple:{' '}
+              <strong>{answerLabel(SEVERITY_LABELS, responses.inconsistency)}</strong>
+            </p>
+            <p>
+              Establecimientos: <strong>{establishmentsSummary}</strong>
+            </p>
+            {complementaryGroup && (
+              <p>
+                Variables complementarias:{' '}
+                <strong>{answerLabel(SPECIAL_LABELS, responses.special)}</strong>
+              </p>
+            )}
             {inheritedFrom && (
-              <p className="mt-2 text-xs text-indigo-700">
+              <p className="text-xs text-indigo-700 md:col-span-2">
                 Origen: configuración heredada desde {inheritedFrom.sheet}/{inheritedFrom.section}.
               </p>
             )}
@@ -1489,39 +1667,31 @@ export default function QuickCalibrationPanel({
         {showDecisionControls && hasDerivedPattern && (
           // BM-11.15 (§7) / BM-11.25 (secciones hibridas): unica
           // confirmacion humana que corresponde al/los patron(es)
-          // derivado(s) de esta seccion -- reutiliza la misma clave/
-          // opciones de "Lógica detectada" ya existentes, sin inventar un
-          // nuevo modelo. Deliberadamente SIN Sin datos/Severidad/
-          // Aplicación/Excepciones: no tienen sentido para una fila que
-          // nunca queda vacia por decision humana (ver buildPayload()).
-          // Se renderiza JUNTO al bloque normal (abajo) cuando la seccion
-          // es hibrida -- ninguno de los dos reemplaza al otro.
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <ChoiceGroup
-              label="Confirmar lógica automática"
+          // derivado(s) de esta seccion -- misma clave logic_correct y
+          // mismas opciones. Deliberadamente SIN las preguntas de registro/
+          // severidad/aplicacion/excepciones (ver buildPayload()).
+          <div className="mt-5">
+            <DecisionQuestion
+              question="¿El cálculo automático de estas filas es correcto?"
+              help="Estas filas se completan solas a partir de otras celdas u hojas. No se le pedirá decidir qué registrar cuando no hay atenciones."
               value={responses.logic_correct}
               readOnly={readOnly}
               onChange={(value) => updateResponse('logic_correct', value)}
               options={[
-                ['si', 'Correcta'],
+                ['si', 'Correcto'],
                 ['parcialmente', 'Parcialmente'],
                 ['por_definir', 'Requiere revisión'],
               ]}
             />
-            <p className="text-xs text-slate-500 lg:col-span-2">
-              Confirme que la lógica automática (fórmulas locales y/o referencias a otra hoja)
-              detectada para esta sección es correcta. No se le pedirá definir "Sin datos",
-              severidad, aplicación ni excepciones — no corresponden a una sección de llenado
-              automático.
-            </p>
           </div>
         )}
 
         {showDecisionControls && hasNormalPattern && (
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="mt-5 space-y-6">
             {!confirmedEvidence && (
-              <ChoiceGroup
-                label="Lógica detectada"
+              <DecisionQuestion
+                question="¿La lectura automática de esta sección es correcta?"
+                help="ATHENEA no pudo confirmar por completo cómo se calculan estas filas. Indique si lo que detectó coincide con el REM."
                 value={responses.logic_correct}
                 readOnly={readOnly}
                 onChange={(value) => updateResponse('logic_correct', value)}
@@ -1532,68 +1702,98 @@ export default function QuickCalibrationPanel({
                 ]}
               />
             )}
-            <ChoiceGroup
-              label="Sin datos"
+            <DecisionQuestion
+              question="Si no existen atenciones durante el período, ¿qué corresponde registrar?"
+              help={
+                exceptionPatterns.length > 0
+                  ? '«No aplica» se decide aparte, en las filas especiales de la lista de grupos.'
+                  : undefined
+              }
               value={responses.empty}
               readOnly={readOnly}
               onChange={(value) => updateResponse('empty', value)}
               options={[
-                ['debe_registrar_cero', 'Registrar 0'],
-                ['puede_quedar_vacio', 'Permitir vacío'],
+                ['debe_registrar_cero', 'Debe registrar 0', 'La celda no puede quedar vacía.'],
+                [
+                  'puede_quedar_vacio',
+                  'Puede quedar vacío',
+                  'No es obligatorio registrar un valor.',
+                ],
               ]}
             />
-            <ChoiceGroup
-              label="Severidad"
+            <DecisionQuestion
+              question="Si ATHENEA encuentra un dato que no cumple esta regla, ¿cómo debe informarlo?"
+              help={
+                responses.empty === 'puede_quedar_vacio'
+                  ? 'Con «Puede quedar vacío» las celdas vacías no se informan como incumplimiento; esta respuesta se guarda igualmente.'
+                  : undefined
+              }
               value={responses.inconsistency}
               readOnly={readOnly}
               onChange={(value) => updateResponse('inconsistency', value)}
               options={[
-                ['error', 'Error'],
-                ['advertencia', 'Advertencia'],
+                ['advertencia', 'Advertencia', 'Se informa, pero la carga queda aceptada.'],
+                ['error', 'Error', 'Se informa y la carga queda marcada con errores.'],
               ]}
             />
-            <ChoiceGroup
-              label="Aplicación"
-              value={responses.all_est}
-              readOnly={readOnly}
-              onChange={handleAllEstChange}
-              options={[
-                ['si', 'Todos los establecimientos'],
-                ['depende', 'Elegir excepciones'],
-              ]}
-            />
-            <ChoiceGroup
-              label="Excepciones"
-              value={responses.exceptions}
-              // BM-11.8 (§3, Caso C): 'depende' fuerza exceptions='si' -- el
-              // control queda bloqueado mientras tanto para que la
-              // combinación inválida depende+no no pueda construirse desde
-              // la UI (handleAllEstChange ya lo fuerza al cambiar).
-              readOnly={readOnly || responses.all_est === 'depende'}
-              onChange={handleExceptionsChange}
-              options={[
-                ['no', 'No existen'],
-                ['si', 'Existen excepciones'],
-              ]}
-            />
-            {responses.all_est === 'depende' && (
-              <p className="text-xs text-slate-500 lg:col-span-2">
-                "Excepciones" queda fijo en "Existen excepciones" mientras la Aplicación sea "Elegir
-                excepciones".
-              </p>
-            )}
-            {complementaryGroup && (
-              <ChoiceGroup
-                label="Variables complementarias"
-                value={responses.special}
-                readOnly={readOnly}
-                onChange={(value) => updateResponse('special', value)}
-                options={[
-                  ['si', 'Validar'],
-                  ['no', 'Solo informativas'],
-                ]}
-              />
-            )}
+
+            <Disclosure
+              title="Opciones avanzadas: establecimientos y variables complementarias"
+              summary={
+                advancedOptionsOpen
+                  ? undefined
+                  : `${establishmentsSummary}${complementaryGroup ? ` · Variables complementarias: ${answerLabel(SPECIAL_LABELS, responses.special)}` : ''}`
+              }
+              open={advancedOptionsOpen}
+              locked={advancedOptionsNeedAnswer}
+              lockedHint="Requiere respuesta"
+              onToggle={() => setShowAdvancedOptions((value) => !value)}
+            >
+              <div className="grid gap-4 lg:grid-cols-2">
+                <ChoiceGroup
+                  label="¿A qué establecimientos aplica?"
+                  value={responses.all_est}
+                  readOnly={readOnly}
+                  onChange={handleAllEstChange}
+                  options={[
+                    ['si', 'Todos los establecimientos'],
+                    ['depende', 'Elegir excepciones'],
+                  ]}
+                />
+                <ChoiceGroup
+                  label="¿Existen excepciones por establecimiento?"
+                  value={responses.exceptions}
+                  // BM-11.8 (§3, Caso C): 'depende' fuerza exceptions='si' -- el
+                  // control queda bloqueado mientras tanto para que la
+                  // combinación inválida depende+no no pueda construirse desde
+                  // la UI (handleAllEstChange ya lo fuerza al cambiar).
+                  readOnly={readOnly || responses.all_est === 'depende'}
+                  onChange={handleExceptionsChange}
+                  options={[
+                    ['no', 'No existen'],
+                    ['si', 'Existen excepciones'],
+                  ]}
+                />
+                {responses.all_est === 'depende' && (
+                  <p className="text-xs text-slate-500 lg:col-span-2">
+                    "Excepciones" queda fijo en "Existen excepciones" mientras se elijan excepciones
+                    por establecimiento.
+                  </p>
+                )}
+                {complementaryGroup && (
+                  <ChoiceGroup
+                    label="Variables complementarias"
+                    value={responses.special}
+                    readOnly={readOnly}
+                    onChange={(value) => updateResponse('special', value)}
+                    options={[
+                      ['si', 'Validar'],
+                      ['no', 'Solo informativas'],
+                    ]}
+                  />
+                )}
+              </div>
+            </Disclosure>
           </div>
         )}
 
@@ -1700,19 +1900,26 @@ export default function QuickCalibrationPanel({
           </div>
         )}
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-          <div className="flex flex-wrap gap-2">
-            {previousSection && (
-              <button
-                type="button"
-                onClick={() => onNavigateSection(previousSection)}
-                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Sección anterior
-              </button>
-            )}
+        {lastSavedAt && !hasUnsavedChanges && (
+          <div
+            role="status"
+            className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+          >
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <CheckCircle2 className="h-4 w-4" />
+              Calibración guardada correctamente.
+            </span>
+            <span className="text-emerald-800">
+              {answeredDecisions} de {totalDecisions} decisiones completadas · Estado:{' '}
+              {calibrationStatusLabel}
+            </span>
+            <span className="text-xs text-emerald-700">
+              {lastSavedAt.toLocaleTimeString('es-CL')}
+            </span>
           </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-4">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -1720,17 +1927,20 @@ export default function QuickCalibrationPanel({
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               <Settings2 className="h-4 w-4" />
-              Ver evidencia técnica
+              Calibración avanzada
             </button>
             {!readOnly && (
               <>
+                {/* applySuggestions solo completa en pantalla las respuestas
+                    vacias con valores sugeridos; no guarda nada. */}
                 <button
                   type="button"
                   onClick={applySuggestions}
                   disabled={!confirmedEvidence || saveMutation.isPending}
+                  title="Completa en pantalla las respuestas vacías con los valores habituales. No guarda."
                   className="rounded-lg border border-indigo-200 px-3 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Confirmar sugerencias
+                  Usar valores sugeridos
                 </button>
                 <button
                   type="button"
@@ -1749,13 +1959,45 @@ export default function QuickCalibrationPanel({
                     ? 'Guardando...'
                     : showProblem
                       ? 'Guardar reporte de problema'
-                      : 'Confirmar y guardar sección'}
-                  {!showProblem && nextSection && <ArrowRight className="ml-1 inline h-4 w-4" />}
+                      : 'Confirmar calibración'}
                 </button>
               </>
             )}
           </div>
         </div>
+
+        {/* Navegacion independiente del guardado: nunca guarda nada. */}
+        {(previousSection || nextSection) && (
+          <nav
+            aria-label="Navegación entre secciones"
+            className="mt-4 flex flex-wrap items-center justify-between gap-3"
+          >
+            <div>
+              {previousSection && (
+                <button
+                  type="button"
+                  onClick={() => goToSection(previousSection)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Sección anterior
+                </button>
+              )}
+            </div>
+            <div>
+              {nextSection && (
+                <button
+                  type="button"
+                  onClick={() => goToSection(nextSection)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                >
+                  Siguiente sección
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </nav>
+        )}
       </div>
     </div>
   )
@@ -1804,5 +2046,317 @@ function ChoiceGroup({
         ))}
       </div>
     </div>
+  )
+}
+
+// ─── Vista simple para Estadistica (solo presentacion) ──────────────────
+// Los componentes de abajo NO guardan nada ni recalculan decisiones: solo
+// muestran el mismo estado (patrones, preguntas y respuestas) con lenguaje
+// operativo. Internamente cada "grupo de filas" sigue siendo un patron.
+
+function Disclosure({
+  title,
+  summary,
+  open,
+  onToggle,
+  locked = false,
+  lockedHint,
+  className,
+  children,
+}: {
+  title: string
+  summary?: string
+  open: boolean
+  onToggle: () => void
+  locked?: boolean
+  lockedHint?: string
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className={`rounded-lg border border-slate-200 ${className ?? ''}`}>
+      <button
+        type="button"
+        onClick={locked ? undefined : onToggle}
+        aria-expanded={open}
+        aria-disabled={locked || undefined}
+        className={`flex w-full items-center justify-between gap-3 px-4 py-2.5 text-left ${
+          locked ? 'cursor-default' : 'hover:bg-slate-50'
+        }`}
+      >
+        <span className="flex items-center gap-2 text-sm font-medium text-slate-700">
+          {open ? (
+            <ChevronDown className="h-4 w-4 text-slate-400" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-slate-400" />
+          )}
+          {title}
+        </span>
+        {locked && lockedHint ? (
+          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 ring-1 ring-amber-200">
+            {lockedHint}
+          </span>
+        ) : summary ? (
+          <span className="truncate text-xs text-slate-500">{summary}</span>
+        ) : null}
+      </button>
+      {open && <div className="border-t border-slate-100 px-4 py-4">{children}</div>}
+    </div>
+  )
+}
+
+function DecisionQuestion({
+  question,
+  help,
+  value,
+  options,
+  readOnly,
+  onChange,
+}: {
+  question: string
+  help?: string
+  value: string
+  options: Array<[string, string, string?]>
+  readOnly: boolean
+  onChange: (value: string) => void
+}) {
+  return (
+    <fieldset>
+      <legend className="text-sm font-semibold text-slate-900">{question}</legend>
+      {help && <p className="mt-1 text-xs text-slate-500">{help}</p>}
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {options.map(([optionValue, optionLabel, description]) => {
+          const selected = value === optionValue
+          return (
+            <button
+              key={optionValue}
+              type="button"
+              disabled={readOnly}
+              aria-pressed={selected}
+              onClick={() => onChange(optionValue)}
+              className={`rounded-lg border px-4 py-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                selected
+                  ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600'
+                  : 'border-slate-200 bg-white hover:bg-slate-50'
+              }`}
+            >
+              <span
+                className={`block text-sm font-semibold ${selected ? 'text-indigo-800' : 'text-slate-800'}`}
+              >
+                {optionLabel}
+              </span>
+              {description && (
+                <span className="mt-0.5 block text-xs text-slate-500">{description}</span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </fieldset>
+  )
+}
+
+type RowGroupKind = 'similar' | 'special' | 'automatic'
+
+function rowGroupKind(pattern: PatternGroup): RowGroupKind {
+  if (pattern.mode === 'derived_auto_fill') return 'automatic'
+  if (pattern.possible_business_exception) return 'special'
+  return 'similar'
+}
+
+function RowGroupsOverview({
+  patterns,
+  questions,
+  readOnly,
+  onOpenGroupCalibration,
+}: {
+  patterns: PatternGroup[]
+  questions: CalibrationQuestion[]
+  readOnly: boolean
+  onOpenGroupCalibration: () => void
+}) {
+  if (patterns.length === 0) return null
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 className="text-sm font-semibold text-slate-900">Grupos de filas de esta sección</h3>
+      <p className="mt-1 text-xs text-slate-500">
+        ATHENEA agrupa las filas que se comportan igual en el REM. La decisión general se aplica a
+        los grupos de filas similares; las filas especiales se deciden por separado; y cualquier
+        fila puede ajustarse individualmente en «Decisiones funcionales por fila».
+      </p>
+      <ul className="mt-4 space-y-2">
+        {patterns.map((pattern) => (
+          <RowGroupCard
+            key={pattern.id}
+            pattern={pattern}
+            questions={questions.filter((question) => question.pattern_id === pattern.id)}
+            readOnly={readOnly}
+            onOpenGroupCalibration={onOpenGroupCalibration}
+          />
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function RowGroupCard({
+  pattern,
+  questions,
+  readOnly,
+  onOpenGroupCalibration,
+}: {
+  pattern: PatternGroup
+  questions: CalibrationQuestion[]
+  readOnly: boolean
+  onOpenGroupCalibration: () => void
+}) {
+  const [showTechnical, setShowTechnical] = useState(false)
+  const kind = rowGroupKind(pattern)
+  const rowCount = pattern.filas.length
+  const ranges = rowRangesText(pattern.filas)
+  // Solo se muestra un concepto cuando el grupo tiene UNO solo: con varios,
+  // cualquier nombre seria una inferencia.
+  const uniqueConcepts = [
+    ...new Set(pattern.conceptos.map((concept) => concept.trim()).filter(Boolean)),
+  ]
+  const concept = uniqueConcepts.length === 1 ? uniqueConcepts[0] : null
+  const emptyQuestion = questions.find(
+    (question) => question.id === patternQuestionId(pattern.id, 'empty')
+  )
+  const logicQuestion = questions.find(
+    (question) => question.id === patternQuestionId(pattern.id, 'logic_correct')
+  )
+  const needsReview = needsRevalidation(pattern.reconciliation_status)
+
+  const title =
+    kind === 'automatic'
+      ? 'Filas de cálculo automático'
+      : kind === 'special'
+        ? 'Filas especiales'
+        : concept
+          ? `Grupo de filas similares — ${concept}`
+          : `Grupo de ${rowCount} fila${rowCount === 1 ? '' : 's'} similar${rowCount === 1 ? '' : 'es'}`
+  const subtitle =
+    kind === 'automatic'
+      ? `Filas ${ranges} · se completan automáticamente`
+      : kind === 'special'
+        ? `Fila${rowCount === 1 ? '' : 's'} ${ranges} · comportamiento diferente al resto de la sección`
+        : `Filas ${ranges} · ${rowCount} fila${rowCount === 1 ? '' : 's'} con el mismo comportamiento`
+
+  const decided =
+    kind === 'automatic' ? Boolean(logicQuestion?.response) : Boolean(emptyQuestion?.response)
+  const decisionText =
+    kind === 'automatic'
+      ? `Cálculo automático: ${answerLabel(LOGIC_LABELS, logicQuestion?.response)}`
+      : answerLabel(EMPTY_LABELS, emptyQuestion?.response)
+
+  return (
+    <li className="rounded-lg border border-slate-200">
+      <div className="flex flex-wrap items-start justify-between gap-3 px-4 py-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-slate-900">{title}</p>
+          <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {needsReview && (
+            <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+              Revisar nuevamente
+            </span>
+          )}
+          <span
+            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ${
+              decided
+                ? 'bg-emerald-50 text-emerald-800 ring-emerald-200'
+                : 'bg-slate-50 text-slate-500 ring-slate-200'
+            }`}
+          >
+            {decided ? decisionText : 'Sin decidir'}
+          </span>
+        </div>
+      </div>
+
+      {kind === 'special' && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-purple-50/50 px-4 py-2.5">
+          <p className="text-xs text-purple-900">
+            No recibe la decisión general. Decida estas filas por separado, por ejemplo «No aplica»
+            si no corresponden a un concepto del REM.
+          </p>
+          <button
+            type="button"
+            onClick={onOpenGroupCalibration}
+            className="rounded-md border border-purple-200 bg-white px-2.5 py-1 text-xs font-medium text-purple-800 hover:bg-purple-50"
+          >
+            {readOnly ? 'Ver decisión de estas filas' : 'Decidir estas filas'}
+          </button>
+        </div>
+      )}
+
+      <div className="border-t border-slate-100 px-4 py-2">
+        <button
+          type="button"
+          onClick={() => setShowTechnical((value) => !value)}
+          aria-expanded={showTechnical}
+          className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-slate-700"
+        >
+          {showTechnical ? (
+            <ChevronDown className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5" />
+          )}
+          Ver información técnica
+        </button>
+        {showTechnical && <RowGroupTechnicalInfo pattern={pattern} emptyQuestion={emptyQuestion} />}
+      </div>
+    </li>
+  )
+}
+
+// Solo datos que ya trae el patron/pregunta: un campo ausente no se muestra.
+function RowGroupTechnicalInfo({
+  pattern,
+  emptyQuestion,
+}: {
+  pattern: PatternGroup
+  emptyQuestion?: CalibrationQuestion
+}) {
+  const originColumns = pattern.origin_columns?.length
+    ? pattern.origin_columns
+    : pattern.columnas_origen
+  const fields: Array<[string, string | null | undefined]> = [
+    ['Identificador del patrón', `pattern_${pattern.id}`],
+    ['Filas detectadas', pattern.filas.join(', ')],
+    ['Cantidad de filas', String(pattern.filas.length)],
+    ['Modo', pattern.mode],
+    ['Origen de la evidencia', pattern.source],
+    ['Fórmula', pattern.formula_template || null],
+    ['Columna total', pattern.columna_total || null],
+    ['Columnas de origen', originColumns?.length ? originColumns.join(', ') : null],
+    ['Fingerprint', pattern.row_fingerprint],
+    ['Estado de reconciliación', pattern.reconciliation_status],
+    ['Tamaño relativo', pattern.pattern_size_class],
+    ['Posible excepción de negocio', pattern.possible_business_exception ? 'Sí' : 'No'],
+    ['Motivo de la excepción', pattern.exception_reason],
+    ['Estado de revisión', emptyQuestion?.review_status],
+    ['Revisado por', emptyQuestion?.reviewed_by],
+    [
+      'Fecha de revisión',
+      emptyQuestion?.reviewed_at
+        ? new Date(emptyQuestion.reviewed_at).toLocaleString('es-CL')
+        : null,
+    ],
+  ]
+
+  return (
+    <dl className="mt-2 grid gap-x-4 gap-y-1.5 rounded-md bg-slate-50 p-3 sm:grid-cols-[12rem_1fr]">
+      {fields
+        .filter(([, value]) => value !== null && value !== undefined && value !== '')
+        .map(([term, value]) => (
+          <div key={term} className="contents">
+            <dt className="text-xs font-medium text-slate-500">{term}</dt>
+            <dd className="break-words font-mono text-xs text-slate-700">{value}</dd>
+          </div>
+        ))}
+    </dl>
   )
 }

@@ -1,16 +1,13 @@
 ﻿import React from 'react'
 import type { ValidationError } from '../types/validation'
+import {
+  emptyBehaviorLabel,
+  pendingCellsPresentation,
+  pendingCellViews,
+} from './functionalErrorPresentation'
 
 interface FunctionalErrorDetailProps {
   error: ValidationError
-}
-
-const EMPTY_BEHAVIOR_LABELS: Record<string, string> = {
-  debe_registrar_cero: 'Debe registrar 0',
-  incluir: 'Incluir',
-  excluir: 'Excluir',
-  informativo: 'Informativo',
-  no_aplica: 'No aplica',
 }
 
 function parseFila(campo: string): string {
@@ -39,6 +36,10 @@ export const FunctionalErrorDetail: React.FC<FunctionalErrorDetailProps> = ({ er
   const section = error.section_code || error.section || error.form
   const pendingCells = error.pending_cells ?? []
   const pendingCount = error.pending_cells_count ?? pendingCells.length
+  // Textos segun la decision funcional aplicada: cada tipo de inconsistencia
+  // tiene su propia instruccion (ej. "Registrar 0" vs "Eliminar informacion").
+  const presentation = pendingCellsPresentation(c.empty_behavior)
+  const cellViews = pendingCellViews(pendingCells, c.empty_behavior)
 
   return (
     <div className="mt-3 space-y-3 rounded-lg border border-indigo-200 bg-indigo-50/40 p-4">
@@ -61,11 +62,8 @@ export const FunctionalErrorDetail: React.FC<FunctionalErrorDetailProps> = ({ er
         <Detail label="Concepto" value={error.row_concept || '-'} />
         <Detail label="Profesional" value={error.row_profesional || '-'} />
         <Detail label="Total de la fila" value={error.row_total ?? '-'} />
-        <Detail
-          label="Decision funcional"
-          value={EMPTY_BEHAVIOR_LABELS[c.empty_behavior] || c.empty_behavior}
-        />
-        <Detail label="Celdas pendientes" value={pendingCount} />
+        <Detail label="Decision funcional" value={emptyBehaviorLabel(c.empty_behavior)} />
+        <Detail label={presentation.summaryLabel} value={pendingCount} />
         <Detail className="col-span-2" label="Justificacion" value={c.justification || '-'} />
         <Detail label="Fuente" value={c.acquisition_method || '-'} />
         <Detail label="Calibrado por" value={c.informed_by || '-'} />
@@ -77,20 +75,16 @@ export const FunctionalErrorDetail: React.FC<FunctionalErrorDetailProps> = ({ er
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
           <div className="mb-2 flex items-center justify-between gap-3">
             <div>
-              <h5 className="text-xs font-semibold text-amber-900">
-                Celdas editables vacias que deben registrar 0
-              </h5>
-              <p className="text-[11px] text-amber-800">
-                Estas son las coordenadas exactas que deben completarse en el Excel.
-              </p>
+              <h5 className="text-xs font-semibold text-amber-900">{presentation.title}</h5>
+              <p className="text-[11px] text-amber-800">{presentation.description}</p>
             </div>
             <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
-              {pendingCount} pendiente{pendingCount === 1 ? '' : 's'}
+              {presentation.countLabel(pendingCount)}
             </span>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {pendingCells.map((cell) => (
+            {cellViews.map((cell) => (
               <div
                 key={cell.coordinate}
                 className="rounded-md border-2 border-amber-500 bg-white px-3 py-2 shadow-sm"
@@ -100,12 +94,10 @@ export const FunctionalErrorDetail: React.FC<FunctionalErrorDetailProps> = ({ er
                     {cell.coordinate}
                   </span>
                   <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800">
-                    Registrar 0
+                    {cell.action}
                   </span>
                 </div>
-                <div className="mt-1 text-xs font-medium text-slate-800">
-                  {cell.label || `Columna ${cell.column}`}
-                </div>
+                <div className="mt-1 text-xs font-medium text-slate-800">{cell.label}</div>
                 <div className="mt-1 text-[11px] text-slate-500">
                   Editable: {cell.editable ? 'Si' : 'No'} | Bloqueada: {cell.blocked ? 'Si' : 'No'}
                   {cell.color ? ` | Color: ${cell.color}` : ''}

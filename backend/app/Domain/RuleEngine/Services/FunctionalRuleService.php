@@ -7,6 +7,35 @@ use Illuminate\Support\Facades\Storage;
 
 class FunctionalRuleService
 {
+    /**
+     * Decision funcional recalibrable: la celda existe en la estructura pero
+     * no debe recibir informacion (vacio = correcto; 0 o cualquier valor =
+     * incumplimiento). Distinta de 'no_aplica', que significa "no validar".
+     */
+    public const FORBIDDEN_DATA_ENTRY = 'no_se_puede_ingresar_informacion';
+
+    /**
+     * Alcance opcional por columnas de una decision funcional: letras de
+     * columna validas, en mayusculas y sin repetir. Una lista vacia equivale a
+     * "sin alcance por columnas" (toda la fila).
+     */
+    public static function normalizeColumns(mixed $columns): array
+    {
+        if (!is_array($columns)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($columns as $column) {
+            $column = strtoupper(trim((string) $column));
+            if (preg_match('/^[A-Z]{1,3}$/', $column)) {
+                $normalized[$column] = true;
+            }
+        }
+
+        return array_keys($normalized);
+    }
+
     private const STORAGE_DIR = 'certificacion';
     private const STORAGE_FILE = 'reglas-funcionales.json';
 
@@ -113,6 +142,17 @@ class FunctionalRuleService
             'updated_by' => $data['updated_by'] ?? $existing['updated_by'] ?? '',
             'updated_at' => now()->toIso8601String(),
         ]);
+
+        // Alcance opcional por columnas: solo se guarda si la decision lo
+        // declara explicitamente; nunca se agrega la clave por defecto.
+        if (array_key_exists('columns', $data)) {
+            $columns = self::normalizeColumns($data['columns']);
+            if ($columns === []) {
+                unset($record['columns']);
+            } else {
+                $record['columns'] = $columns;
+            }
+        }
 
         // Record version
         $version = [
@@ -232,15 +272,33 @@ class FunctionalRuleService
         // reconciliacion...). Las preguntas existentes que no vienen en el
         // payload se conservan intactas, en su lugar.
         $indexById = [];
+        // Preguntas legadas sin 'id': el frontend las identifica por su texto
+        // (questionKey = id || question) y las reenvia al final del payload,
+        // no en su posicion guardada -- se emparejan por texto, cada indice
+        // una sola vez (dos legadas con el mismo texto se consumen en orden).
+        $legacyIndexesByText = [];
+        $consumedLegacy = [];
         foreach ($existing as $idx => $item) {
             $id = is_array($item) ? ($item['id'] ?? null) : null;
-            if (is_string($id) && $id !== '' && !isset($indexById[$id])) {
-                $indexById[$id] = $idx;
+            if (is_string($id) && $id !== '') {
+                $indexById[$id] ??= $idx;
+                continue;
+            }
+            $text = is_array($item) ? ($item['question'] ?? null) : null;
+            if (is_string($text) && $text !== '') {
+                $legacyIndexesByText[$text][] = $idx;
             }
         }
 
         foreach ($questions as $i => $q) {
-            $targetIndex = $this->resolveExistingQuestionIndex($q, $i, $existing, $indexById);
+            $targetIndex = $this->resolveExistingQuestionIndex(
+                $q,
+                $i,
+                $existing,
+                $indexById,
+                $legacyIndexesByText,
+                $consumedLegacy,
+            );
             $old = $targetIndex !== null ? ($existing[$targetIndex] ?? []) : [];
             $newStatus = $q['response'] ?? $old['response'] ?? '';
             $oldStatus = $old['response'] ?? '';
@@ -274,9 +332,12 @@ class FunctionalRuleService
 
             if ($targetIndex === null) {
                 $existing[] = $merged;
+                $newIndex = array_key_last($existing);
                 $newId = $merged['id'] ?? null;
                 if (is_string($newId) && $newId !== '') {
-                    $indexById[$newId] = array_key_last($existing);
+                    $indexById[$newId] = $newIndex;
+                } else {
+                    $consumedLegacy[$newIndex] = true;
                 }
             } else {
                 $existing[$targetIndex] = $merged;
@@ -302,16 +363,39 @@ class FunctionalRuleService
 
     /**
      * Indice de la pregunta existente que corresponde a $q, o null si es nueva.
-     * Con 'id' se empareja solo por identidad. Sin 'id' (payload legado) se
-     * conserva el emparejamiento por posicion unicamente si la pregunta en esa
-     * posicion tampoco tiene 'id' -- nunca se sobrescribe una pregunta
-     * identificada con una anonima.
+     * - Con 'id': solo por identidad.
+     * - Sin 'id' y con texto: por texto, contra preguntas legadas sin 'id'
+     *   todavia no emparejadas (misma identidad que usa el frontend). Antes se
+     *   exigia la misma posicion y, como el frontend reenvia estas preguntas
+     *   al final del payload, cada guardado agregaba una copia nueva.
+     * - Sin 'id' ni texto: por posicion, solo si la pregunta guardada en esa
+     *   posicion tampoco tiene 'id' ni fue emparejada ya.
+     * Nunca se sobrescribe una pregunta identificada con una anonima.
      */
-    private function resolveExistingQuestionIndex(array $q, int|string $position, array $existing, array $indexById): ?int
-    {
+    private function resolveExistingQuestionIndex(
+        array $q,
+        int|string $position,
+        array $existing,
+        array $indexById,
+        array &$legacyIndexesByText,
+        array &$consumedLegacy,
+    ): ?int {
         $id = $q['id'] ?? null;
         if (is_string($id) && $id !== '') {
             return $indexById[$id] ?? null;
+        }
+
+        $text = $q['question'] ?? null;
+        if (is_string($text) && $text !== '') {
+            foreach ($legacyIndexesByText[$text] ?? [] as $candidate) {
+                if (!isset($consumedLegacy[$candidate])) {
+                    $consumedLegacy[$candidate] = true;
+
+                    return $candidate;
+                }
+            }
+
+            return null;
         }
 
         if (!is_int($position) || !isset($existing[$position]) || !is_array($existing[$position])) {
@@ -319,8 +403,12 @@ class FunctionalRuleService
         }
 
         $existingId = $existing[$position]['id'] ?? null;
+        if ((is_string($existingId) && $existingId !== '') || isset($consumedLegacy[$position])) {
+            return null;
+        }
+        $consumedLegacy[$position] = true;
 
-        return (is_string($existingId) && $existingId !== '') ? null : $position;
+        return $position;
     }
 
     /**
@@ -788,6 +876,7 @@ class FunctionalRuleService
             'debe_registrar_cero',
             'puede_quedar_vacio',
             'no_aplica',
+            self::FORBIDDEN_DATA_ENTRY,
         ]);
 
         if ($emptyQuestion === null || !$this->isReviewedQuestion($emptyQuestion)) {
@@ -795,7 +884,7 @@ class FunctionalRuleService
         }
 
         $emptyBehavior = $emptyQuestion['response'] ?? null;
-        if (!in_array($emptyBehavior, ['debe_registrar_cero', 'puede_quedar_vacio', 'no_aplica'], true)) {
+        if (!in_array($emptyBehavior, ['debe_registrar_cero', 'puede_quedar_vacio', 'no_aplica', self::FORBIDDEN_DATA_ENTRY], true)) {
             return null;
         }
 
@@ -833,11 +922,16 @@ class FunctionalRuleService
             'advertencia',
         ]);
 
+        // Alcance opcional por columnas, solo si la pregunta del grupo lo
+        // declara explicitamente (sin 'columns' = toda la fila, como siempre).
+        $columns = self::normalizeColumns($emptyQuestion['columns'] ?? null);
+
         return [
             'rule_key' => '',
             'sheet' => $sheet,
             'section' => $section,
             'empty_behavior' => $emptyBehavior,
+            ...($columns !== [] ? ['columns' => $columns] : []),
             'applies_to_types' => [],
             'included_health_centers' => $includedHealthCenters,
             'excluded_health_centers' => $excludedHealthCenters,

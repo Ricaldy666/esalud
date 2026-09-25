@@ -296,7 +296,9 @@ class ValidationErrorFormatterService
         $criterio = $ctx['criterio'] ?? null;
         $pendingCells = $ctx['pending_cells'] ?? [];
         $rowNumber = isset($ctx['row_number']) ? (int) $ctx['row_number'] : null;
-        $sectionMeta = $type === 'functional_rule'
+        // structural_input (celda no habilitada con informacion) tambien es por
+        // fila: se resuelve su seccion igual que una regla funcional.
+        $sectionMeta = in_array($type, ['functional_rule', 'structural_input'], true)
             ? $this->resolveFunctionalSectionMeta($result->rem_upload_id, $sheet, $rowNumber)
             : ['section_code' => null, 'section_name' => null, 'section_order' => null];
 
@@ -309,6 +311,10 @@ class ValidationErrorFormatterService
             $recomendacion = $criterio
                 ? $this->buildFunctionalRecommendation($criterio, $ctx['row_number'] ?? 0, $concept, $professional)
                 : 'Revise la decisión funcional aplicada a la fila y corrija el valor según corresponda.';
+        } elseif ($type === 'structural_input') {
+            $mensaje = $result->message ?? 'Se ingresó información en una celda no habilitada.';
+            $coordinates = implode(', ', array_column($pendingCells, 'coordinate'));
+            $recomendacion = "Revise la fila {$rowNumber}: las celdas {$coordinates} no están habilitadas en la plantilla oficial. Déjelas vacías o con el valor original de la plantilla.";
         } else {
             $recomendacion = $this->buildRecommendation($type, $severity, $sheet, $section, $campoLimpio, $sourceLettersStr);
             $mensaje = $result->message ?? $this->buildMessage($type, $severity, $sheet, $section, $letra, $campoLimpio, $sourceLettersStr);
@@ -429,6 +435,9 @@ class ValidationErrorFormatterService
             'excluir' => $label
                 ? "La fila {$label} está excluida según el criterio funcional aprobado."
                 : 'La fila está excluida según el criterio funcional aprobado.',
+            FunctionalRuleService::FORBIDDEN_DATA_ENTRY => $label
+                ? "En la fila {$label} no se puede ingresar información según el criterio funcional aprobado."
+                : 'En esta fila no se puede ingresar información según el criterio funcional aprobado.',
             default => null,
         };
     }
@@ -440,6 +449,7 @@ class ValidationErrorFormatterService
             'debe_registrar_cero' => "Revise la fila {$rowNum} y registre 0 en las celdas habilitadas si no hubo prestaciones durante el período.",
             'incluir' => "Revise la fila {$rowNum} y complete los datos requeridos según la decisión funcional.",
             'excluir' => "La fila {$rowNum} está excluida por decisión funcional. Verifique si corresponde mantener los datos.",
+            FunctionalRuleService::FORBIDDEN_DATA_ENTRY => "Revise la fila {$rowNum}: no se puede ingresar información en esas celdas. Déjelas vacías.",
             default => "Revise la fila {$rowNum} y verifique los valores registrados.",
         };
     }

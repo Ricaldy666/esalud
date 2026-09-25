@@ -99,6 +99,9 @@ class CalibrationViewController extends Controller
             // correctamente desde BM-11.8. Unica fuente funcional real de
             // included_health_centers/excluded_health_centers para el flujo
             // de preguntas de patron -- observation nunca participa.
+            // Alcance opcional por columnas de la decision del grupo.
+            'questions.*.columns' => 'nullable|array',
+            'questions.*.columns.*' => ['string', 'regex:/^[A-Za-z]{1,3}$/'],
             'questions.*.scope' => 'nullable|array',
             'questions.*.scope.mode' => 'nullable|string|in:all,included,excluded',
             'questions.*.scope.included_health_centers' => 'nullable|array',
