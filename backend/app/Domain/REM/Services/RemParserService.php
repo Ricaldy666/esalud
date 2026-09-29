@@ -16,6 +16,12 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 class RemParserService
 {
+    /**
+     * Tope de niveles descriptivos encadenados despues de detail_column (ver
+     * buildSectionMaps()). El maximo real observado es 1 (A25/A.3 columna D).
+     */
+    private const MAX_EXTRA_DETAIL_LEVELS = 3;
+
     private MergeAnchorResolver $mergeAnchorResolver;
 
     public function __construct(
@@ -289,6 +295,7 @@ class RemParserService
             $effectiveNumericColumns = $sectionContext['numeric_columns'] ?? $numericColumnLetters;
             $effectiveSubcategoryCol = $sectionContext['subcategory_column'] ?? null;
             $effectiveDetailCol = $sectionContext['detail_column'] ?? null;
+            $effectiveDetailExtraCols = $sectionContext['detail_extra_columns'] ?? [];
             $effectiveOverflowColumns = $sectionContext['concept_overflow_columns'] ?? [];
             $sectionKey = $sectionContext['code'] ?? '__global';
 
@@ -328,6 +335,7 @@ class RemParserService
 
             $sectionDetail = '';
             $detailRole = null;
+            $detailCellData = null;
             if ($effectiveDetailCol !== null && $subcategoryCellData !== null) {
                 $resolved = $this->resolveChainedLevel(
                     $sheetConfig['sheet_name'],
@@ -341,6 +349,36 @@ class RemParserService
                 );
                 $sectionDetail = $resolved['value'];
                 $detailRole = $resolved['role'];
+                $detailCellData = $resolved['cellData'];
+            }
+
+            // Niveles descriptivos adicionales (detail_extra_columns): misma
+            // cadena, cada nivel comparado contra la celda del nivel anterior
+            // de esta misma fila. Su texto se agrega a detail en el ensamblado
+            // final; su rol por fila decide si la columna se omite del parseo
+            // numerico (igual que subcategory/detail).
+            $detailExtraValues = [];
+            $detailExtraRoles = [];
+            $extraParentCellData = $detailCellData;
+            foreach ($effectiveDetailExtraCols as $extraCol) {
+                if ($extraParentCellData === null) {
+                    break;
+                }
+                $resolved = $this->resolveChainedLevel(
+                    $sheetConfig['sheet_name'],
+                    $sectionContext['code'] ?? '',
+                    $extraCol,
+                    $row,
+                    $extraParentCellData,
+                    $worksheet,
+                    $sectionKey,
+                    $lastOverflowValueBySection,
+                );
+                $detailExtraRoles[$extraCol] = $resolved['role'];
+                if ($resolved['value'] !== '') {
+                    $detailExtraValues[] = $resolved['value'];
+                }
+                $extraParentCellData = $resolved['cellData'];
             }
 
             $hasConcept = $conceptValue !== null && trim((string)$conceptValue) !== '';
@@ -431,6 +469,9 @@ class RemParserService
                     continue;
                 }
                 if ($colLetter === $effectiveDetailCol && $detailRole !== 'numeric') {
+                    continue;
+                }
+                if (isset($detailExtraRoles[$colLetter]) && $detailExtraRoles[$colLetter] !== 'numeric') {
                     continue;
                 }
 
@@ -531,6 +572,11 @@ class RemParserService
             $detailParts = [];
             if ($sectionDetail !== '' && $sectionDetail !== $currentConcept) {
                 $detailParts[] = $sectionDetail;
+            }
+            foreach ($detailExtraValues as $extraValue) {
+                if ($extraValue !== $currentConcept) {
+                    $detailParts[] = $extraValue;
+                }
             }
             foreach ($overflowChainValues as $chainValue) {
                 if ($chainValue !== $currentConcept) {
@@ -838,6 +884,43 @@ class RemParserService
                     );
                 }
 
+                // JERARQUIA (niveles descriptivos adicionales, encadenados
+                // despues de detail): mismo encadenamiento que detail, cada
+                // nivel comparado contra el anterior. Primero el detector
+                // estricto (>= 3 filas de etiqueta); si no encuentra nada, el
+                // estructural (columna completamente no capturable, continuacion
+                // fusionada del nivel padre -- ver
+                // ColumnRoleResolverService::detectStructuralLabelColumn()).
+                // Evidencia real: A25/A.3 columna D (solo D43/D44 con texto
+                // propio). Acotado a MAX_EXTRA_DETAIL_LEVELS por seguridad.
+                $detailExtraColumns = [];
+                if ($detailColumn !== null) {
+                    $parentLevelColumn = $detailColumn;
+                    while (count($detailExtraColumns) < self::MAX_EXTRA_DETAIL_LEVELS) {
+                        $excludedForLevel = array_values(array_unique(array_filter([$conceptColumn, $professionalColumn, $subcategoryColumn, $detailColumn, ...$detailExtraColumns, ...$totalColumns])));
+                        $levelColumn = $this->columnRoleResolver->detectSubcategoryColumn(
+                            $cellRows,
+                            $section['fields'] ?? [],
+                            $excludedForLevel,
+                            $start,
+                            $end,
+                            $parentLevelColumn,
+                        ) ?? $this->columnRoleResolver->detectStructuralLabelColumn(
+                            $cellRows,
+                            $section['fields'] ?? [],
+                            $excludedForLevel,
+                            $start,
+                            $end,
+                            $parentLevelColumn,
+                        );
+                        if ($levelColumn === null) {
+                            break;
+                        }
+                        $detailExtraColumns[] = $levelColumn;
+                        $parentLevelColumn = $levelColumn;
+                    }
+                }
+
                 // subcategoryColumn/detailColumn NO se excluyen aqui (a diferencia de
                 // conceptColumn/professionalColumn): su rol real se decide por fila en
                 // parseSheet() (ver resolveChainedLevel()) -- quedan en numericColumns
@@ -856,7 +939,7 @@ class RemParserService
                 // Excluye subcategoryColumn/detailColumn: esas dos ya tienen su
                 // propio mecanismo de cadena con herencia vertical (ver mas abajo
                 // y en parseSheet()), no deben procesarse dos veces.
-                $excludedForOverflow = array_values(array_unique(array_filter([$professionalColumn, $subcategoryColumn, $detailColumn, ...$totalColumns])));
+                $excludedForOverflow = array_values(array_unique(array_filter([$professionalColumn, $subcategoryColumn, $detailColumn, ...$detailExtraColumns, ...$totalColumns])));
                 $conceptOverflowColumns = $this->columnRoleResolver->resolveConceptOverflowColumns(
                     $cellRows,
                     $filaHeader,
@@ -875,6 +958,7 @@ class RemParserService
                     'numeric_columns' => $numericColumns,
                     'subcategory_column' => $subcategoryColumn,
                     'detail_column' => $detailColumn,
+                    'detail_extra_columns' => $detailExtraColumns,
                     'concept_overflow_columns' => $conceptOverflowColumns,
                 ];
 
@@ -1027,6 +1111,7 @@ class RemParserService
                 $technicalContext['subcategory_column'] ?? null,
                 $technicalContext['detail_column'] ?? null,
             ],
+            $technicalContext['detail_extra_columns'] ?? [],
             $technicalContext['concept_overflow_columns'] ?? [],
         ))));
 

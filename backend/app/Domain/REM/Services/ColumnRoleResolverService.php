@@ -144,6 +144,105 @@ class ColumnRoleResolverService
     }
 
     /**
+     * Detecta un nivel descriptivo de la jerarquia con MENOS de 3 filas de
+     * etiqueta, usando evidencia estructural de cell_data en vez de contar
+     * filas. Complementa (nunca reemplaza) a detectSubcategoryColumn(): el
+     * llamador solo debe usarlo cuando ese detector estricto no encontro nada.
+     *
+     * Evidencia real (A25/A.3, columna D): solo D43 y D44 tienen texto propio
+     * ("<60 segundos, sin complicaciones", ">= 60 segundos y/o ..."); en las
+     * demas filas D esta fusionada con el nivel padre (C42:D42, C45:D45, ...).
+     * Con el umbral de 3 filas, D quedaba como columna numerica y D43/D44
+     * producian errores de parseo "No es un numero entero valido".
+     *
+     * El umbral de 3 filas existe para no confundir con etiquetas 1-2 filas de
+     * sub-encabezado filtradas dentro del rango de datos de una columna de
+     * CAPTURA real (A01/A fila 10). Esta regla no puede disparar en ese caso,
+     * porque exige que la columna completa sea estructuralmente no capturable:
+     *
+     * 1. Toda celda observada en el rango es explicitamente no editable y
+     *    bloqueada (es_editable === false && esta_bloqueada === true). Una
+     *    sola celda de captura, o metadata de proteccion ausente, descarta la
+     *    candidatura -- una columna de captura real nunca califica.
+     * 2. Ninguna celda tiene formula ni valor numerico.
+     * 3. La columna esta fusionada con el nivel padre en al menos una fila:
+     *    es la continuacion estructural de ese nivel, no una columna ajena.
+     * 4. Al menos una fila independiente (no fusionada con el padre) tiene
+     *    texto propio.
+     *
+     * @param array<int, array<string, array<string, mixed>>> $cellRows [fila => [columna => celda cell_data]]
+     * @param array<int, array{letra?: string, esTotal?: bool}> $fields
+     * @param string[] $excludedColumns columnas ya asignadas (concepto, niveles previos, profesional, totales)
+     */
+    public function detectStructuralLabelColumn(
+        array $cellRows,
+        array $fields,
+        array $excludedColumns,
+        int $dataStartRow,
+        int $dataEndRow,
+        string $parentColumn,
+    ): ?string {
+        if (empty($cellRows)) {
+            return null;
+        }
+
+        $candidateColumns = [];
+        foreach ($fields as $field) {
+            $letter = strtoupper((string) ($field['letra'] ?? ''));
+            if ($letter === '' || in_array($letter, $excludedColumns, true) || ($field['esTotal'] ?? false) || in_array($letter, $candidateColumns, true)) {
+                continue;
+            }
+            $candidateColumns[] = $letter;
+        }
+
+        foreach ($candidateColumns as $column) {
+            $observedCells = 0;
+            $mergedWithParentRows = 0;
+            $independentLabelRows = 0;
+            $structurallyLabel = true;
+
+            for ($row = $dataStartRow; $row <= $dataEndRow; $row++) {
+                $cell = $cellRows[$row][$column] ?? null;
+                if ($cell === null) {
+                    continue;
+                }
+                $observedCells++;
+
+                if (($cell['es_editable'] ?? null) !== false || ($cell['esta_bloqueada'] ?? null) !== true) {
+                    $structurallyLabel = false;
+                    break;
+                }
+
+                if ($cell['es_formula'] ?? false) {
+                    $structurallyLabel = false;
+                    break;
+                }
+
+                $rawValue = trim((string) ($cell['valor_bruto'] ?? ''));
+                if ($rawValue !== '' && is_numeric($rawValue)) {
+                    $structurallyLabel = false;
+                    break;
+                }
+
+                if ($this->sharesMerge($cell, $cellRows[$row][$parentColumn] ?? null)) {
+                    $mergedWithParentRows++;
+                    continue;
+                }
+
+                if ($rawValue !== '') {
+                    $independentLabelRows++;
+                }
+            }
+
+            if ($structurallyLabel && $observedCells > 0 && $mergedWithParentRows >= 1 && $independentLabelRows >= 1) {
+                return $column;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Columnas cuyo rol varia por fila dentro de la misma seccion: caen
      * dentro del ancho de fusion declarado en el propio encabezado de
      * concepto (fila filaHeader), mas alla de concept_column misma.
