@@ -28,9 +28,11 @@ use Illuminate\Console\Command;
  * source_type, closure_reason, pattern_id, pattern_key, id -- ni ningun
  * otro campo. La autoria historica de cada respuesta queda intacta.
  *
- * Idempotente: un patron cuyo pattern_fingerprint v2 ya coincide con el
- * vigente se reporta pero no se reescribe -- una segunda ejecucion tras
- * --commit no modifica nada.
+ * Idempotente: un patron cuyas preguntas YA estan TODAS en v2 correcto
+ * (fingerprint vigente, fingerprint_version=2, pattern_rows vivas -- ver
+ * PatternMigrationScanner::questionTechnicalState()) se reporta pero no se
+ * reescribe; en un patron incompleto solo se escriben las preguntas
+ * incompletas. Una segunda ejecucion tras --commit no modifica nada.
  *
  * Seguridad de lote: justo antes de escribir, TODOS los candidatos se
  * reclasifican de nuevo contra el estado actual. Si cualquiera dejo de ser
@@ -125,6 +127,7 @@ class RemMigrateAutoFingerprintsCommand extends Command
         $patternsChanged = 0;
         $questionsChanged = 0;
         $alreadyMigratedPatterns = 0;
+        $conflictPatterns = 0;
         $migratedAt = now()->toIso8601String();
 
         foreach ($freshSections as $key => $section) {
@@ -146,7 +149,18 @@ class RemMigrateAutoFingerprintsCommand extends Command
                     continue;
                 }
 
-                $pid = $pattern['pattern_id'];
+                // Una pregunta con OTRA huella fpv2 registrada es un conflicto,
+                // no un faltante: el patron completo se deja sin tocar.
+                if (! empty($pattern['conflicting_v2_question_ids'])) {
+                    $conflictPatterns++;
+
+                    continue;
+                }
+
+                // Grupo historico realmente emparejado por identidad (nunca el
+                // pattern_id vivo/posicional) -- mismo criterio que
+                // applyQuickRevalidation() tras el hallazgo A09/G P3 (2026-08-24).
+                $pid = $pattern['historical_pattern_id'] ?? $pattern['pattern_id'];
                 $sortedRows = $pattern['live_rows'];
                 sort($sortedRows, SORT_NUMERIC);
 
@@ -156,6 +170,14 @@ class RemMigrateAutoFingerprintsCommand extends Command
                         continue;
                     }
                     if (($q['pattern_id'] ?? null) !== $pid) {
+                        continue;
+                    }
+
+                    // Solo se completan las preguntas incompletas; las que ya
+                    // estan en v2 correcto conservan su metadata (incluida la
+                    // procedencia de una revalidacion previa).
+                    $state = $scanner->questionTechnicalState($q, $pattern['live_canonical_fingerprint'], $pattern['live_rows']);
+                    if ($state['conflict'] || $state['missing'] === []) {
                         continue;
                     }
 
@@ -190,6 +212,9 @@ class RemMigrateAutoFingerprintsCommand extends Command
         if ($alreadyMigratedPatterns > 0) {
             $this->line("{$alreadyMigratedPatterns} patrones ya tenían v2 coincidente -- sin cambios (idempotencia).");
         }
+        if ($conflictPatterns > 0) {
+            $this->warn("{$conflictPatterns} patrones con conflicto de fingerprint v2 -- no se escribieron, requieren revisión.");
+        }
 
         return self::SUCCESS;
     }
@@ -202,7 +227,7 @@ class RemMigrateAutoFingerprintsCommand extends Command
                 $rows[] = [
                     $key,
                     $p['pattern_id'],
-                    $p['already_v2_matching'] ? 'ya migrado (sin cambio)' : 'pattern_fingerprint, fingerprint_version, pattern_rows',
+                    $this->describePendingWork($p),
                     substr((string) $p['live_canonical_fingerprint'], 0, 24),
                     implode(',', $p['live_rows']),
                 ];
@@ -210,5 +235,24 @@ class RemMigrateAutoFingerprintsCommand extends Command
         }
 
         $this->table(['Hoja/Sección', 'pattern_id', 'Campos a escribir', 'Fingerprint v2 (vigente)', 'Filas'], $rows);
+    }
+
+    private function describePendingWork(array $pattern): string
+    {
+        if ($pattern['already_v2_matching']) {
+            return 'ya migrado (sin cambio)';
+        }
+
+        if (! empty($pattern['conflicting_v2_question_ids'])) {
+            return 'CONFLICTO fingerprint v2 (no se escribe): '.implode(', ', $pattern['conflicting_v2_question_ids']);
+        }
+
+        $fields = $pattern['pending_technical_fields'] ?? [];
+        $questionIds = $pattern['incomplete_question_ids'] ?? [];
+        if ($fields === []) {
+            return 'pattern_fingerprint, fingerprint_version, pattern_rows';
+        }
+
+        return implode(', ', $fields).' en '.count($questionIds).' pregunta(s): '.implode(', ', $questionIds);
     }
 }

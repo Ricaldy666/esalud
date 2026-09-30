@@ -182,7 +182,9 @@ class PatternMigrationScanner
                 $patternResults[] = [
                     'pattern_id' => $pid, 'category' => PatternReconciliationService::MIGRATION_FULL_REVALIDATION,
                     'live_canonical_fingerprint' => $liveFingerprint, 'live_rows' => $liveRows,
-                    'already_v2_matching' => false, 'question_count' => 0,
+                    'already_v2_matching' => false,
+                    'pending_technical_fields' => [], 'incomplete_question_ids' => [], 'conflicting_v2_question_ids' => [],
+                    'question_count' => 0,
                     // Sin match por identidad (nuevo, o ambiguo/split/merge --
                     // ver matchLivePatternsToHistorical()): no hay filas
                     // historicas que ofrecer, nunca se adivina.
@@ -204,11 +206,24 @@ class PatternMigrationScanner
 
             if ($v2Question !== null) {
                 $agrees = $v2Question['pattern_fingerprint'] === $liveFingerprint;
+                // "Ya migrado" exige que TODAS las preguntas del patron esten
+                // completas, no solo la primera v2 encontrada. Hallazgo
+                // 2026-09-30 (produccion, A01/A P1-P4): preguntas
+                // patron_N_special con pattern_fingerprint "fpv2_..." pero sin
+                // fingerprint_version quedaban fuera de la migracion porque
+                // otra pregunta del patron ya era v2; reconcileLive() las
+                // trataba despues como legacy y comparaba fpv2 contra rowset
+                // -> requiere_revalidacion.
+                $completeness = $this->technicalCompleteness($patternQs, $liveFingerprint, $liveRows);
                 $patternResults[] = [
                     'pattern_id' => $pid,
                     'category' => $agrees ? PatternReconciliationService::MIGRATION_AUTO_MIGRATE : PatternReconciliationService::MIGRATION_MISMATCH,
                     'live_canonical_fingerprint' => $liveFingerprint, 'live_rows' => $liveRows,
-                    'already_v2_matching' => $agrees, 'question_count' => count($patternQs),
+                    'already_v2_matching' => $agrees && $completeness['incomplete_question_ids'] === [],
+                    'pending_technical_fields' => $completeness['pending_fields'],
+                    'incomplete_question_ids' => $completeness['incomplete_question_ids'],
+                    'conflicting_v2_question_ids' => $completeness['conflicting_question_ids'],
+                    'question_count' => count($patternQs),
                     // Hallazgo 2026-08-21 (verificacion UI del flujo MISMATCH):
                     // el path legacy ya exponia esto para mostrar "decision
                     // anterior" en el panel -- el path canonico (v2) nunca lo
@@ -248,11 +263,16 @@ class PatternMigrationScanner
 
             $historicalRows = $this->extractRowsFromQuestionText($patternQs[0]['question'] ?? '');
             $category = $this->reconciler->classifyLegacyPatternForMigration($historicalRows, $liveRows, $structureIdentical);
+            $completeness = $this->technicalCompleteness($patternQs, $liveFingerprint, $liveRows);
 
             $patternResults[] = [
                 'pattern_id' => $pid, 'category' => $category,
                 'live_canonical_fingerprint' => $liveFingerprint, 'live_rows' => $liveRows,
-                'already_v2_matching' => false, 'question_count' => count($patternQs),
+                'already_v2_matching' => false,
+                'pending_technical_fields' => $completeness['pending_fields'],
+                'incomplete_question_ids' => $completeness['incomplete_question_ids'],
+                'conflicting_v2_question_ids' => $completeness['conflicting_question_ids'],
+                'question_count' => count($patternQs),
                 // Resumen de la decision historica -- SOLO para mostrar en UI
                 // (Fase 3), nunca se usa para decidir la clasificacion.
                 'historical_answer' => $this->summarizeHistoricalAnswer($patternQs),
@@ -454,6 +474,81 @@ class PatternMigrationScanner
             $excludedHist[$pid] = true;
             $excludedLive[$liveId] = true;
         }
+    }
+
+    /**
+     * Estado tecnico v2 de CADA pregunta del patron frente al fingerprint y
+     * las filas vivas. Una pregunta esta completa solo si tiene
+     * fingerprint_version=2, pattern_fingerprint igual al canonico vivo y
+     * pattern_rows igual a las filas vivas (mismo contrato que escribe
+     * RemMigrateAutoFingerprintsCommand). Solo mira metadata tecnica --
+     * nunca response/review_status ni ningun campo de decision.
+     *
+     * Una pregunta con un fingerprint "fpv2_..." DISTINTO del vivo es un
+     * conflicto (otra huella canonica ya registrada), no un faltante: se
+     * reporta aparte para que el migrador nunca la sobrescriba en silencio.
+     *
+     * @return array{pending_fields: string[], incomplete_question_ids: string[], conflicting_question_ids: string[]}
+     */
+    private function technicalCompleteness(array $patternQs, ?string $liveFingerprint, array $liveRows): array
+    {
+        $pendingFields = [];
+        $incomplete = [];
+        $conflicting = [];
+
+        foreach ($patternQs as $index => $q) {
+            $questionId = (string) ($q['id'] ?? "#{$index}");
+            $state = $this->questionTechnicalState($q, $liveFingerprint, $liveRows);
+
+            if ($state['conflict']) {
+                $conflicting[] = $questionId;
+            }
+            if ($state['conflict'] || $state['missing'] !== []) {
+                $incomplete[] = $questionId;
+            }
+            foreach ($state['missing'] as $field) {
+                $pendingFields[$field] = true;
+            }
+        }
+
+        $order = ['pattern_fingerprint', 'fingerprint_version', 'pattern_rows'];
+
+        return [
+            'pending_fields' => array_values(array_filter($order, fn ($f) => isset($pendingFields[$f]))),
+            'incomplete_question_ids' => $incomplete,
+            'conflicting_question_ids' => $conflicting,
+        ];
+    }
+
+    /**
+     * Estado tecnico v2 de UNA pregunta de patron. Unico criterio usado por
+     * el scanner (already_v2_matching) y por RemMigrateAutoFingerprintsCommand
+     * (que preguntas escribir), para que nunca diverjan.
+     *
+     * @return array{missing: string[], conflict: bool}
+     */
+    public function questionTechnicalState(array $question, ?string $liveFingerprint, array $liveRows): array
+    {
+        $fingerprint = (string) ($question['pattern_fingerprint'] ?? '');
+        $missing = [];
+        $conflict = false;
+
+        if ($fingerprint !== '' && $fingerprint !== $liveFingerprint && str_starts_with($fingerprint, 'fpv2_')) {
+            $conflict = true;
+        } elseif ($fingerprint !== $liveFingerprint) {
+            $missing[] = 'pattern_fingerprint';
+        }
+
+        if ($this->reconciler->resolveFingerprintVersion($question) !== PatternReconciliationService::FINGERPRINT_VERSION_CANONICAL) {
+            $missing[] = 'fingerprint_version';
+        }
+
+        $rows = is_array($question['pattern_rows'] ?? null) ? $this->normalizeRows($question['pattern_rows']) : [];
+        if ($rows !== $this->normalizeRows($liveRows)) {
+            $missing[] = 'pattern_rows';
+        }
+
+        return ['missing' => $missing, 'conflict' => $conflict];
     }
 
     private function normalizeRows(array $rows): array
