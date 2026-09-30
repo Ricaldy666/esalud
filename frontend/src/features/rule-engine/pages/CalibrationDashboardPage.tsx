@@ -17,12 +17,6 @@ import type { CalibrationStructureTotals } from '../types/calibration'
 export default function CalibrationDashboardPage() {
   const navigate = useNavigate()
   const { data, isLoading } = useStructures({ per_page: 100 })
-  // BM-2: esta pantalla lista plantillas de todas las series pero solo
-  // conoce un resumen a la vez (matcheado por structure_id, ver TemplateCard
-  // mas abajo) -- sin un selector de serie real, se pide explicitamente la
-  // serie A (unica con estructura activa hoy). Agregar resumenes por cada
-  // serie es una mejora futura, fuera de alcance de BM-2.
-  const { data: summary, isLoading: summaryLoading } = useCalibrationSummary('A')
   const visibleStructures =
     data?.data.filter((structure) => structure.status !== 'superseded') ?? []
 
@@ -63,8 +57,6 @@ export default function CalibrationDashboardPage() {
             <TemplateCard
               key={structure.id}
               structure={structure}
-              totals={structure.id === summary?.structure_id ? summary.totals : undefined}
-              loadingProgress={summaryLoading}
               onOpen={() => navigate(`/calibracion/templates/${structure.id}`)}
             />
           ))}
@@ -74,17 +66,21 @@ export default function CalibrationDashboardPage() {
   )
 }
 
-function TemplateCard({
-  structure,
-  totals,
-  loadingProgress,
-  onOpen,
-}: {
-  structure: Structure
-  totals?: CalibrationStructureTotals
-  loadingProgress: boolean
-  onOpen: () => void
-}) {
+function TemplateCard({ structure, onOpen }: { structure: Structure; onOpen: () => void }) {
+  // Cada serie puede tener su propia estructura activa (A, BM, ...): cada
+  // tarjeta activa pide el resumen de SU serie. React Query deduplica por
+  // serie; las estructuras no activas no hacen ninguna consulta. El
+  // structure_id se sigue comparando como proteccion por si el resumen
+  // corresponde a otra estructura de la misma serie.
+  const isActive = structure.status === 'active'
+  const {
+    data: summary,
+    isLoading: loadingProgress,
+    isError: summaryFailed,
+  } = useCalibrationSummary(isActive ? structure.serie : undefined)
+  const totals: CalibrationStructureTotals | undefined =
+    isActive && summary?.structure_id === structure.id ? summary.totals : undefined
+
   const forms = structure.forms_detail?.length ?? structure.stats?.total_forms ?? 0
   const sections =
     structure.stats?.total_sections ??
@@ -118,10 +114,14 @@ function TemplateCard({
       </div>
 
       <div className="mt-5 border-t border-slate-100 pt-4">
-        {loadingProgress ? (
-          <p className="text-xs text-slate-400">Calculando progreso...</p>
-        ) : !totals ? (
+        {!isActive ? (
           <p className="text-xs text-slate-400">No aplica — no es la estructura activa</p>
+        ) : loadingProgress ? (
+          <p className="text-xs text-slate-400">Calculando progreso…</p>
+        ) : summaryFailed ? (
+          <p className="text-xs text-slate-400">No se pudo obtener el progreso de calibración</p>
+        ) : !totals ? (
+          <p className="text-xs text-slate-400">Progreso no disponible para esta estructura</p>
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
