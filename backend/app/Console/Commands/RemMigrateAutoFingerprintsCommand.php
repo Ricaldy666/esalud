@@ -39,6 +39,12 @@ use Illuminate\Console\Command;
  * AUTO_MIGRATE (por cualquier motivo, incluida una carrera con otro
  * proceso), se aborta el lote COMPLETO sin escribir nada -- nunca una
  * persistencia parcial.
+ *
+ * --section=Hoja_Seccion (opcional): el escaneo sigue siendo completo, pero
+ * el reporte y la escritura quedan limitados a esa unica seccion. Aborta sin
+ * escribir si la seccion no existe, no es AUTO_MIGRATE, o deja de serlo en
+ * la reverificacion previa al commit. Sin la opcion, comportamiento identico
+ * al de siempre.
  */
 class RemMigrateAutoFingerprintsCommand extends Command
 {
@@ -46,7 +52,8 @@ class RemMigrateAutoFingerprintsCommand extends Command
                             {--dry-run : Modo simulacion -- por defecto si no se pasa --commit}
                             {--commit : Persiste los cambios -- requiere --confirm y --target}
                             {--confirm= : Debe ser exactamente CONFIRMAR-MIGRACION-AUTO-V2 para habilitar --commit}
-                            {--target= : Ruta real a reglas-funcionales.json -- requerido con --commit}';
+                            {--target= : Ruta real a reglas-funcionales.json -- requerido con --commit}
+                            {--section= : Limita el analisis mostrado y la escritura a UNA seccion (clave Hoja_Seccion, ej. A01_A); debe ser AUTO_MIGRATE}';
 
     protected $description = 'Migra pattern_fingerprint/fingerprint_version/pattern_rows a v2 UNICAMENTE para secciones AUTO_MIGRATE reclasificadas en vivo -- dry-run por defecto, --commit para persistir';
 
@@ -59,6 +66,19 @@ class RemMigrateAutoFingerprintsCommand extends Command
             $this->error('--dry-run y --commit son mutuamente excluyentes.');
 
             return self::FAILURE;
+        }
+
+        // --section: null = comportamiento completo de siempre. Si se pasa la
+        // opcion, debe traer una clave no vacia (el valor exacto se valida
+        // contra el escaneo en vivo mas abajo).
+        $sectionFilter = null;
+        if ($this->input->hasParameterOption('--section')) {
+            $sectionFilter = trim((string) $this->option('section'));
+            if ($sectionFilter === '') {
+                $this->error('--section requiere una clave Hoja_Seccion (ej. --section=A01_A). No se escribio nada.');
+
+                return self::FAILURE;
+            }
         }
 
         $target = null;
@@ -88,6 +108,21 @@ class RemMigrateAutoFingerprintsCommand extends Command
 
         $sections = $scanner->scanAllSections($activeStructure);
         $candidates = array_filter($sections, fn ($s) => $s['category'] === PatternReconciliationService::MIGRATION_AUTO_MIGRATE);
+
+        if ($sectionFilter !== null) {
+            if (! isset($sections[$sectionFilter])) {
+                $this->error("--section={$sectionFilter}: la seccion no existe en la estructura activa. No se escribio nada.");
+
+                return self::FAILURE;
+            }
+            if (! isset($candidates[$sectionFilter])) {
+                $this->error("--section={$sectionFilter}: la seccion no es AUTO_MIGRATE (categoria actual: {$sections[$sectionFilter]['category']}). No se escribio nada.");
+
+                return self::FAILURE;
+            }
+            $candidates = [$sectionFilter => $candidates[$sectionFilter]];
+            $this->line("Filtro de seccion activo: solo {$sectionFilter}.");
+        }
 
         $this->reportCandidates($candidates);
 
@@ -132,6 +167,9 @@ class RemMigrateAutoFingerprintsCommand extends Command
 
         foreach ($freshSections as $key => $section) {
             if ($section['category'] !== PatternReconciliationService::MIGRATION_AUTO_MIGRATE) {
+                continue;
+            }
+            if ($sectionFilter !== null && $key !== $sectionFilter) {
                 continue;
             }
 
